@@ -1,0 +1,60 @@
+
+<div class="container-fluid">
+  <h1 class="mb-4">Quản Lí Kho Mượn</h1>
+
+  <div class="nav nav-pills mb-3">
+    <button class="nav-link" [class.active]="currentFilter === 'ALL'" (click)="applyFilter('ALL')">Tất Cả</button>
+    <button class="nav-link" [class.active]="currentFilter === 'ACTIVE'" (click)="applyFilter('ACTIVE')">Đang Mượn</button>
+    <button class="nav-link" [class.active]="currentFilter === 'OVERDUE'" (click)="applyFilter('OVERDUE')">Quá Hạn</button>
+    <button class="nav-link" [class.active]="currentFilter === 'RETURNED'" (click)="applyFilter('RETURNED')">Đã Trả</button>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center my-5">
+    <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div *ngIf="!isLoading && !errorMessage" class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>ID Mượn</th>
+          <th>Tên Sách</th>
+          <th>Tên Người Dùng</th>
+          <th>Ngày Mượn</th>
+          <th>Ngày Hết Hạn</th>
+          <th>Ngày Trả</th>
+          <th>Trạng Thái</th>
+          <th>Hành Động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="filteredLoans.length === 0">
+          <td colspan="8" class="text-center text-muted py-4">Không tìm thấy khoản vay nào cho bộ lọc này.</td>
+        </tr>
+        <tr *ngFor="let loan of filteredLoans">
+          <td>{{ loan.loanId }}</td>
+          <td>{{ loan.bookName }}</td>
+          <td>{{ loan.userName }}</td>
+          <td>{{ loan.loanDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ loan.dueDate | date:'dd/MM/yyyy' }}</td>
+          <td>{{ loan.returnDate ? (loan.returnDate | date:'dd/MM/yyyy') : '-' }}</td>
+          <td>
+            <span class="badge" [ngClass]="{
+              'bg-success': loan.status === 'ACTIVE',
+              'bg-danger': loan.status === 'OVERDUE',
+              'bg-secondary': loan.status === 'RETURNED'
+            }">{{ loan.status }}</span>
+          </td>
+          <td>
+            <button *ngIf="loan.status === 'ACTIVE' || loan.status === 'OVERDUE'"
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="markAsReturned(loan.loanId)">
+              Đánh Dấu Là Đã Trả
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

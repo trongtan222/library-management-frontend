@@ -1,0 +1,93 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+
+      <h2 class="mb-4">Chỉnh Sửa Sách</h2>
+
+      <!-- Thông báo lỗi -->
+      <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+      <!-- Đang tải -->
+      <div *ngIf="loading" class="alert alert-info">Loading...</div>
+
+      <form (ngSubmit)="onSubmit()" *ngIf="!loading && !error" autocomplete="off">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="bookName" class="form-label">Tên Sách</label>
+            <input
+              id="bookName"
+              type="text"
+              class="form-control"
+              name="bookName"
+              [(ngModel)]="book.bookName"
+              required
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label for="bookAuthor" class="form-label">Tác Giả</label>
+            <input
+              id="bookAuthor"
+              type="text"
+              class="form-control"
+              name="bookAuthor"
+              [(ngModel)]="book.bookAuthor"
+              required
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label for="bookGenre" class="form-label">Thể Loại</label>
+            <input
+              id="bookGenre"
+              type="text"
+              class="form-control"
+              name="bookGenre"
+              [(ngModel)]="book.bookGenre"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label for="noOfCopies" class="form-label">Số Lượng Bản Sao</label>
+            <input
+              id="noOfCopies"
+              type="number"
+              class="form-control"
+              name="noOfCopies"
+              [(ngModel)]="book.noOfCopies"
+              min="0"
+              required
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label for="publishedYear" class="form-label">Năm Xuất Bản</label>
+            <input
+              id="publishedYear"
+              type="number"
+              class="form-control"
+              name="publishedYear"
+              [(ngModel)]="book.publishedYear"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label for="isbn" class="form-label">ISBN</label>
+            <input
+              id="isbn"
+              type="text"
+              class="form-control"
+              name="isbn"
+              [(ngModel)]="book.isbn"
+            />
+          </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-success" type="submit" [disabled]="loading">Lưu</button>
+          <a class="btn btn-outline" [routerLink]="['/books']">Hủy</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

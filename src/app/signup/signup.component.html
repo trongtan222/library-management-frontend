@@ -1,0 +1,85 @@
+<main class="auth">
+  <div class="auth-bg" aria-hidden="true"></div>
+
+  <section class="auth-card card">
+    <h1>Tạo tài khoản</h1>
+    <p class="subtitle">Tạo tài khoản của bạn để bắt đầu mượn sách.</p>
+
+    <form #signupForm="ngForm" (ngSubmit)="signup(signupForm)" autocomplete="off" novalidate>
+      <div class="field">
+        <label for="name">Họ và tên</label>
+        <input id="name" name="name" type="text" placeholder="Nguyễn Văn A" 
+               [(ngModel)]="model.name" required #name="ngModel"
+               [class.is-invalid]="(name.invalid && name.touched) || fieldErrors['name']">
+        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="invalid-feedback">
+          <span *ngIf="name.errors?.['required']">Vui lòng nhập họ và tên.</span>
+        </div>
+        <div *ngIf="fieldErrors['name']" class="invalid-feedback">{{ fieldErrors['name'] }}</div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="your.email@example.com"
+               [(ngModel)]="model.email" required email #email="ngModel"
+               [class.is-invalid]="(email.invalid && email.touched) || fieldErrors['email']">
+        <div *ngIf="email.invalid && (email.dirty || email.touched)" class="invalid-feedback">
+          <span *ngIf="email.errors?.['required']">Email là bắt buộc.</span>
+          <span *ngIf="email.errors?.['email']">Vui lòng nhập một địa chỉ email hợp lệ.</span>
+        </div>
+        <div *ngIf="fieldErrors['email']" class="invalid-feedback">{{ fieldErrors['email'] }}</div>
+      </div>
+
+      <div class="field">
+        <label for="username">Tên đăng nhập</label>
+        <input id="username" name="username" type="text" placeholder="tendangnhap"
+               [(ngModel)]="model.username" required minlength="3" #username="ngModel"
+               [class.is-invalid]="(username.invalid && username.touched) || fieldErrors['username']">
+        <div *ngIf="username.invalid && (username.dirty || username.touched)" class="invalid-feedback">
+          <span *ngIf="username.errors?.['required']">Tên đăng nhập là bắt buộc.</span>
+          <span *ngIf="username.errors?.['minlength']">Tên đăng nhập phải có ít nhất 3 ký tự.</span>
+        </div>
+        <div *ngIf="fieldErrors['username']" class="invalid-feedback">{{ fieldErrors['username'] }}</div>
+      </div>
+
+      <div class="field password-group">
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" [type]="showPassword ? 'text' : 'password'"
+               [(ngModel)]="model.password" required minlength="6" #password="ngModel"
+               [class.is-invalid]="(password.invalid && password.touched) || fieldErrors['password']">
+        <button type="button" class="btn-show-hide" (click)="toggleShowPassword()">
+          <i class="fa" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+        </button>
+        <div *ngIf="password.invalid && (password.dirty || password.touched)" class="invalid-feedback">
+          <span *ngIf="password.errors?.['required']">Mật khẩu là bắt buộc.</span>
+          <span *ngIf="password.errors?.['minlength']">Mật khẩu phải có ít nhất 6 ký tự.</span>
+        </div>
+         <div *ngIf="fieldErrors['password']" class="invalid-feedback">{{ fieldErrors['password'] }}</div>
+      </div>
+      
+      <div class="field password-group">
+        <label for="confirmPassword">Xác nhận mật khẩu</label>
+        <input id="confirmPassword" name="confirmPassword" [type]="showConfirmPassword ? 'text' : 'password'"
+               [(ngModel)]="model.confirmPassword" required #confirmPassword="ngModel"
+               [class.is-invalid]="confirmPassword.touched && (confirmPassword.invalid || model.password !== model.confirmPassword)">
+        <button type="button" class="btn-show-hide" (click)="toggleShowConfirmPassword()">
+          <i class="fa" [ngClass]="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+        </button>
+        <div *ngIf="confirmPassword.touched && model.password !== model.confirmPassword" class="invalid-feedback">
+          Mật khẩu không khớp.
+        </div>
+      </div>
+      
+      <p *ngIf="errorMessage" class="text-danger small">{{ errorMessage }}</p>
+
+      <button class="btn btn-block" type="submit" [disabled]="isLoading || signupForm.invalid">
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
+        {{ isLoading ? 'Đang xử lý...' : 'Đăng ký' }}
+      </button>
+
+      <p class="small mt-2 text-center">
+        Đã có tài khoản?
+        <a class="link" routerLink="/login">Đăng nhập</a>
+      </p>
+    </form>
+  </section>
+</main>

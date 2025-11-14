@@ -1,0 +1,37 @@
+<div class="container col-md-6 offset-md-3 mt-5">
+  <h3 class="text-center">Tạo Người Dùng Mới</h3>
+  <form (ngSubmit)="onSubmit()" #userForm="ngForm">
+    <div class="form-group mb-3">
+      <label class="form-label">Tên</label>
+      <input type="text" class="form-control" [(ngModel)]="user.name" name="name" required>
+    </div>
+
+    <div class="form-group mb-3">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" [(ngModel)]="user.email" name="email" required email #email="ngModel"
+             [class.is-invalid]="email.invalid && email.touched">
+      <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
+        <span *ngIf="email.errors?.['required']">Vui lòng nhập email.</span>
+        <span *ngIf="email.errors?.['email']">Vui lòng nhập một địa chỉ email hợp lệ.</span>
+      </div>
+    </div>
+
+    <div class="form-group mb-3">
+      <label class="form-label">Tên Đăng Nhập</label>
+      <input type="text" class="form-control" [(ngModel)]="user.username" name="username" required>
+    </div>
+    <div class="form-group mb-3">
+      <label class="form-label">Mật Khẩu</label>
+      <input type="password" class="form-control" [(ngModel)]="user.password" name="password" required>
+    </div>
+    <div class="form-group mb-3">
+      <label class="form-label">Vai Trò</label>
+      <input type="text" class="form-control" [(ngModel)]="user.roles" name="roles">
+      <div class="form-text">Nhập vai trò cách nhau bằng dấu phẩy (ví dụ: ROLE_USER, ROLE_ADMIN)</div>
+    </div>
+    <button class="btn btn-success" type="submit" [disabled]="isLoading || userForm.invalid">
+      <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
+      {{ isLoading ? 'Đang Tạo...' : 'Tạo Người Dùng' }}
+    </button>
+  </form>
+</div>

@@ -1,0 +1,18 @@
+.table {
+    background-color: #212529;
+    color: #dee2e6;
+}
+.table thead th {
+    border-bottom: 2px solid #454d55;
+}
+.table-hover tbody tr:hover {
+    color: #fff;
+    background-color: #32383e;
+}
+a {
+    color: #a5b4fc;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}

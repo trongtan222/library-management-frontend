@@ -1,0 +1,46 @@
+h2 {
+  font-weight: 800;
+  color: #f0f6fc;
+}
+
+/* --- Table Styles --- */
+.table {
+  /* Ghi đè các biến màu của Bootstrap để khớp với theme tối */
+  --bs-table-color: var(--text);
+  --bs-table-bg: var(--card);
+  --bs-table-border-color: var(--border);
+  --bs-table-hover-bg: rgba(139, 148, 158, 0.1);
+
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead th {
+  color: var(--text-muted);
+  background-color: var(--bg-soft);
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* --- Alert Info --- */
+.alert-info {
+  background-color: rgba(56, 139, 253, 0.15);
+  color: #79c0ff;
+  border-color: rgba(56, 139, 253, 0.3);
+}
+
+/* --- Modal Styles --- */
+.dark-modal {
+  background: var(--bg-soft);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.dark-modal .modal-header,
+.dark-modal .modal-footer {
+  border-color: var(--border);
+}

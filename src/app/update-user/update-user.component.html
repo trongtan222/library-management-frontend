@@ -1,0 +1,22 @@
+<div class="container col-md-6 offset-mid-3">
+    <h3 class="text-center">Chỉnh Sửa Người Dùng</h3>
+    <form (ngSubmit)="onSubmit()" autocomplete="off">
+        <div class="form-group mb-3">
+            <label>Tên</label>
+            <input type="text" class="form-control" [(ngModel)]="user.name" name="name">
+        </div>
+
+        <div class="form-group mb-3">
+            <label>Tên Đăng Nhập</label>
+            <input type="text" class="form-control" [(ngModel)]="user.username" name="username">
+        </div>
+
+        <div class="form-group mb-3">
+            <label>Vai Trò</label>
+            <input type="text" class="form-control" [(ngModel)]="user.roles" name="roles">
+            <div class="form-text">Nhập vai trò cách nhau bằng dấu phẩy (ví dụ: ROLE_USER, ROLE_ADMIN)</div>
+        </div>
+
+        <button class="btn btn-success" type="submit">Gửi</button>
+    </form>
+</div>

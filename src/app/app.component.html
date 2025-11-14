@@ -1,0 +1,15 @@
+<app-header></app-header>
+
+<ng-container *ngIf="isHomeRoute; else normalLayout">
+  <main class="main-shell">
+    <router-outlet></router-outlet>
+  </main>
+</ng-container>
+
+<ng-template #normalLayout>
+  <main class="main-shell container py-4">
+    <router-outlet></router-outlet>
+  </main>
+</ng-template>
+
+<app-chatbot></app-chatbot>

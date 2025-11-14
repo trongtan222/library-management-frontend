@@ -1,0 +1,112 @@
+/* ===========================
+   Login Page Styles
+   =========================== */
+
+/* --- Bố cục & Nền trang --- */
+.auth {
+  min-height: calc(100vh - 64px);
+  display: grid;
+  place-items: center;
+  padding: 48px 16px;
+  position: relative;
+  overflow: hidden;
+}
+.auth-bg::before, .auth-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.auth-bg::before {
+  background:
+    radial-gradient(420px 220px at 15% 15%, rgba(167,139,250,.18), transparent 70%),
+    radial-gradient(560px 280px at 80% 5%, rgba(88, 166, 255, 0.2), transparent 72%);
+}
+
+/* --- Thẻ Form Đăng Nhập --- */
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 2.5rem;
+  border-radius: var(--radius-lg, 16px);
+  background: var(--card, rgba(33, 38, 45, 0.7));
+  border: 1px solid var(--border, rgba(139, 148, 158, 0.2));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+/* --- Chữ & Tiêu đề --- */
+.auth-card h1 {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f0f6fc;
+}
+.subtitle {
+  margin: 0 0 2rem;
+  text-align: center;
+  color: var(--text-muted, #8b949e);
+}
+
+/* --- Trường Nhập Liệu --- */
+.field {
+  margin-bottom: 1.5rem;
+}
+.field label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-muted, #8b949e);
+  font-weight: 600;
+}
+.field input {
+  width: 100%;
+  /* Các thuộc tính này sẽ kế thừa từ styles.css, không cần ghi đè nếu không cần thiết */
+}
+.hint {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-muted, #8b949e);
+  font-size: 0.8rem;
+  opacity: .85;
+}
+
+/* --- Tùy chọn & Liên kết --- */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.9rem;
+}
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+}
+.remember input[type="checkbox"] {
+  width: auto;
+}
+.link {
+  font-weight: 600;
+}
+
+/* --- Nút Đăng Nhập --- */
+.btn-block {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f0f6fc;
+  background-color: aqua;
+}
+/* QUAN TRỌNG: Đảm bảo nút hiển thị ngay cả khi bị vô hiệu hóa */
+.btn-block:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--accent); /* Giữ màu nền để nút không bị "biến mất" */
+}

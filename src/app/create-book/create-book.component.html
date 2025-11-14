@@ -1,0 +1,77 @@
+<div class="container mt-5">
+  <div class="card p-4 mx-auto" style="max-width: 600px;">
+    <h2>Tạo Sách Mới</h2>
+    <hr>
+
+    <form (ngSubmit)="saveBook(bookForm)" #bookForm="ngForm">
+      
+      <div class="mb-3">
+        <label for="name" class="form-label">Tên Sách</label>
+        <input type="text" class="form-control" id="name" name="name" 
+               [(ngModel)]="book.name" required #name="ngModel">
+        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="text-danger mt-1">
+          Tên sách là bắt buộc.
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="authorIds" class="form-label">Tác Giả</label>
+        <select multiple class="form-select" id="authorIds" name="authorIds"
+                [(ngModel)]="book.authorIds" required #authorIds="ngModel" [size]="5">
+          <option *ngFor="let author of allAuthors" [ngValue]="author.id">
+            {{ author.name }}
+          </option>
+        </select>
+        <div *ngIf="authorIds.invalid && (authorIds.dirty || authorIds.touched)" class="text-danger mt-1">
+          Vui lòng chọn ít nhất 1 tác giả.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="categoryIds" class="form-label">Thể Loại</label>
+        <select multiple class="form-select" id="categoryIds" name="categoryIds"
+                [(ngModel)]="book.categoryIds" required #categoryIds="ngModel" [size]="5">
+          <option *ngFor="let category of allCategories" [ngValue]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+        <div *ngIf="categoryIds.invalid && (categoryIds.dirty || categoryIds.touched)" class="text-danger mt-1">
+          Vui lòng chọn ít nhất 1 thể loại.
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="numberOfCopiesAvailable" class="form-label">Số Lượng Bản Sao</label>
+          <input type="number" class="form-control" id="numberOfCopiesAvailable" name="numberOfCopiesAvailable" 
+                 [(ngModel)]="book.numberOfCopiesAvailable" required min="0" #noOfCopies="ngModel">
+          <div *ngIf="noOfCopies.invalid && (noOfCopies.dirty || noOfCopies.touched)" class="text-danger mt-1">
+            Vui lòng nhập số lượng bản sao hợp lệ.
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="publishedYear" class="form-label">Năm Xuất Bản</label>
+          <input type="number" class="form-control" id="publishedYear" name="publishedYear" 
+                 [(ngModel)]="book.publishedYear">
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="isbn" class="form-label">ISBN</label>
+        <input type="text" class="form-control" id="isbn" name="isbn" 
+               [(ngModel)]="book.isbn">
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-danger">
+        {{ errorMessage }}
+      </div>
+
+      <div class="d-grid">
+        <button class="btn btn-success" type="submit" [disabled]="submitting || bookForm.invalid">
+          {{ submitting ? 'Submitting...' : 'Submit' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

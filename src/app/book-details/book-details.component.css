@@ -1,0 +1,82 @@
+/* --- Bố cục và nền cho thẻ chính --- */
+.book-details-card {
+  background-color: rgba(31, 41, 55, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #d1d5db; /* Màu chữ mặc định cho toàn bộ thẻ */
+  padding: 1.5rem;
+  border-radius: 1rem;
+}
+
+/* --- Sửa lỗi màu chữ cho các thành phần cụ thể --- */
+.card-title {
+  color: #f9fafb;
+  font-weight: bold;
+  font-size: 2.25rem;
+}
+
+.card-subtitle {
+  color: #9ca3af;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.card-body p, .card-body span {
+  color: #d1d5db;
+}
+
+.card-body strong {
+  color: #e5e7eb;
+}
+
+.badge {
+  font-size: 0.9em;
+}
+
+.text-muted {
+  color: #9ca3af !important;
+}
+
+/* --- Hình ảnh bìa sách --- */
+.book-cover-img {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  background-color: #374151; /* Màu nền cho ảnh khi đang tải */
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- CSS CHO PHẦN ĐÁNH GIÁ --- */
+.star-rating {
+  direction: rtl; /* Đảo ngược thứ tự để tô màu từ trái sang phải dễ hơn */
+  display: inline-block;
+}
+.star-rating span {
+  font-size: 2rem;
+  color: #4b5563; /* Màu sao mặc định (xám) */
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.star-rating span:hover,
+.star-rating span:hover ~ span,
+.star-rating span.selected,
+.star-rating span.selected ~ span {
+  color: #ffc107; /* Màu vàng khi được chọn hoặc hover */
+}
+
+.review-item {
+  background-color: #1f2937 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.average-rating strong {
+    color: #ffc107;
+}
+
+.bg-dark {
+    background-color: #111827 !important;
+}

@@ -1,0 +1,134 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Danh sách sách có sẵn trong thư viện</h2>
+
+  <div *ngIf="successMessage" class="alert alert-success" role="alert">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
+    {{ errorMessage }}
+  </div>
+
+  <div class="filter-card mb-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-5">
+        <input type="text" class="form-control" placeholder="Tìm theo tên sách hoặc tác giả..."
+               [(ngModel)]="searchTerm" (input)="onFilterChange()">
+      </div>
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="selectedGenre" (change)="onFilterChange()">
+          <option value="">Tất cả thể loại</option>
+          <option *ngFor="let genre of genres" [value]="genre">{{ genre }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-secondary w-100" (click)="resetFilters()">Đặt lại</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="pagination-info">
+      Trang {{ currentPage }} / {{ totalPages }}. Tổng {{ totalElements }} kết quả.
+    </span>
+    <nav>
+      <ul class="pagination mb-0">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <a class="page-link" href="javascript:void(0)" (click)="goToPage(currentPage - 1)">&laquo;</a>
+        </li>
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <a class="page-link" href="javascript:void(0)" (click)="goToPage(currentPage + 1)">&raquo;</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tên sách</th>
+        <th>Tác giả</th>
+        <th>Thể loại</th>
+        <th>Năm XB</th>
+        <th>ISBN</th>
+        <th>Có sẵn</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngIf="books.length === 0">
+        <td colspan="8" class="text-center text-muted py-4">Không tìm thấy sách nào.</td>
+      </tr>
+      <tr *ngFor="let book of books">
+        <td>{{ book.id }}</td>
+        <td>
+          <a [routerLink]="['/books', book.id]" class="book-title-link">{{ book.name }}</a>
+        </td>
+        <td>
+          <span *ngFor="let a of book.authors; let last = last">{{ a.name }}{{ !last ? ', ' : '' }}</span>
+        </td>
+        <td>
+          <span *ngFor="let c of book.categories; let last = last">{{ c.name }}{{ !last ? ', ' : '' }}</span>
+        </td>
+        <td>{{ book.publishedYear || '-' }}</td>
+        <td>{{ book.isbn || '-' }}</td>
+        <td [class.text-danger]="book.numberOfCopiesAvailable === 0">{{ book.numberOfCopiesAvailable }}</td>
+        <td>
+            <div class="btn-group">
+                <button class="btn btn-primary btn-sm" (click)="openBorrowModal(book)" [disabled]="book.numberOfCopiesAvailable === 0 || loading.has(book.id)">
+                    <span *ngIf="loading.has(book.id)" class="spinner-border spinner-border-sm"></span>
+                    <span *ngIf="!loading.has(book.id)">Mượn</span>
+                </button>
+                <button class="btn btn-warning btn-sm" (click)="openReserveModal(book)" [disabled]="loading.has(book.id)">
+                    <span *ngIf="loading.has(book.id)" class="spinner-border spinner-border-sm"></span>
+                    <span *ngIf="!loading.has(book.id)">Đặt trước</span>
+                </button>
+            </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="modal fade show" [ngStyle]="{display: showModal ? 'block' : 'none'}" *ngIf="showModal">
+  <div class="modal-dialog">
+    <div class="modal-content dark-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">Xác nhận mượn sách</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeBorrowModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="selectedBook">Bạn có chắc muốn mượn sách "<strong>{{ selectedBook.name }}</strong>"?</p>
+        <div class="form-group">
+          <label for="loanDays" class="form-label">Thời gian mượn (ngày):</label>
+          <input type="number" id="loanDays" class="form-control" [(ngModel)]="loanDays" min="1" max="30">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeBorrowModal()">Hủy</button>
+        <button type="button" class="btn btn-primary" (click)="confirmBorrow()">Xác nhận</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="showModal"></div>
+
+<div class="modal fade show" [ngStyle]="{display: showReserveModal ? 'block' : 'none'}" *ngIf="showReserveModal">
+  <div class="modal-dialog">
+    <div class="modal-content dark-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">Xác nhận đặt trước sách</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeReserveModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="selectedBook">Bạn có chắc muốn đặt trước sách "<strong>{{ selectedBook.name }}</strong>"?</p>
+        <p class="text-muted small">Bạn sẽ nhận được thông báo khi sách có sẵn để mượn.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeReserveModal()">Hủy</button>
+        <button type="button" class="btn btn-warning" (click)="confirmReserve()">Xác nhận đặt trước</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="showReserveModal"></div>

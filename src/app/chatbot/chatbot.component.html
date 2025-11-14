@@ -1,0 +1,26 @@
+<div class="chatbot-container" *ngIf="isUser">
+  <button class="chat-fab" (click)="toggleChat()">
+    <i class="fas fa-robot"></i>
+  </button>
+
+  <div class="chat-window" [class.open]="isOpen">
+    <div class="chat-header">
+      <h5>Library Assistant</h5>
+      <button class="btn-close" (click)="toggleChat()"></button>
+    </div>
+    <div class="chat-body" #chatBody>
+      <div *ngFor="let message of messages" class="message" [ngClass]="message.author">
+        <p [innerHTML]="message.text"></p>
+      </div>
+      <div *ngIf="isLoading" class="message bot">
+        <span class="spinner-grow spinner-grow-sm"></span>
+      </div>
+    </div>
+    <div class="chat-footer">
+      <form (ngSubmit)="sendMessage()">
+        <input type="text" [(ngModel)]="currentMessage" name="currentMessage" placeholder="Ask about books..." [disabled]="isLoading">
+        <button type="submit" [disabled]="isLoading || !currentMessage.trim()">Send</button>
+      </form>
+    </div>
+  </div>
+</div>

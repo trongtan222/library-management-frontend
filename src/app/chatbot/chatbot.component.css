@@ -1,0 +1,88 @@
+.chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+}
+.chat-fab {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--accent, #6366f1);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+.chat-window {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 350px;
+    height: 500px;
+    background-color: #1f2937;
+    border: 1px solid var(--border, #4b5563);
+    border-radius: var(--radius-lg, 18px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease-out;
+}
+.chat-window.open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border, #4b5563);
+}
+.chat-header h5 { margin: 0; color: #f9fafb; }
+.btn-close { filter: invert(1) brightness(2); }
+.chat-body { flex-grow: 1; padding: 1rem; overflow-y: auto; }
+.message {
+    margin-bottom: 1rem;
+    max-width: 85%;
+}
+.message p {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    word-wrap: break-word;
+}
+.message.user {
+    margin-left: auto;
+    text-align: right;
+}
+.message.user p {
+    background-color: var(--accent, #6366f1);
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+.message.bot p {
+    background-color: #374151;
+    color: #d1d5db;
+    border-bottom-left-radius: 0.25rem;
+}
+.chat-footer { padding: 0.5rem; border-top: 1px solid var(--border, #4b5563); }
+.chat-footer form { display: flex; gap: 0.5rem; }
+.chat-footer input {
+    flex-grow: 1;
+    background-color: #374151;
+    color: #f9fafb;
+    border: 1px solid #4b5563;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+}
+.chat-footer button {
+    background-color: transparent;
+    border: none; color: var(--accent, #6366f1);
+    font-weight: bold;
+}

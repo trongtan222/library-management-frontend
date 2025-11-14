@@ -1,0 +1,76 @@
+/* Tùy chỉnh Header để phù hợp với theme mới */
+.site-header {
+  backdrop-filter: saturate(140%) blur(8px);
+  background: rgba(13, 16, 32, 0.75);
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0;
+  position: sticky; /* Đảm bảo position được thiết lập */
+  top: 0;
+  z-index: 1050; /* <-- THAY ĐỔI DÒNG NÀY */
+}
+
+.navbar-brand {
+  font-weight: 800;
+  letter-spacing: .2px;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 0.75rem 1rem !important;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s, background-color 0.2s, text-shadow 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.05);
+  text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+}
+
+.nav-link i {
+  width: 1.2em;
+  text-align: center;
+}
+
+.dropdown-menu {
+  background-color: var(--bg-soft);
+  border: 1px solid var(--border);
+  z-index: 1051; /* Đảm bảo dropdown cũng có z-index cao */
+}
+.dropdown-item {
+  color: var(--text-muted);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.dropdown-item i {
+  width: 1.2em;
+  text-align: center;
+}
+.dropdown-item:hover, .dropdown-item:focus {
+  color: #fff;
+  background-color: rgba(88, 166, 255, 0.1);
+}
+
+.btn-sm {
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+}
+
+.navbar-text {
+  color: var(--text-muted);
+}

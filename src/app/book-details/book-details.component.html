@@ -1,0 +1,94 @@
+<div class="container mt-5">
+  <div *ngIf="isLoading" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Đang tải...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="book && !isLoading" class="card book-details-card">
+    <div class="row g-0">
+      <div class="col-md-4 text-center text-md-start">
+        <img [src]="book.coverUrl || 'https://placehold.co/300x450/374151/f9fafb?text=No+Cover'" 
+             class="book-cover-img" 
+             alt="Bìa sách {{ book.name }}">
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h2 class="card-title">{{ book.name }}</h2>
+          <h5 class="card-subtitle mb-2">bởi 
+            <span *ngFor="let a of book.authors; let last = last">{{ a.name }}{{ !last ? ', ' : '' }}</span>
+          </h5>
+          <p class="card-text">
+            <span *ngFor="let c of book.categories" class="badge bg-secondary me-2">{{ c.name }}</span>
+            <span class="text-muted">Xuất bản năm {{ book.publishedYear }}</span>
+          </p>
+          <hr>
+          <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+          <p><strong>Số bản sao có sẵn:</strong> 
+            <span [ngClass]="book.numberOfCopiesAvailable > 0 ? 'text-success' : 'text-danger'">
+              {{ book.numberOfCopiesAvailable }}
+            </span>
+          </p>
+          
+          <p class="mt-4">
+            Đây là phần mô tả sách mẫu. Một ứng dụng thực tế sẽ có tóm tắt nội dung sách ở đây.
+          </p>
+          
+          <button *ngIf="isUser" class="btn btn-primary mt-3" (click)="navigateToBorrow()" [disabled]="book.numberOfCopiesAvailable === 0">
+            Tới Trang Mượn Sách
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="book && !isLoading" class="reviews-section mt-4">
+    <hr>
+    <h4>Đánh giá từ độc giả</h4>
+
+    <div *ngIf="reviewsSummary" class="average-rating mb-3">
+      <ng-container *ngIf="reviewsSummary.averageRating > 0; else noReviews">
+        <span>Đánh giá trung bình: <strong>{{ reviewsSummary.averageRating | number:'1.1-1' }} / 5 ★</strong></span>
+      </ng-container>
+      <ng-template #noReviews>
+        <p class="text-muted">Chưa có đánh giá nào cho sách này.</p>
+      </ng-template>
+    </div>
+
+    <div *ngIf="isUser && !isCheckingPermission && userCanReview" class="card my-4 p-3 bg-dark text-light">
+      <h5>Viết đánh giá của bạn</h5>
+      <form (ngSubmit)="submitReview()">
+        <div class="mb-2">
+          <label class="form-label">Điểm số của bạn:</label>
+          <div class="star-rating">
+            <span *ngFor="let star of [5,4,3,2,1]" 
+                  (click)="newReview.rating = star"
+                  [class.selected]="star <= newReview.rating">★</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <textarea class="form-control" [(ngModel)]="newReview.comment" name="comment" rows="3" placeholder="Viết bình luận của bạn (tùy chọn)"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Gửi Đánh Giá</button>
+      </form>
+    </div>
+    
+    <div *ngIf="isUser && !isCheckingPermission && !userCanReview" class="alert alert-info">
+      Cảm ơn bạn đã đánh giá sách này!
+    </div>
+
+
+    <div *ngIf="reviewsSummary && reviewsSummary.reviews.length > 0" class="review-list">
+      <div *ngFor="let review of reviewsSummary.reviews" class="review-item card card-body mb-2 bg-dark text-light">
+        <strong>{{ review.userName }}</strong>
+        <span class="text-warning">{{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating) }}</span>
+        <p class="mb-0 mt-1">{{ review.comment }}</p>
+        <small class="text-muted mt-1">{{ review.createdAt | date:'dd/MM/yyyy' }}</small>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<h2>Lịch Sử Mượn Sách Của {{ user.name }}</h2>
+<table class="table table-info table-striped">
+    <thead>
+        <tr>
+            <th> Tên Sách </th>
+            <th> Ngày Mượn </th>
+            <th> Ngày Trả </th>
+            <th> Trạng Thái </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let borrower of borrow">
+            <td> {{ borrower.bookName }} </td>
+            <td> {{ borrower.loanDate | date:'dd/MM/yyyy' }} </td>
+            <td> 
+                {{ borrower.returnDate ? (borrower.returnDate | date:'dd/MM/yyyy') : 'Chưa trả sách' }} 
+            </td>
+            <td>
+                <span class="badge" [ngClass]="{
+                    'bg-success': borrower.status === 'ACTIVE',
+                    'bg-danger': borrower.status === 'OVERDUE',
+                    'bg-secondary': borrower.status === 'RETURNED'
+                }">{{ borrower.status }}</span>
+            </td>
+        </tr>
+    </tbody>
+</table>

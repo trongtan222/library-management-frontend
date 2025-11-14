@@ -1,0 +1,58 @@
+/* src/app/users-list/users-list.component.css */
+
+/* Custom styles for the user list table to match the dark theme */
+
+h2 {
+  font-weight: 800;
+  color: #f0f6fc;
+  margin-bottom: 1.5rem;
+}
+
+.table {
+  /* Ghi đè màu nền và màu chữ của bảng */
+  --bs-table-color: var(--text); /* Màu chữ chính từ theme */
+  --bs-table-bg: var(--card); /* Màu nền thẻ từ theme */
+  --bs-table-border-color: var(--border);
+  --bs-table-striped-bg: rgba(139, 148, 158, 0.05); /* Làm cho màu sọc tinh tế hơn */
+  --bs-table-hover-bg: rgba(139, 148, 158, 0.1);
+
+  border-radius: var(--radius-md);
+  overflow: hidden; /* Đảm bảo bo góc được áp dụng cho bảng */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Tăng độ tương phản cho header của bảng */
+.table thead th {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  background-color: var(--bg-soft);
+}
+
+/* Đảm bảo các ô dữ liệu có màu chữ đúng */
+.table td {
+  color: var(--text);
+  vertical-align: middle;
+}
+
+/* Tùy chỉnh các nút bấm */
+.btn-info {
+  background-color: #3178c6;
+  color: #fff;
+  border: none;
+}
+
+.btn-warning {
+  background-color: #d29922;
+  color: #0d1117; /* Chữ màu tối để nổi bật trên nền vàng */
+  border: none;
+}
+
+.btn-danger {
+  background-color: #da3633;
+  color: #fff;
+  border: none;
+}

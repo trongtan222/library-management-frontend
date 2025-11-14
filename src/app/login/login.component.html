@@ -1,0 +1,35 @@
+<main class="auth">
+  <div class="auth-bg" aria-hidden="true"></div>
+
+  <section class="auth-card card">
+    <h1>Đăng nhập</h1>
+    <p class="subtitle">Chào mừng trở lại! Vui lòng đăng nhập để tiếp tục.</p>
+
+    <form (ngSubmit)="onSubmit(f)" #f="ngForm" novalidate>
+      <div class="field">
+        <label for="username">Tên đăng nhập</label>
+        <input id="username" name="username"
+               [(ngModel)]="username" required
+               placeholder="Nhập tên đăng nhập của bạn" />
+        <small class="hint">Tên đăng nhập được cung cấp bởi quản trị viên thư viện.</small>
+      </div>
+
+      <div class="field">
+        <label for="password">Mật khẩu</label>
+        <input id="password" name="password" type="password"
+               [(ngModel)]="password" required
+               placeholder="Nhập mật khẩu của bạn" />
+      </div>
+
+      <div class="actions">
+        <label class="remember">
+          <input type="checkbox" [(ngModel)]="remember" name="remember" />
+          <span>Ghi nhớ tôi</span>
+        </label>
+        <a class="link" routerLink="/forgot">Quên mật khẩu?</a>
+      </div>
+
+      <button class="btn btn-block" type="submit" [disabled]="f.invalid">Đăng nhập</button>
+    </form>
+  </section>
+</main>

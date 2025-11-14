@@ -1,0 +1,91 @@
+/* --- Header --- */
+.header {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-weight: 800;
+  color: #f0f6fc;
+}
+
+.lead {
+  color: var(--text-muted);
+  font-size: 1.25rem;
+}
+
+h3 {
+  font-weight: 700;
+  color: #f0f6fc;
+}
+
+/* --- Fines Card --- */
+.fines-card {
+  background: rgba(210, 153, 34, 0.1); /* Màu nền vàng nhạt */
+  border-color: var(--warning);
+}
+.fines-card .card-header {
+  background-color: rgba(210, 153, 34, 0.2);
+  color: var(--warning);
+  font-weight: 700;
+  border-bottom: 1px solid var(--warning);
+}
+.fines-card .list-group-item {
+  background-color: transparent;
+  color: var(--text);
+  border-color: rgba(210, 153, 34, 0.2);
+}
+.fine-amount {
+  background-color: var(--danger);
+  color: #fff;
+  padding: 0.4em 0.7em;
+  font-size: 0.9em;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Loan History Table --- */
+.table {
+  /* Các biến này sẽ ghi đè style của Bootstrap trong global `styles.css` */
+  --bs-table-color: var(--text);
+  --bs-table-bg: var(--card);
+  --bs-table-border-color: var(--border);
+  --bs-table-hover-bg: rgba(139, 148, 158, 0.1);
+}
+
+.table thead th {
+  color: var(--text-muted);
+}
+
+/* --- Status Badges --- */
+.badge {
+  font-size: 0.8em;
+  padding: 0.5em 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.status-active {
+  background-color: rgba(63, 185, 80, 0.2);
+  color: var(--success);
+}
+.status-overdue {
+  background-color: rgba(248, 81, 73, 0.15);
+  color: var(--danger);
+}
+.status-returned {
+  background-color: rgba(139, 148, 158, 0.2);
+  color: var(--text-muted);
+}
+
+/* --- Renew Button --- */
+.btn-outline-primary {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.btn-outline-primary:hover {
+  background-color: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}

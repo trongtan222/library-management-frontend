@@ -1,0 +1,150 @@
+<div class="container-fluid mt-4">
+  <h1 class="mb-4">Admin Dashboard</h1>
+
+  <div *ngIf="isLoading" class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+  <div *ngIf="details && !isLoading">
+    <div class="row">
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card card-books" (click)="toggleView('books')" [class.active]="activeView === 'books'">
+          <div class="card-body">
+            <div class="stat-card-content">
+              <div>
+                <div class="text-xs">TỔNG SỐ SÁCH</div>
+                <div class="h5">{{ details.stats.totalBooks }}</div>
+              </div>
+              <i class="fas fa-book fa-2x"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card card-users" (click)="toggleView('users')" [class.active]="activeView === 'users'">
+           <div class="card-body">
+            <div class="stat-card-content">
+              <div>
+                <div class="text-xs">TỔNG SỐ USER</div>
+                <div class="h5">{{ details.stats.totalUsers }}</div>
+              </div>
+              <i class="fas fa-users fa-2x"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card card-loans" (click)="toggleView('activeLoans')" [class.active]="activeView === 'activeLoans'">
+           <div class="card-body">
+            <div class="stat-card-content">
+              <div>
+                <div class="text-xs">ĐANG MƯỢN</div>
+                <div class="h5">{{ details.stats.activeLoans }}</div>
+              </div>
+              <i class="fas fa-hand-holding fa-2x"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card card-overdue" (click)="toggleView('overdueLoans')" [class.active]="activeView === 'overdueLoans'">
+           <div class="card-body">
+            <div class="stat-card-content">
+              <div>
+                <div class="text-xs">QUÁ HẠN</div>
+                <div class="h5">{{ details.stats.overdueLoans }}</div>
+              </div>
+              <i class="fas fa-exclamation-triangle fa-2x"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 mb-4" *ngIf="activeView === 'books'">
+      <div class="card shadow">
+        <div class="card-header"><h5 class="m-0 font-weight-bold">Tất Cả Sách</h5></div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover">
+              <thead><tr><th>ID</th><th>Tên</th><th>Tác Giả</th><th>Số Lượng</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let book of allBooks">
+                  <td>{{ book.id }}</td>
+                  <td>{{ book.name }}</td>
+                  <td>
+                    <span *ngIf="book.authors && book.authors.length > 0">{{ book.authors[0].name }}</span>
+                    <span *ngIf="!book.authors || book.authors.length === 0">-</span>
+                  </td>
+                  <td>{{ book.numberOfCopiesAvailable }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12 mb-4" *ngIf="activeView === 'users'">
+        <div class="card shadow">
+            <div class="card-header"><h5 class="m-0 font-weight-bold">Tất Cả Người Dùng</h5></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead><tr><th>ID</th><th>Tên</th><th>Tên Đăng Nhập</th><th>Vai Trò</th></tr></thead>
+                        <tbody>
+                            <tr *ngFor="let user of allUsers">
+                                <td>{{ user.userId }}</td><td>{{ user.name }}</td><td>{{ user.username }}</td><td>{{ user.roles.join(', ') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mb-4" *ngIf="activeView === 'activeLoans'">
+        <div class="card shadow">
+            <div class="card-header"><h5 class="m-0 font-weight-bold">Đang Mượn</h5></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead><tr><th>Tên Sách</th><th>Tên Người Mượn</th><th>Ngày Hết Hạn</th></tr></thead>
+                        <tbody>
+                            <ng-container *ngFor="let loan of allLoans">
+                                <tr *ngIf="loan.status === 'ACTIVE'">
+                                    <td>{{ loan.bookName }}</td><td>{{ loan.userName }}</td><td>{{ loan.dueDate | date:'dd/MM/yyyy' }}</td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mb-4" *ngIf="activeView === 'overdueLoans'">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white"><h5 class="m-0 font-weight-bold">Khoản Vay Quá Hạn</h5></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead><tr><th>Tên Sách</th><th>Tên Người Mượn</th><th>Ngày Hết Hạn</th></tr></thead>
+                        <tbody>
+                            <ng-container *ngFor="let loan of allLoans">
+                                <tr *ngIf="loan.status === 'OVERDUE'">
+                                    <td>{{ loan.bookName }}</td><td>{{ loan.userName }}</td><td>{{ loan.dueDate | date:'dd/MM/yyyy' }}</td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>

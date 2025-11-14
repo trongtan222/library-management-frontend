@@ -1,0 +1,28 @@
+<div class="container-fluid mt-4">
+  <h1 class="mb-4">Quản Lý Phí Trễ Hạn</h1>
+  <div *ngIf="isLoading" class="text-center">Loading...</div>
+  <table *ngIf="!isLoading" class="table table-hover">
+    <thead>
+      <tr>
+        <th>ID Mượn</th>
+        <th>Tên Người Dùng</th>
+        <th>Tên Sách</th>
+        <th>Số Ngày Quá Hạn</th>
+        <th>Số Tiền Phạt</th>
+        <th>Hành Động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let fine of fines">
+        <td>{{ fine.loanId }}</td>
+        <td>{{ fine.userName }}</td>
+        <td>{{ fine.bookName }}</td>
+        <td>{{ fine.overdueDays }}</td>
+        <td>{{ fine.fineAmount | currency:'VND' }}</td>
+        <td>
+          <button class="btn btn-success btn-sm" (click)="markAsPaid(fine.loanId)">Đánh Dấu Là Đã Thanh Toán</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

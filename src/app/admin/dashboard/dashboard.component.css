@@ -1,0 +1,57 @@
+.stat-card {
+border: none;
+border-radius: 0.75rem;
+box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+color: white;
+display: block;
+text-decoration: none;
+transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+cursor: pointer;
+}
+.stat-card:hover {
+transform: translateY(-5px);
+box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+/* Kiểu cho thẻ đang được chọn */
+.stat-card.active {
+transform: translateY(-2px);
+box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2), 0 0 0 3px rgba(255,255,255,0.7);
+}
+
+.stat-card .card-body {
+padding: 1.5rem;
+}
+.stat-card .text-xs {
+font-size: 0.8rem;
+opacity: 0.8;
+font-weight: 700;
+text-transform: uppercase;
+}
+.stat-card .h5 {
+font-size: 2rem;
+font-weight: 700;
+margin: 0;
+}
+.stat-card i {
+color: rgba(255, 255, 255, 0.3);
+}
+
+/* Màu sắc cho từng thẻ */
+.card-books { background: linear-gradient(45deg, #4e73df, #224abe); }
+.card-users { background: linear-gradient(45deg, #1cc88a, #13855c); }
+.card-loans { background: linear-gradient(45deg, #36b9cc, #2a96a5); }
+.card-overdue { background: linear-gradient(45deg, #f6c23e, #dda20a); }
+
+/* Kiểu cho vùng chứa bảng */
+.table-container {
+background-color: #ffffff;
+color: #333;
+padding: 1.5rem;
+border-radius: 0.5rem;
+box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.table {
+margin-bottom: 0;
+}

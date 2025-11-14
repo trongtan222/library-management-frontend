@@ -1,0 +1,13 @@
+.card {
+    border: none;
+    border-radius: 0.75rem;
+}
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    font-weight: 700;
+}
+.table th {
+    background-color: #f8f9fc;
+    border-bottom: 2px solid #e3e6f0;
+}

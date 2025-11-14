@@ -1,0 +1,69 @@
+<nav class="navbar navbar-expand-lg navbar-dark site-header">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/">
+      <i class="fa-solid fa-book-atlas"></i>
+      LMS
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+        <!-- Admin Links -->
+        <li class="nav-item" *ngIf="isAdmin()">
+          <a class="nav-link" routerLink="/admin/dashboard" routerLinkActive="active">
+            <i class="fa-solid fa-chart-pie"></i> Bảng Điều Khiển
+          </a>
+        </li>
+        <li class="nav-item dropdown" *ngIf="isAdmin()">
+          <a class="nav-link dropdown-toggle" href="#" id="adminManagementDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-cogs"></i> Quản Lý
+          </a>
+          <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminManagementDropdown">
+            <li><a class="dropdown-item" routerLink="/users" routerLinkActive="active"><i class="fa-solid fa-users-cog"></i> Người Dùng</a></li>
+            <li><a class="dropdown-item" routerLink="/books" routerLinkActive="active"><i class="fa-solid fa-book-medical"></i> Sách</a></li>
+            <li><a class="dropdown-item" routerLink="/admin/loans" routerLinkActive="active"><i class="fa-solid fa-exchange-alt"></i> Mượn/Trả</a></li>
+            <li><a class="dropdown-item" routerLink="/admin/fines" routerLinkActive="active"><i class="fa-solid fa-file-invoice-dollar"></i> Phí Phạt</a></li>
+            <li><a class="dropdown-item" routerLink="/admin/reviews" routerLinkActive="active"><i class="fa-solid fa-star-half-alt"></i> Đánh Giá</a></li>
+          </ul>
+        </li>
+
+        <!-- User Links -->
+        <li class="nav-item" *ngIf="isUser()">
+          <a class="nav-link" routerLink="/borrow-book" routerLinkActive="active">
+            <i class="fa-solid fa-hand-holding-hand"></i> Mượn Sách
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="isUser()">
+          <a class="nav-link" routerLink="/return-book" routerLinkActive="active">
+            <i class="fa-solid fa-undo"></i> Trả Sách
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="isUser()">
+          <a class="nav-link" routerLink="/my-account" routerLinkActive="active">
+            <i class="fa-solid fa-user-circle"></i> Tài Khoản Của Tôi
+          </a>
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center">
+        <ng-container *ngIf="!isLoggedIn()">
+          <button class="btn btn-secondary btn-sm me-2" routerLink="/register">Đăng Ký</button>
+          <button class="btn btn-primary btn-sm" routerLink="/login">
+            <i class="fa-solid fa-sign-in-alt"></i> Đăng Nhập
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="isLoggedIn()">
+          <span class="navbar-text me-3">
+            Chào, {{ getUserName() }}
+          </span>
+          <button class="btn btn-outline-danger btn-sm" (click)="logout()">
+            <i class="fa-solid fa-sign-out-alt"></i> Đăng Xuất
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</nav>
