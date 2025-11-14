@@ -3,9 +3,10 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { AdminService, ReportSummary } from 'src/app/services/admin.service';
 
 @Component({
-  selector: 'app-reports',
-  templateUrl: './reports.component.html',
-  styleUrls: ['./reports.component.css']
+    selector: 'app-reports',
+    templateUrl: './reports.component.html',
+    styleUrls: ['./reports.component.css'],
+    standalone: false
 })
 export class ReportsComponent implements OnInit {
 

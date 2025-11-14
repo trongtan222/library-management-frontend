@@ -6,9 +6,10 @@ import { UserAuthService } from '../services/user-auth.service';
 import { LoanDetails } from '../services/admin.service';
 
 @Component({
-  selector: 'app-return-book',
-  templateUrl: './return-book.component.html',
-  styleUrls: ['./return-book.component.css'],
+    selector: 'app-return-book',
+    templateUrl: './return-book.component.html',
+    styleUrls: ['./return-book.component.css'],
+    standalone: false
 })
 export class ReturnBookComponent implements OnInit {
 

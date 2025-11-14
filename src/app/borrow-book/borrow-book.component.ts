@@ -8,9 +8,10 @@ import { Books } from '../models/books';
 import { CirculationService } from '../services/circulation.service'; // Import CirculationService
 
 @Component({
-  selector: 'app-borrow-book',
-  templateUrl: './borrow-book.component.html',
-  styleUrls: ['./borrow-book.component.css']
+    selector: 'app-borrow-book',
+    templateUrl: './borrow-book.component.html',
+    styleUrls: ['./borrow-book.component.css'],
+    standalone: false
 })
 export class BorrowBookComponent implements OnInit {
   

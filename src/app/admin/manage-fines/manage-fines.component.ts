@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { AdminService, FineDetails } from 'src/app/services/admin.service';
 
 @Component({
-  selector: 'app-manage-fines',
-  templateUrl: './manage-fines.component.html',
-  styleUrls: ['./manage-fines.component.css']
+    selector: 'app-manage-fines',
+    templateUrl: './manage-fines.component.html',
+    styleUrls: ['./manage-fines.component.css'],
+    standalone: false
 })
 export class ManageFinesComponent implements OnInit {
   fines: FineDetails[] = [];

@@ -3,9 +3,10 @@ import { AdminService, LoanDetails } from 'src/app/services/admin.service';
 import { CirculationService } from 'src/app/services/circulation.service';
 
 @Component({
-  selector: 'app-loan-management',
-  templateUrl: './loan-management.component.html',
-  styleUrls: ['./loan-management.component.css']
+    selector: 'app-loan-management',
+    templateUrl: './loan-management.component.html',
+    styleUrls: ['./loan-management.component.css'],
+    standalone: false
 })
 export class LoanManagementComponent implements OnInit {
 

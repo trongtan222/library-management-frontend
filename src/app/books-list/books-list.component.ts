@@ -8,9 +8,10 @@ import { Books } from '../models/books'; // Import model
 type Row = Books; // Giữ nguyên: Row là bí danh của Books
 
 @Component({
-  selector: 'app-books-list',
-  templateUrl: './books-list.component.html',
-  styleUrls: ['./books-list.component.css']
+    selector: 'app-books-list',
+    templateUrl: './books-list.component.html',
+    styleUrls: ['./books-list.component.css'],
+    standalone: false
 })
 export class BooksListComponent implements OnInit {
 

@@ -9,9 +9,10 @@ import { ReviewService, BookReviewsSummary, Review } from '../services/review.se
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
-  selector: 'app-book-details',
-  templateUrl: './book-details.component.html',
-  styleUrls: ['./book-details.component.css']
+    selector: 'app-book-details',
+    templateUrl: './book-details.component.html',
+    styleUrls: ['./book-details.component.css'],
+    standalone: false
 })
 export class BookDetailsComponent implements OnInit {
 

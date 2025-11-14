@@ -3,8 +3,9 @@ import { Review, ReviewService } from '../../services/review.service';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
-  selector: 'app-manage-reviews',
-  templateUrl: './manage-reviews.component.html',
+    selector: 'app-manage-reviews',
+    templateUrl: './manage-reviews.component.html',
+    standalone: false
 })
 export class ManageReviewsComponent implements OnInit {
   reviews: Review[] = [];

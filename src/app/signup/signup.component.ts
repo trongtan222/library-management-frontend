@@ -5,9 +5,10 @@ import { UsersService } from '../services/users.service'; // Giả sử bạn d�
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
-  selector: 'app-signup',
-  templateUrl: './signup.component.html',
-  styleUrls: ['./signup.component.css']
+    selector: 'app-signup',
+    templateUrl: './signup.component.html',
+    styleUrls: ['./signup.component.css'],
+    standalone: false
 })
 export class SignupComponent {
   // Model để binding với form
