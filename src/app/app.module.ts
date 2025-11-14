@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BooksListComponent } from './books-list/books-list.component';
@@ -37,59 +37,52 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CreateUserComponent } from './create-user/create-user.component';
 import { ChatbotComponent } from './chatbot/chatbot.component'; // <-- THÊM IMPORT
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    BooksListComponent,
-    CreateBookComponent,
-    UpdateBookComponent,
-    BookDetailsComponent,
-    UsersListComponent,
-    UserDetailsComponent,
-    UpdateUserComponent,
-    LoginComponent,
-    LogoutComponent,
-    HeaderComponent,
-    HomeComponent,
-    ForbiddenComponent,
-    BorrowBookComponent,
-    ReturnBookComponent,
-    SignupComponent,
-    DashboardComponent,
-    LoanManagementComponent,
-    MyAccountComponent,
-    ManageFinesComponent,
-    ReportsComponent,
-    ManageReviewsComponent,
-    CreateUserComponent,
-    ChatbotComponent // <-- THÊM VÀO DECLARATIONS
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    HttpClientModule,
-    FormsModule,
-    RouterModule,
-    BrowserAnimationsModule,
-    CommonModule,
-    ToastrModule.forRoot({
-      timeOut: 3000,
-      positionClass: 'toast-bottom-right',
-      preventDuplicates: true,
-    }),
-    
-  ],
-  providers: [
-    AuthGuard,
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
-      multi: true
-    },
-    UsersService,
-    BooksService,
-    UserAuthService
-  ],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        BooksListComponent,
+        CreateBookComponent,
+        UpdateBookComponent,
+        BookDetailsComponent,
+        UsersListComponent,
+        UserDetailsComponent,
+        UpdateUserComponent,
+        LoginComponent,
+        LogoutComponent,
+        HeaderComponent,
+        HomeComponent,
+        ForbiddenComponent,
+        BorrowBookComponent,
+        ReturnBookComponent,
+        SignupComponent,
+        DashboardComponent,
+        LoanManagementComponent,
+        MyAccountComponent,
+        ManageFinesComponent,
+        ReportsComponent,
+        ManageReviewsComponent,
+        CreateUserComponent,
+        ChatbotComponent // <-- THÊM VÀO DECLARATIONS
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        AppRoutingModule,
+        FormsModule,
+        RouterModule,
+        BrowserAnimationsModule,
+        CommonModule,
+        ToastrModule.forRoot({
+            timeOut: 3000,
+            positionClass: 'toast-bottom-right',
+            preventDuplicates: true,
+        })], providers: [
+        AuthGuard,
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: AuthInterceptor,
+            multi: true
+        },
+        UsersService,
+        BooksService,
+        UserAuthService,
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AppModule { }
