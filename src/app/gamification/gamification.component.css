@@ -1,0 +1,336 @@
+.gamification-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.gamification-container h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+.tabs button {
+  padding: 10px 20px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.tabs button:hover {
+  background: #e0e0e0;
+}
+
+.tabs button.active {
+  background: #4caf50;
+  color: white;
+}
+
+/* Loading & Error */
+.loading,
+.error {
+  text-align: center;
+  padding: 40px;
+}
+
+.error {
+  color: #f44336;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.stat-card h4 {
+  color: #666;
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+/* Level Card */
+.level-card {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.level-card h3 {
+  margin: 10px 0;
+}
+
+.level-badge {
+  font-size: 48px;
+}
+
+.progress-bar {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  height: 10px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+
+.progress {
+  background: white;
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s;
+}
+
+.progress-text {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Badges Grid */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.badge-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.badge-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.badge-icon img {
+  width: 64px;
+  height: 64px;
+}
+
+.badge-card h4 {
+  color: #333;
+  margin: 10px 0;
+}
+
+.badge-card p {
+  color: #666;
+  font-size: 14px;
+}
+
+.badge-card small {
+  color: #999;
+}
+
+/* Challenges */
+.challenges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.challenge-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.challenge-card.completed {
+  border-left: 4px solid #4caf50;
+}
+
+.challenge-card.available {
+  border-left: 4px solid #2196f3;
+}
+
+.challenge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.challenge-header h4 {
+  margin: 0;
+  color: #333;
+}
+
+.reward {
+  background: #ffc107;
+  color: #333;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.challenge-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.challenge-progress .progress-bar {
+  flex: 1;
+  background: #eee;
+}
+
+.challenge-progress .progress {
+  background: #4caf50;
+}
+
+.completed-badge {
+  color: #4caf50;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.dates {
+  color: #999;
+  font-size: 12px;
+}
+
+.join-btn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s;
+}
+
+.join-btn:hover:not(:disabled) {
+  background: #1976d2;
+}
+
+.join-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Leaderboard */
+.leaderboard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  transition: background 0.3s;
+}
+
+.leaderboard-item:hover {
+  background: #f9f9f9;
+}
+
+.leaderboard-item.top3 {
+  background: linear-gradient(90deg, #fff9e6 0%, #ffffff 100%);
+}
+
+.rank {
+  width: 50px;
+  font-size: 24px;
+  text-align: center;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info .name {
+  font-weight: bold;
+  color: #333;
+}
+
+.user-info .level {
+  font-size: 12px;
+  color: #666;
+}
+
+.points {
+  font-weight: bold;
+  color: #4caf50;
+  margin-right: 20px;
+}
+
+.badges-count {
+  color: #666;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tabs button {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .level-card {
+    grid-column: span 1;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

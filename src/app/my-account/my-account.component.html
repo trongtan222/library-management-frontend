@@ -1,81 +1,497 @@
-<div class="container mt-4">
-    <div class="header">
-        <h1>Tài Khoản Của Tôi</h1>
-        <p class="lead">Chào mừng trở lại, {{ userName }}!</p>
-    </div>
+<div class="container py-5">
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2 text-muted">Đang tải hồ sơ...</p>
+  </div>
 
-    <div *ngIf="isLoading" class="text-center my-5">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-
-    <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
-    <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
-
-    <div *ngIf="!isLoading && !errorMessage">
-        
-        <!-- Outstanding Fines Card -->
-        <div *ngIf="myFines && myFines.length > 0" class="card fines-card mb-4">
-            <div class="card-header">
-                <i class="fas fa-exclamation-triangle me-2"></i>Phí Phạt Chưa Thanh Toán
+  <div class="row g-4" *ngIf="!isLoading && userProfile">
+    <!-- LEFT SIDEBAR: User Info & Navigation -->
+    <div class="col-lg-4">
+      <!-- Member Card -->
+      <div class="card member-card text-white mb-4 shadow-lg border-0">
+        <div class="card-body p-4 position-relative overflow-hidden">
+          <div class="member-badge">THCS PHUONG TU</div>
+          <div class="d-flex align-items-center mb-4 mt-2">
+            <div class="avatar-placeholder me-3">
+              {{ userProfile.name.charAt(0) || "?" | uppercase }}
             </div>
-            <div class="card-body">
-                <p>Bạn có các khoản phí phạt chưa thanh toán. Vui lòng liên hệ với thủ thư để giải quyết.</p>
-                <ul class="list-group list-group-flush">
-                    <li *ngFor="let fine of myFines" class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            Đối với cuốn sách <em>"{{ fine.bookName }}"</em>
-                            <small class="d-block text-muted">Quá hạn {{ fine.overdueDays }} ngày</small>
-                        </div>
-                        <span class="fine-amount">{{ fine.fineAmount | currency:'VND':'symbol':'1.0-0' }}</span>
-                    </li>
-                </ul>
+            <div>
+              <h5 class="mb-0 fw-bold text-truncate" style="max-width: 200px">
+                {{ userProfile.name }}
+              </h5>
+              <small class="opacity-75">ID: {{ userProfile.userId }}</small>
             </div>
+          </div>
+          <div class="member-details">
+            <div class="d-flex justify-content-between mb-1">
+              <span>Vai trò</span>
+              <span class="fw-bold">{{ userProfile.roles.join(", ") }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Trạng thái</span>
+              <span class="badge bg-success">Hoạt động</span>
+            </div>
+          </div>
+          <!-- Decor circle -->
+          <div class="circle-decor"></div>
         </div>
+      </div>
 
-        <!-- Loan History Section -->
-        <h3 class="mt-5 mb-3">Lịch Sử Mượn Sách Của Bạn</h3>
-        <div *ngIf="loans.length === 0" class="alert alert-info">
-            Bạn chưa mượn cuốn sách nào.
-        </div>
-
-        <div class="table-responsive" *ngIf="loans.length > 0">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>Tên Sách</th>
-                        <th>Ngày Mượn</th>
-                        <th>Ngày Đến Hạn</th>
-                        <th>Ngày Trả</th>
-                        <th>Trạng Thái</th>
-                        <th>Hành Động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let loan of loans">
-                        <td>{{ loan.bookName }}</td>
-                        <td>{{ loan.loanDate | date:'dd/MM/yyyy' }}</td>
-                        <td>{{ loan.dueDate | date:'dd/MM/yyyy' }}</td>
-                        <td>{{ loan.returnDate ? (loan.returnDate | date:'dd/MM/yyyy') : '-' }}</td>
-                        <td>
-                            <span class="badge" [ngClass]="{
-                                'status-active': loan.status === 'ACTIVE',
-                                'status-overdue': loan.status === 'OVERDUE',
-                                'status-returned': loan.status === 'RETURNED'
-                            }">{{ loan.status }}</span>
-                        </td>
-                        <td>
-                            <button *ngIf="loan.status === 'ACTIVE' || loan.status === 'OVERDUE'"
-                                class="btn btn-sm btn-outline-primary"
-                                (click)="renewLoan(loan.loanId)">
-                                <i class="fa-solid fa-sync-alt me-1"></i>
-                                Gia Hạn (7 ngày)
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+      <!-- Navigation Menu -->
+      <div class="list-group shadow-sm rounded-3 overflow-hidden border-0">
+        <button
+          class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+          [class.active-menu]="currentTab === 'PROFILE'"
+          (click)="changeTab('PROFILE')"
+        >
+          <i class="fa-solid fa-id-card me-3 width-20"></i> Hồ Sơ Cá Nhân
+        </button>
+        <button
+          class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+          [class.active-menu]="currentTab === 'ACTIVE'"
+          (click)="changeTab('ACTIVE')"
+        >
+          <i class="fa-solid fa-book-open-reader me-3 width-20"></i> Sách Đang
+          Mượn
+          <span
+            class="badge bg-primary rounded-pill ms-auto"
+            *ngIf="activeLoans.length"
+            >{{ activeLoans.length }}</span
+          >
+        </button>
+        <button
+          class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+          [class.active-menu]="currentTab === 'HISTORY'"
+          (click)="changeTab('HISTORY')"
+        >
+          <i class="fa-solid fa-clock-rotate-left me-3 width-20"></i> Lịch Sử
+          Trả
+        </button>
+        <button
+          class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+          [class.active-menu]="currentTab === 'FINES'"
+          (click)="changeTab('FINES')"
+        >
+          <i class="fa-solid fa-file-invoice-dollar me-3 width-20"></i> Phí Phạt
+          <span
+            class="badge bg-danger rounded-pill ms-auto"
+            *ngIf="myFines.length"
+            >{{ myFines.length }}</span
+          >
+        </button>
+        <button
+          class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+          [class.active-menu]="currentTab === 'REVIEWS'"
+          (click)="changeTab('REVIEWS')"
+        >
+          <i class="fa-solid fa-comments me-3 width-20"></i> Đánh Giá Của Tôi
+          <span
+            class="badge bg-secondary rounded-pill ms-auto"
+            *ngIf="myReviews.length"
+            >{{ myReviews.length }}</span
+          >
+        </button>
+        <!-- <button class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+                [class.active-menu]="currentTab === 'RESERVATIONS'"
+                (click)="changeTab('RESERVATIONS')">
+          <i class="fa-solid fa-bookmark me-3 width-20"></i> Đặt Trước
+        </button> -->
+      </div>
     </div>
+
+    <!-- RIGHT CONTENT -->
+    <div class="col-lg-8">
+      <!-- 1. PROFILE TAB -->
+      <div *ngIf="currentTab === 'PROFILE'" class="animate-fade-in">
+        <h3 class="mb-4 fw-bold">Tổng Quan</h3>
+
+        <!-- Stats Row -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="stat-box bg-dark border-secondary p-3 rounded">
+              <div class="small text-uppercase">Đã Mượn</div>
+              <div class="h2 mb-0 text-info">
+                {{ totalBorrowed }} <small class="fs-6">cuốn</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-box bg-dark border-secondary p-3 rounded">
+              <div class="small text-uppercase">Đang Giữ</div>
+              <div class="h2 mb-0 text-info">
+                {{ activeLoans.length }} <small class="fs-6">cuốn</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-box bg-dark border-secondary p-3 rounded">
+              <div class="small text-uppercase">Nợ Phạt</div>
+              <div class="h2 mb-0 text-danger">
+                {{ totalFinesAmount | currency : "VND" : "symbol" : "1.0-0" }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-dark border-secondary text-light">
+          <div class="card-header border-secondary fw-bold">
+            Thông Tin Chi Tiết
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-sm-4">Họ và tên</div>
+              <div class="col-sm-8 fw-bold">{{ userProfile.name }}</div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-sm-4">Tên đăng nhập</div>
+              <div class="col-sm-8">{{ userProfile.username }}</div>
+            </div>
+            <div class="row mb-3">
+              <div class="col-sm-4">Email</div>
+              <div class="col-sm-8">
+                {{ userProfile.email || "Chưa cập nhật" }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-4">Nhóm quyền</div>
+              <div class="col-sm-8">
+                <span class="badge bg-secondary">{{
+                  userProfile.roles.join(", ")
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card bg-dark border-secondary text-light mt-4">
+          <div class="card-header border-secondary fw-bold">Đổi Mật Khẩu</div>
+          <div class="card-body">
+            <form (ngSubmit)="changePassword()" autocomplete="off">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label">Mật khẩu cũ</label>
+                  <input
+                    type="password"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="oldPassword"
+                    name="oldPassword"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Mật khẩu mới</label>
+                  <input
+                    type="password"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="newPassword"
+                    name="newPassword"
+                    minlength="6"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Xác nhận mật khẩu</label>
+                  <input
+                    type="password"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="confirmPassword"
+                    name="confirmPassword"
+                    [class.is-invalid]="passwordsMismatch"
+                    required
+                  />
+                  <div
+                    *ngIf="passwordsMismatch"
+                    class="invalid-feedback d-block"
+                  >
+                    Mật khẩu xác nhận chưa khớp.
+                  </div>
+                </div>
+              </div>
+              <button
+                class="btn btn-primary mt-3"
+                type="submit"
+                [disabled]="changingPwd || passwordsMismatch"
+              >
+                {{ changingPwd ? "Đang đổi..." : "Đổi mật khẩu" }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. ACTIVE LOANS TAB -->
+      <div *ngIf="currentTab === 'ACTIVE'" class="animate-fade-in">
+        <h3 class="mb-4 fw-bold text-white">Sách Đang Mượn</h3>
+
+        <div
+          *ngIf="activeLoans.length === 0"
+          class="alert alert-dark border-secondary text-center py-4"
+        >
+          <i class="fa-solid fa-book-open mb-3 fa-2x text-muted"></i>
+          <p class="mb-0 text-muted">Bạn không mượn cuốn sách nào hiện tại.</p>
+          <a routerLink="/borrow-book" class="btn btn-primary mt-3 btn-sm"
+            >Đi Mượn Sách Ngay</a
+          >
+        </div>
+
+        <div
+          class="card bg-dark border-secondary mb-3"
+          *ngFor="let loan of activeLoans"
+        >
+          <div
+            class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3"
+          >
+            <div>
+              <h5 class="card-title text-info mb-1">{{ loan.bookName }}</h5>
+              <div class="text-muted small mb-2">
+                <i class="fa-regular fa-calendar me-1"></i> Mượn:
+                {{ loan.loanDate | date : "dd/MM/yyyy" }} &bull;
+                <i class="fa-regular fa-calendar-xmark me-1"></i> Hạn:
+                {{ loan.dueDate | date : "dd/MM/yyyy" }}
+              </div>
+              <span
+                class="badge"
+                [ngClass]="
+                  loan.status === 'OVERDUE' ? 'bg-danger' : 'bg-success'
+                "
+              >
+                {{ loan.status === "OVERDUE" ? "QUÁ HẠN" : "ĐANG MƯỢN" }}
+              </span>
+              <ng-container *ngIf="isRenewalStatus(loan.loanId, 'PENDING')">
+                <span class="badge bg-warning ms-2">Đang chờ gia hạn</span>
+              </ng-container>
+              <ng-container *ngIf="isRenewalStatus(loan.loanId, 'REJECTED')">
+                <span class="badge bg-danger ms-2">Yêu cầu bị từ chối</span>
+              </ng-container>
+              <ng-container *ngIf="isRenewalStatus(loan.loanId, 'APPROVED')">
+                <span class="badge bg-info ms-2">Gia hạn đã duyệt</span>
+              </ng-container>
+            </div>
+            <button
+              class="btn btn-outline-warning btn-sm"
+              (click)="renewLoan(loan.loanId)"
+              [disabled]="isPendingRenewal(loan.loanId)"
+            >
+              <i class="fa-solid fa-rotate-right me-1"></i>
+              {{ isPendingRenewal(loan.loanId) ? "Đang Chờ" : "Gia Hạn" }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. HISTORY TAB -->
+      <div *ngIf="currentTab === 'HISTORY'" class="animate-fade-in">
+        <h3 class="mb-4 fw-bold">Lịch Sử Trả Sách</h3>
+        <div class="table-responsive">
+          <table
+            class="table table-dark table-hover border-secondary rounded overflow-hidden"
+          >
+            <thead>
+              <tr>
+                <th>Sách</th>
+                <th>Ngày Mượn</th>
+                <th>Ngày Trả</th>
+                <th>Trạng Thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let loan of pagedHistoryLoans">
+                <td>{{ loan.bookName }}</td>
+                <td>{{ loan.loanDate | date : "dd/MM/yyyy" }}</td>
+                <td>{{ loan.returnDate | date : "dd/MM/yyyy" }}</td>
+                <td><span class="badge bg-secondary">Đã Trả</span></td>
+              </tr>
+              <tr *ngIf="historyLoans.length === 0">
+                <td colspan="4" class="text-center py-4">
+                  Chưa có lịch sử trả sách.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div
+            class="d-flex flex-wrap align-items-center justify-content-between px-3 py-3 border-top border-secondary"
+            *ngIf="historyLoans.length > 0"
+          >
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label me-2 mb-0">Hiển thị</label>
+              <select
+                class="form-select form-select-sm w-auto bg-dark text-light border-secondary"
+                [value]="historyPageSize"
+                (change)="changeHistoryPageSize($event)"
+              >
+                <option *ngFor="let size of historyPageSizes" [value]="size">
+                  {{ size }}
+                </option>
+              </select>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button
+                class="btn btn-sm btn-outline-secondary"
+                (click)="prevHistoryPage()"
+                [disabled]="historyPage <= 1"
+              >
+                Trước
+              </button>
+              <button
+                class="btn btn-sm btn-outline-secondary"
+                (click)="nextHistoryPage()"
+                [disabled]="historyPage >= historyTotalPages"
+              >
+                Tiếp
+              </button>
+              <span class="text-muted small"
+                >Trang {{ historyPage }} / {{ historyTotalPages }} ·
+                {{ historyLoans.length }} dòng</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. FINES TAB -->
+      <div *ngIf="currentTab === 'FINES'" class="animate-fade-in">
+        <h3 class="mb-4 fw-bold">Danh Sách Phí Phạt</h3>
+
+        <div
+          *ngIf="myFines.length === 0"
+          class="alert alert-success bg-opacity-25 border-success text-success"
+        >
+          <i class="fa-solid fa-check-circle me-2"></i> Tuyệt vời! Bạn không có
+          khoản phạt nào.
+        </div>
+
+        <div
+          class="card bg-dark border-danger mb-3"
+          *ngFor="let fine of myFines"
+        >
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h5 class="text-info">{{ fine.bookName }}</h5>
+                <p class="text-muted small mb-0">
+                  Quá hạn {{ fine.overdueDays }} ngày
+                </p>
+                <small class="text-muted"
+                  >Hạn trả: {{ fine.dueDate | date : "dd/MM/yyyy" }}</small
+                >
+              </div>
+              <div class="text-end">
+                <div class="h4 text-danger mb-0">
+                  {{ fine.fineAmount | currency : "VND" : "symbol" : "1.0-0" }}
+                </div>
+                <small class="text-warning">Chưa thanh toán</small>
+              </div>
+            </div>
+          </div>
+          <div
+            class="card-footer bg-danger bg-opacity-10 border-danger text-white small"
+          >
+            Vui lòng liên hệ thủ thư để thanh toán khoản phạt này.
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. MY REVIEWS TAB -->
+      <div *ngIf="currentTab === 'REVIEWS'" class="animate-fade-in">
+        <h3 class="mb-4 fw-bold">Đánh Giá Của Tôi</h3>
+
+        <div
+          *ngIf="myReviews.length === 0"
+          class="alert alert-dark border-secondary text-center py-4"
+        >
+          <i class="fa-solid fa-comments mb-3 fa-2x text-muted"></i>
+          <p class="mb-0 text-muted">Bạn chưa có đánh giá nào.</p>
+        </div>
+
+        <div
+          class="card bg-dark border-secondary mb-3"
+          *ngFor="let r of myReviews"
+        >
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h5 class="text-info mb-1">{{ r.bookName }}</h5>
+                <div class="text-muted small mb-2">
+                  <i class="fa-regular fa-calendar me-1"></i>
+                  {{ r.createdAt | date : "dd/MM/yyyy HH:mm" }}
+                  <span
+                    class="badge ms-2"
+                    [ngClass]="r.approved ? 'bg-success' : 'bg-warning'"
+                  >
+                    {{ r.approved ? "Đã duyệt" : "Chờ duyệt" }}
+                  </span>
+                </div>
+                <div
+                  *ngIf="
+                    !editingReview || editingReview.id !== r.id;
+                    else editReviewTpl
+                  "
+                >
+                  <div class="mb-2">
+                    <span class="badge bg-primary">{{ r.rating }}/5 ⭐</span>
+                  </div>
+                  <p class="mb-0">{{ r.comment || "—" }}</p>
+                </div>
+              </div>
+              <div class="text-end">
+                <button
+                  class="btn btn-sm btn-outline-primary me-2"
+                  (click)="startEditReview(r)"
+                  *ngIf="!editingReview || editingReview.id !== r.id"
+                >
+                  <i class="fa-solid fa-pen"></i> Sửa
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="deleteMyReview(r)"
+                >
+                  <i class="fa-solid fa-trash"></i> Xóa
+                </button>
+              </div>
+            </div>
+
+            <ng-template #editReviewTpl>
+              <div class="row g-2 mt-2">
+                <div class="col-sm-3">
+                  <label class="form-label">Điểm (1-5)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="editingReview!.rating"
+                  />
+                </div>
+                <div class="col-sm-9">
+                  <label class="form-label">Bình luận</label>
+                  <textarea
+                    rows="2"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="editingReview!.comment"
+                  ></textarea>
+                </div>
+              </div>
+              <div class="mt-2">
+                <button
+                  class="btn btn-sm btn-primary me-2"
+                  [disabled]="savingReview"
+                  (click)="saveMyReview()"
+                >
+                  <i class="fa-solid fa-save"></i>
+                  {{ savingReview ? "Đang lưu..." : "Lưu" }}
+                </button>
+                <button
+                  class="btn btn-sm btn-secondary"
+                  (click)="cancelEditReview()"
+                >
+                  Hủy
+                </button>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

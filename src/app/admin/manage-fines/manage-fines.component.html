@@ -20,9 +20,44 @@
         <td>{{ fine.overdueDays }}</td>
         <td>{{ fine.fineAmount | currency:'VND' }}</td>
         <td>
-          <button class="btn btn-success btn-sm" (click)="markAsPaid(fine.loanId)">Đánh Dấu Là Đã Thanh Toán</button>
+          <button class="btn btn-success btn-sm" (click)="openPaymentModal(fine)">Đã thu</button>
         </td>
       </tr>
     </tbody>
   </table>
+
+  <!-- Payment Method Modal -->
+  <div class="modal-backdrop-custom" *ngIf="isPaymentModalOpen">
+    <div class="modal-dialog-custom">
+      <div class="modal-content-custom">
+        <div class="modal-header-custom">
+          <h5 class="modal-title">Xác nhận đã thu tiền phạt</h5>
+        </div>
+        <div class="modal-body-custom">
+          <div class="form-group mb-3">
+            <label for="paymentMethod">Phương thức thanh toán</label>
+            <select id="paymentMethod" class="form-control" [(ngModel)]="selectedPaymentMethod">
+              <option value="CASH">Tiền mặt</option>
+              <option value="TRANSFER">Chuyển khoản</option>
+              <option value="OTHER">Khác</option>
+            </select>
+          </div>
+          <div class="form-group mb-3">
+            <label for="paymentNote">Ghi chú (tùy chọn)</label>
+            <textarea
+              id="paymentNote"
+              class="form-control"
+              rows="3"
+              [(ngModel)]="paymentNote"
+              placeholder="VD: Mã giao dịch, số biên lai, ghi chú thêm..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-custom">
+          <button class="btn btn-secondary" (click)="closePaymentModal()">Hủy</button>
+          <button class="btn btn-primary" (click)="confirmPayment()">Xác nhận đã thu</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

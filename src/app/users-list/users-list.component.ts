@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Users } from '../models/users';
+// SỬA: Import từ users.ts
+import { User } from '../models/user';
 import { UsersService } from '../services/users.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -11,10 +12,9 @@ import { ToastrService } from 'ngx-toastr';
     standalone: false
 })
 export class UsersListComponent implements OnInit {
-  users: Users[] = [];
+  users: User[] = [];
 
-  // State cho modal xác nhận
-  userToAction: Users | null = null;
+  userToAction: User | null = null;
   actionType: 'delete' | 'reset' | null = null;
 
   constructor(
@@ -37,19 +37,16 @@ export class UsersListComponent implements OnInit {
     this.router.navigate(['update-user', userId]);
   }
 
-  // Mở modal xác nhận
-  openConfirmModal(user: Users, type: 'delete' | 'reset'): void {
+  openConfirmModal(user: User, type: 'delete' | 'reset'): void {
     this.userToAction = user;
     this.actionType = type;
   }
 
-  // Hủy hành động và đóng modal
   cancelAction(): void {
     this.userToAction = null;
     this.actionType = null;
   }
 
-  // Xử lý sau khi người dùng xác nhận
   confirmAction(): void {
     if (!this.userToAction || !this.actionType) return;
 
@@ -57,20 +54,19 @@ export class UsersListComponent implements OnInit {
       this.usersService.deleteUser(this.userToAction.userId).subscribe({
         next: () => {
           this.toastr.success(`User "${this.userToAction?.username}" deleted successfully.`);
-          this.getUsers(); // Tải lại danh sách
+          this.getUsers(); 
         },
         error: (err) => this.toastr.error(err.error?.message || 'Failed to delete user.')
       });
     } else if (this.actionType === 'reset') {
       this.usersService.resetPassword(this.userToAction.userId).subscribe({
         next: (response) => {
-          // Hiển thị mật khẩu mới cho admin một cách an toàn hơn
           this.toastr.info(`Password for ${this.userToAction?.username} has been reset. New password: ${response.newPassword}`, 'Password Reset', { timeOut: 10000 });
         },
         error: (err) => this.toastr.error(err.error?.message || 'Failed to reset password.')
       });
     }
 
-    this.cancelAction(); // Đóng modal sau khi thực hiện
+    this.cancelAction();
   }
 }

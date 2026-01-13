@@ -11,66 +11,98 @@
   position: relative;
   overflow: hidden;
 }
-.auth-bg::before, .auth-bg::after {
+.auth-bg::before,
+.auth-bg::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 .auth-bg::before {
-  background:
-    radial-gradient(420px 220px at 15% 15%, rgba(167,139,250,.18), transparent 70%),
-    radial-gradient(560px 280px at 80% 5%, rgba(88, 166, 255, 0.2), transparent 72%);
+  background: radial-gradient(
+      420px 220px at 15% 15%,
+      rgba(167, 139, 250, 0.18),
+      transparent 70%
+    ),
+    radial-gradient(
+      560px 280px at 80% 5%,
+      rgba(88, 166, 255, 0.2),
+      transparent 72%
+    );
 }
 
 /* --- Thẻ Form Đăng Nhập --- */
 .auth-card {
   width: 100%;
-  max-width: 460px;
+  max-width: 420px;
   padding: 2.5rem;
   border-radius: var(--radius-lg, 16px);
-  background: var(--card, rgba(33, 38, 45, 0.7));
-  border: 1px solid var(--border, rgba(139, 148, 158, 0.2));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-  animation: fadeInUp 0.6s ease-out both;
+  background: rgba(33, 38, 45, 0.95); /* Tăng độ đậm nền để dễ đọc */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
 }
 
 /* --- Chữ & Tiêu đề --- */
 .auth-card h1 {
   margin: 0 0 8px;
   text-align: center;
-  font-size: 2rem;
-  font-weight: 800;
-  color: #f0f6fc;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #000000;
 }
 .subtitle {
-  margin: 0 0 2rem;
+  margin: 0 0 1.5rem;
   text-align: center;
-  color: var(--text-muted, #8b949e);
+  color: #9ca3af;
+  font-size: 0.95rem;
 }
 
 /* --- Trường Nhập Liệu --- */
 .field {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 .field label {
   display: block;
-  margin-bottom: 8px;
-  color: var(--text-muted, #8b949e);
-  font-weight: 600;
+  margin-bottom: 6px;
+  color: #d1d5db;
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 .field input {
   width: 100%;
-  /* Các thuộc tính này sẽ kế thừa từ styles.css, không cần ghi đè nếu không cần thiết */
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: white;
+  transition: all 0.2s;
 }
-.hint {
-  display: block;
-  margin-top: 8px;
-  color: var(--text-muted, #8b949e);
+.field input:focus {
+  border-color: aqua;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.2);
+}
+
+/* Validation Styles */
+.field input.is-invalid {
+  border-color: #ef4444;
+}
+.invalid-feedback {
+  color: #ef4444;
   font-size: 0.8rem;
-  opacity: .85;
+  margin-top: 4px;
+}
+
+/* Alert Box */
+.alert-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 /* --- Tùy chọn & Liên kết --- */
@@ -85,28 +117,101 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-muted, #8b949e);
+  color: #9ca3af;
   cursor: pointer;
+  user-select: none;
 }
 .remember input[type="checkbox"] {
-  width: auto;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 .link {
-  font-weight: 600;
+  color: aqua;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.link:hover {
+  color: #00cccc;
+  text-decoration: underline;
 }
 
 /* --- Nút Đăng Nhập --- */
 .btn-block {
   width: 100%;
-  padding: 14px 18px;
+  padding: 12px;
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 700;
-  color: #f0f6fc;
+  font-weight: 600;
+  color: #000;
   background-color: aqua;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-/* QUAN TRỌNG: Đảm bảo nút hiển thị ngay cả khi bị vô hiệu hóa */
+.btn-block:hover:not(:disabled) {
+  background-color: #00e6e6;
+  transform: translateY(-1px);
+}
 .btn-block:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* --- Google Login Button --- */
+.or-divider {
+  text-align: center;
+  margin: 1.5rem 0;
+  position: relative;
+}
+.or-divider span {
+  background: rgba(33, 38, 45, 0.95);
+  padding: 0 1rem;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  position: relative;
+  z-index: 1;
+}
+.or-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-google {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: #ffffff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-google:hover:not(:disabled) {
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.btn-google:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background: var(--accent); /* Giữ màu nền để nút không bị "biến mất" */
+}
+
+.text-muted {
+  color: #9ca3af !important;
 }

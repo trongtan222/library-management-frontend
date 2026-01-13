@@ -13,12 +13,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class CreateUserComponent {
   user = {
     name: '',
-    email: '', // <-- THÊM DÒNG NÀY
+    email: '',
     username: '',
-    password: '',
-    roles: 'ROLE_USER' // Mặc định
+    password: ''
   };
+  confirmPassword = '';
   isLoading = false;
+  rolesOptions: string[] = ['ROLE_USER', 'ROLE_ADMIN'];
+  selectedRole: string = 'ROLE_USER';
 
   constructor(
     private usersService: UsersService,
@@ -27,18 +29,30 @@ export class CreateUserComponent {
   ) { }
 
   onSubmit(): void {
+    if (this.isLoading) return;
+
+    if (!this.user.password || this.user.password !== this.confirmPassword) {
+      this.toastr.error('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+
+    const rolesArray = [this.selectedRole].filter(Boolean);
+    if (rolesArray.length === 0) {
+      this.toastr.error('Vui lòng chọn ít nhất một vai trò.');
+      return;
+    }
+
     this.isLoading = true;
-    const rolesArray = this.user.roles.split(',').map(role => role.trim()).filter(Boolean);
-    // Payload đã bao gồm email do sử dụng spread operator (...)
     const payload = { ...this.user, roles: rolesArray };
 
     this.usersService.createUser(payload).subscribe({
       next: () => {
-        this.toastr.success('User created successfully!');
+        this.toastr.success('Tạo người dùng thành công!');
         this.router.navigate(['/users']);
       },
       error: (err: HttpErrorResponse) => {
-        this.toastr.error(err.error?.message || 'Failed to create user.');
+        const msg = err.error?.message || err.message || 'Không thể tạo người dùng.';
+        this.toastr.error(msg);
         this.isLoading = false;
       }
     });

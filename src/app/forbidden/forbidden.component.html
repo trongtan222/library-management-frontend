@@ -1,3 +1,23 @@
-<div class="container">
-    <p class="forbidden text-center">Bạn không có quyền truy cập vào trang này.</p>
+<div class="container d-flex flex-column justify-content-center align-items-center vh-100">
+    <div class="text-center">
+        <h1 class="display-1 fw-bold text-danger">
+            <i class="fa-solid fa-ban"></i> 403
+        </h1>
+        
+        <h2 class="mb-3">Truy cập bị từ chối</h2>
+        
+        <p class="lead mb-4">
+            Xin lỗi, bạn không có quyền truy cập vào trang này.<br>
+            Vui lòng liên hệ quản trị viên hoặc đăng nhập bằng tài khoản khác.
+        </p>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a routerLink="/" class="btn btn-primary">
+                <i class="fa-solid fa-house me-2"></i> Về Trang Chủ
+            </a>
+            <a routerLink="/login" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-sign-in-alt me-2"></i> Đăng Nhập Lại
+            </a>
+        </div>
+    </div>
 </div>

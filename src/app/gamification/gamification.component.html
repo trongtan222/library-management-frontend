@@ -1,0 +1,213 @@
+<div class="gamification-container">
+  <h2>🎮 Gamification - Điểm thưởng & Thành tích</h2>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button
+      [class.active]="activeTab === 'stats'"
+      (click)="setActiveTab('stats')"
+    >
+      📊 Tổng quan
+    </button>
+    <button
+      [class.active]="activeTab === 'badges'"
+      (click)="setActiveTab('badges')"
+    >
+      🏅 Huy hiệu ({{ badges.length }})
+    </button>
+    <button
+      [class.active]="activeTab === 'challenges'"
+      (click)="setActiveTab('challenges')"
+    >
+      🎯 Thử thách
+    </button>
+    <button
+      [class.active]="activeTab === 'leaderboard'"
+      (click)="setActiveTab('leaderboard')"
+    >
+      🏆 Bảng xếp hạng
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">Đang tải...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <!-- Stats Tab -->
+  <div *ngIf="activeTab === 'stats' && stats" class="tab-content">
+    <div class="stats-grid">
+      <!-- Level Card -->
+      <div class="stat-card level-card">
+        <div class="level-badge">{{ getLevelBadge(stats.currentLevel) }}</div>
+        <h3>Cấp độ {{ stats.currentLevel }}</h3>
+        <div class="progress-bar">
+          <div
+            class="progress"
+            [style.width.%]="getProgressToNextLevel()"
+          ></div>
+        </div>
+        <p class="progress-text">
+          Còn {{ getPointsToNextLevel() }} điểm để lên cấp
+        </p>
+      </div>
+
+      <!-- Points Card -->
+      <div class="stat-card">
+        <div class="stat-icon">💎</div>
+        <h4>Tổng điểm</h4>
+        <p class="stat-value">{{ stats.totalPoints }}</p>
+      </div>
+
+      <!-- Rank Card -->
+      <div class="stat-card">
+        <div class="stat-icon">🏅</div>
+        <h4>Xếp hạng</h4>
+        <p class="stat-value">#{{ stats.rank }}</p>
+      </div>
+
+      <!-- Badges Card -->
+      <div class="stat-card">
+        <div class="stat-icon">🎖️</div>
+        <h4>Huy hiệu</h4>
+        <p class="stat-value">{{ stats.badgeCount }}</p>
+      </div>
+
+      <!-- Activity Stats -->
+      <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <h4>Sách đã mượn</h4>
+        <p class="stat-value">{{ stats.booksBorrowedCount }}</p>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <h4>Trả đúng hạn</h4>
+        <p class="stat-value">{{ stats.booksReturnedOnTime }}</p>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">✍️</div>
+        <h4>Đánh giá</h4>
+        <p class="stat-value">{{ stats.reviewsWritten }}</p>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <h4>Streak</h4>
+        <p class="stat-value">{{ stats.streakDays }} ngày</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges Tab -->
+  <div *ngIf="activeTab === 'badges'" class="tab-content">
+    <div class="badges-grid" *ngIf="badges.length > 0">
+      <div class="badge-card" *ngFor="let userBadge of badges">
+        <div class="badge-icon">
+          <img
+            *ngIf="userBadge.badge.iconUrl"
+            [src]="userBadge.badge.iconUrl"
+            alt=""
+          />
+          <span *ngIf="!userBadge.badge.iconUrl">🏆</span>
+        </div>
+        <h4>{{ userBadge.badge.nameVi }}</h4>
+        <p>{{ userBadge.badge.descriptionVi }}</p>
+        <small>Đạt ngày: {{ userBadge.earnedAt | date : "dd/MM/yyyy" }}</small>
+      </div>
+    </div>
+    <div *ngIf="badges.length === 0" class="empty-state">
+      <p>Chưa có huy hiệu nào. Hãy mượn sách và hoàn thành thử thách!</p>
+    </div>
+  </div>
+
+  <!-- Challenges Tab -->
+  <div *ngIf="activeTab === 'challenges'" class="tab-content">
+    <!-- Active Challenges -->
+    <h3>🎯 Thử thách đang tham gia</h3>
+    <div class="challenges-list" *ngIf="challenges.length > 0">
+      <div
+        class="challenge-card"
+        *ngFor="let progress of challenges"
+        [class.completed]="progress.isCompleted"
+      >
+        <div class="challenge-header">
+          <h4>{{ progress.challenge.nameVi }}</h4>
+          <span class="reward"
+            >+{{ progress.challenge.pointsReward }} điểm</span
+          >
+        </div>
+        <p>{{ progress.challenge.descriptionVi }}</p>
+        <div class="challenge-progress">
+          <div class="progress-bar">
+            <div
+              class="progress"
+              [style.width.%]="getChallengeProgress(progress)"
+            ></div>
+          </div>
+          <span
+            >{{ progress.booksCompleted }}/{{
+              progress.challenge.targetBooks
+            }}
+            sách</span
+          >
+        </div>
+        <div *ngIf="progress.isCompleted" class="completed-badge">
+          ✅ Hoàn thành!
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Challenges -->
+    <h3>📋 Thử thách có thể tham gia</h3>
+    <div class="challenges-list">
+      <div
+        class="challenge-card available"
+        *ngFor="let challenge of activeChallenges"
+      >
+        <div class="challenge-header">
+          <h4>{{ challenge.nameVi }}</h4>
+          <span class="reward">+{{ challenge.pointsReward }} điểm</span>
+        </div>
+        <p>{{ challenge.descriptionVi }}</p>
+        <p class="dates">
+          {{ challenge.startDate | date : "dd/MM/yyyy" }} -
+          {{ challenge.endDate | date : "dd/MM/yyyy" }}
+        </p>
+        <button
+          class="join-btn"
+          (click)="joinChallenge(challenge.id)"
+          [disabled]="isJoinedChallenge(challenge.id)"
+        >
+          {{ isJoinedChallenge(challenge.id) ? "Đã tham gia" : "Tham gia" }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard Tab -->
+  <div *ngIf="activeTab === 'leaderboard'" class="tab-content">
+    <div class="leaderboard">
+      <div
+        class="leaderboard-item"
+        *ngFor="let entry of leaderboard; let i = index"
+        [class.top3]="i < 3"
+      >
+        <div class="rank">
+          <span *ngIf="i === 0">🥇</span>
+          <span *ngIf="i === 1">🥈</span>
+          <span *ngIf="i === 2">🥉</span>
+          <span *ngIf="i > 2">#{{ i + 1 }}</span>
+        </div>
+        <div class="user-info">
+          <span class="name">{{ entry.userName }}</span>
+          <span class="level"
+            >{{ getLevelBadge(entry.level) }} Lv.{{ entry.level }}</span
+          >
+        </div>
+        <div class="points">{{ entry.totalPoints }} điểm</div>
+        <div class="badges-count">🎖️ {{ entry.badgeCount }}</div>
+      </div>
+    </div>
+  </div>
+</div>

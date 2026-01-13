@@ -4,6 +4,9 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class UserAuthService {
+  getUserName(): string {
+    throw new Error('Method not implemented.');
+  }
   private ROLES_KEY = 'roles';
   private TOKEN_KEY = 'jwtToken';
   private USER_ID_KEY = 'userId';

@@ -1,0 +1,48 @@
+.scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Để click xuyên qua */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 50px solid rgba(0, 0, 0, 0.3); /* Tạo hiệu ứng khung tối xung quanh */
+}
+
+/* Hiệu ứng vạch quét chạy lên xuống */
+.scan-line {
+  width: 80%;
+  height: 2px;
+  background: #00ff00;
+  box-shadow: 0 0 10px #00ff00;
+  animation: scan 2s infinite linear;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-150px); opacity: 0.5; }
+  50% { transform: translateY(150px); opacity: 1; }
+  100% { transform: translateY(-150px); opacity: 0.5; }
+}
+
+.scan-result-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(13, 16, 32, 0.95); /* Nền tối che camera */
+  backdrop-filter: blur(5px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

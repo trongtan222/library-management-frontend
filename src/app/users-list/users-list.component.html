@@ -19,9 +19,10 @@
             <td>{{ user.username }}</td>
             <td>{{ user.roles.join(', ') }}</td>
             <td>
-                <button (click)="updateUser(user.userId)" class="btn btn-info btn-sm">Chỉnh Sửa</button>
-                <button (click)="openConfirmModal(user, 'reset')" class="btn btn-warning btn-sm mx-2">Đặt Lại Mật Khẩu</button>
-                <button (click)="openConfirmModal(user, 'delete')" class="btn btn-danger btn-sm">Xóa</button>
+              <a [routerLink]="['/user-details', user.userId]" class="btn btn-secondary btn-sm me-2">Xem Chi Tiết</a>
+              <button (click)="updateUser(user.userId)" class="btn btn-info btn-sm">Chỉnh Sửa</button>
+              <button (click)="openConfirmModal(user, 'reset')" class="btn btn-warning btn-sm mx-2">Đặt Lại Mật Khẩu</button>
+              <button (click)="openConfirmModal(user, 'delete')" class="btn btn-danger btn-sm">Xóa</button>
             </td>
         </tr>
     </tbody>

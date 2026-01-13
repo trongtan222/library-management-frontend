@@ -1,0 +1,68 @@
+/* --- Cấu hình chung cho Dark Mode --- */
+
+/* Thay đổi màu nền và chữ cho thẻ Card */
+.card {
+  background-color: #1f2937; /* Màu nền tối (Dark Gray) */
+  border: 1px solid #374151; /* Viền màu xám nhẹ */
+  color: #e5e7eb; /* Chữ màu trắng sáng */
+}
+
+/* Đảm bảo link tiêu đề sách luôn màu trắng */
+.card-title a {
+  color: #ffffff !important;
+  transition: color 0.2s;
+}
+
+.card-title a:hover {
+  color: #60a5fa !important; /* Màu xanh sáng khi hover */
+}
+
+/* Chỉnh sửa phần Footer của Card (nơi hiện ngày tháng) */
+.card-footer {
+  background-color: #111827 !important; /* Nền tối hơn card một chút */
+  border-top: 1px solid #374151;
+  color: #9ca3af !important; /* Chữ màu xám nhạt */
+}
+
+/* Chỉnh sửa nút "Xem chi tiết" để nổi bật trên nền tối */
+.btn-outline-primary {
+  color: #60a5fa;
+  border-color: #60a5fa;
+}
+
+.btn-outline-primary:hover {
+  background-color: #60a5fa;
+  color: #ffffff;
+}
+
+/* --- Xử lý phần "Trống" (Empty State) --- */
+/* Ghi đè class bg-light của Bootstrap thành nền tối */
+.bg-light {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+
+/* Đổi màu icon và tiêu đề trong phần trống */
+.bg-light i, .bg-light h4 {
+  color: #9ca3af !important;
+}
+
+/* --- Hiệu ứng Hover (Giữ nguyên và nâng cấp shadow) --- */
+.hover-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  /* Shadow màu đen đậm để nổi bật trên nền tối */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5) !important;
+  border-color: #4b5563; /* Sáng viền lên một chút khi hover */
+}
+
+.card-img-top {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  /* Thêm nền mờ cho ảnh khi chưa load xong */
+  background-color: #374151; 
+}

@@ -25,7 +25,34 @@
         <div *ngIf="authorIds.invalid && (authorIds.dirty || authorIds.touched)" class="text-danger mt-1">
           Vui lòng chọn ít nhất 1 tác giả.
         </div>
+        <div class="mt-2 d-flex gap-2">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="openAddAuthor()">+ Thêm tác giả</button>
+        </div>
       </div>
+    <!-- Add Author Modal -->
+    <div class="modal-backdrop" *ngIf="showAddAuthorModal"></div>
+    <div class="modal" tabindex="-1" *ngIf="showAddAuthorModal" style="display:block;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Thêm Tác Giả</h5>
+            <button type="button" class="btn-close" (click)="closeAddAuthor()"></button>
+          </div>
+          <div class="modal-body">
+            <label for="newAuthorName" class="form-label">Tên tác giả</label>
+            <input id="newAuthorName" type="text" class="form-control" [(ngModel)]="newAuthorName" name="newAuthorName" />
+            <div *ngIf="errorMessage" class="alert alert-danger mt-2">{{ errorMessage }}</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeAddAuthor()" [disabled]="savingAuthor">Đóng</button>
+            <button type="button" class="btn btn-primary" (click)="saveNewAuthor()" [disabled]="savingAuthor">
+              <span *ngIf="savingAuthor" class="spinner-border spinner-border-sm"></span>
+              {{ savingAuthor ? 'Đang lưu...' : 'Lưu' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
       <div class="mb-3">
         <label for="categoryIds" class="form-label">Thể Loại</label>
@@ -38,7 +65,34 @@
         <div *ngIf="categoryIds.invalid && (categoryIds.dirty || categoryIds.touched)" class="text-danger mt-1">
           Vui lòng chọn ít nhất 1 thể loại.
         </div>
+        <div class="mt-2 d-flex gap-2">
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="openAddCategory()">+ Thêm thể loại</button>
+        </div>
       </div>
+    <!-- Add Category Modal -->
+    <div class="modal-backdrop" *ngIf="showAddCategoryModal"></div>
+    <div class="modal" tabindex="-1" *ngIf="showAddCategoryModal" style="display:block;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Thêm Thể Loại</h5>
+            <button type="button" class="btn-close" (click)="closeAddCategory()"></button>
+          </div>
+          <div class="modal-body">
+            <label for="newCategoryName" class="form-label">Tên thể loại</label>
+            <input id="newCategoryName" type="text" class="form-control" [(ngModel)]="newCategoryName" name="newCategoryName" />
+            <div *ngIf="errorMessage" class="alert alert-danger mt-2">{{ errorMessage }}</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeAddCategory()" [disabled]="savingCategory">Đóng</button>
+            <button type="button" class="btn btn-primary" (click)="saveNewCategory()" [disabled]="savingCategory">
+              <span *ngIf="savingCategory" class="spinner-border spinner-border-sm"></span>
+              {{ savingCategory ? 'Đang lưu...' : 'Lưu' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
       <div class="row">
         <div class="col-md-6 mb-3">
@@ -53,6 +107,14 @@
           <label for="publishedYear" class="form-label">Năm Xuất Bản</label>
           <input type="number" class="form-control" id="publishedYear" name="publishedYear" 
                  [(ngModel)]="book.publishedYear">
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="coverUrl" class="form-label">Ảnh Bìa (Cover URL)</label>
+        <input type="url" class="form-control" id="coverUrl" name="coverUrl"
+               [(ngModel)]="book.coverUrl" placeholder="https://example.com/cover.jpg">
+        <div class="mt-2" *ngIf="book.coverUrl">
+          <img [src]="book.coverUrl" alt="Book cover preview" class="img-fluid rounded border" (error)="$event.target.style.display='none'">
         </div>
       </div>
       

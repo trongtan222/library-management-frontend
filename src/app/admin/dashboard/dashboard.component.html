@@ -1,150 +1,405 @@
 <div class="container-fluid mt-4">
-  <h1 class="mb-4">Admin Dashboard</h1>
+  <!-- SỬA: Đổi tiêu đề thành màu trắng -->
+  <h2 class="mb-4 fw-bold">
+    <i class="fa-solid fa-chart-line"></i> Dashboard Thống Kê
+  </h2>
 
   <div *ngIf="isLoading" class="text-center my-5">
-    <div class="spinner-border" role="status">
+    <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
-  <div *ngIf="details && !isLoading">
-    <div class="row">
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="stat-card card-books" (click)="toggleView('books')" [class.active]="activeView === 'books'">
+  <div *ngIf="!isLoading">
+    <div class="row g-4 mb-5">
+      <div class="col-lg-8">
+        <!-- SỬA: Thêm bg-dark text-white, đổi viền thành secondary -->
+        <div class="card shadow-sm h-100 border-secondary bg-dark text-white">
+          <div class="card-header bg-dark border-secondary fw-bold text-white">
+            <i class="fa-solid fa-arrow-trend-up me-2"></i>Xu Hướng Mượn Sách
+            (Năm Nay)
+          </div>
           <div class="card-body">
-            <div class="stat-card-content">
-              <div>
-                <div class="text-xs">TỔNG SỐ SÁCH</div>
-                <div class="h5">{{ details.stats.totalBooks }}</div>
-              </div>
-              <i class="fas fa-book fa-2x"></i>
+            <div
+              class="chart-container"
+              style="position: relative; height: 300px; width: 100%"
+            >
+              <canvas id="loansChart"></canvas>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="stat-card card-users" (click)="toggleView('users')" [class.active]="activeView === 'users'">
-           <div class="card-body">
-            <div class="stat-card-content">
-              <div>
-                <div class="text-xs">TỔNG SỐ USER</div>
-                <div class="h5">{{ details.stats.totalUsers }}</div>
-              </div>
-              <i class="fas fa-users fa-2x"></i>
-            </div>
+
+      <div class="col-lg-4">
+        <!-- SỬA: Thêm bg-dark text-white -->
+        <div class="card shadow-sm h-100 border-secondary bg-dark text-white">
+          <div class="card-header bg-dark border-secondary fw-bold text-white">
+            <i class="fa-solid fa-chart-pie me-2"></i>Tỷ Lệ Trạng Thái
           </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="stat-card card-loans" (click)="toggleView('activeLoans')" [class.active]="activeView === 'activeLoans'">
-           <div class="card-body">
-            <div class="stat-card-content">
-              <div>
-                <div class="text-xs">ĐANG MƯỢN</div>
-                <div class="h5">{{ details.stats.activeLoans }}</div>
-              </div>
-              <i class="fas fa-hand-holding fa-2x"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="stat-card card-overdue" (click)="toggleView('overdueLoans')" [class.active]="activeView === 'overdueLoans'">
-           <div class="card-body">
-            <div class="stat-card-content">
-              <div>
-                <div class="text-xs">QUÁ HẠN</div>
-                <div class="h5">{{ details.stats.overdueLoans }}</div>
-              </div>
-              <i class="fas fa-exclamation-triangle fa-2x"></i>
+          <div
+            class="card-body d-flex align-items-center justify-content-center"
+          >
+            <div
+              class="chart-container"
+              style="position: relative; height: 250px; width: 250px"
+            >
+              <canvas id="statusChart"></canvas>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="col-12 mb-4" *ngIf="activeView === 'books'">
-      <div class="card shadow">
-        <div class="card-header"><h5 class="m-0 font-weight-bold">Tất Cả Sách</h5></div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-sm table-hover">
-              <thead><tr><th>ID</th><th>Tên</th><th>Tác Giả</th><th>Số Lượng</th></tr></thead>
-              <tbody>
-                <tr *ngFor="let book of allBooks">
-                  <td>{{ book.id }}</td>
-                  <td>{{ book.name }}</td>
-                  <td>
-                    <span *ngIf="book.authors && book.authors.length > 0">{{ book.authors[0].name }}</span>
-                    <span *ngIf="!book.authors || book.authors.length === 0">-</span>
-                  </td>
-                  <td>{{ book.numberOfCopiesAvailable }}</td>
-                </tr>
-              </tbody>
-            </table>
+    <!-- CÁC THẺ THỐNG KÊ (CLICKABLE) -->
+    <div
+      class="row row-cols-1 row-cols-md-3 row-cols-xl-6 g-3 mb-4"
+      *ngIf="details"
+    >
+      <div class="col">
+        <div
+          class="stat-card bg-primary text-white p-3 rounded shadow-sm h-100 clickable-card"
+          [class.active-card]="selectedSection === 'BOOKS'"
+          (click)="showSection('BOOKS')"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-uppercase small opacity-75">Tổng số sách</div>
+              <div class="h3 fw-bold mb-0">{{ details.stats.totalBooks }}</div>
+            </div>
+            <i class="fas fa-book fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div
+          class="stat-card bg-success p-3 rounded shadow-sm h-100 clickable-card"
+          [class.active-card]="selectedSection === 'USERS'"
+          (click)="showSection('USERS')"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-uppercase small opacity-75">Tổng người dùng</div>
+              <div class="h3 fw-bold mb-0">{{ details.stats.totalUsers }}</div>
+            </div>
+            <i class="fas fa-users fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <!-- SỬA: Đổi text-dark thành text-white cho đồng bộ -->
+        <div
+          class="stat-card bg-warning text-white p-3 rounded shadow-sm h-100 clickable-card"
+          [class.active-card]="selectedSection === 'LOANS_ACTIVE'"
+          (click)="showSection('LOANS_ACTIVE')"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-uppercase small opacity-75">Đang mượn</div>
+              <div class="h3 fw-bold mb-0">{{ details.stats.activeLoans }}</div>
+            </div>
+            <i class="fas fa-hand-holding fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div
+          class="stat-card bg-danger text-white p-3 rounded shadow-sm h-100 clickable-card"
+          [class.active-card]="selectedSection === 'LOANS_OVERDUE'"
+          (click)="showSection('LOANS_OVERDUE')"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-uppercase small opacity-75">Quá hạn</div>
+              <div class="h3 fw-bold mb-0">
+                {{ details.stats.overdueLoans }}
+              </div>
+            </div>
+            <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thẻ: Tổng tiền phạt (tất cả) -->
+      <div
+        class="col"
+        *ngIf="
+          details && details.stats && details.stats.totalFines !== undefined
+        "
+      >
+        <div
+          class="stat-card bg-secondary text-white p-3 rounded shadow-sm h-100 clickable-card"
+          [class.active-card]="selectedSection === 'FINES_ALL'"
+          (click)="showSection('FINES_ALL')"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-uppercase small opacity-75">Tổng tiền phạt</div>
+              <div class="h4 fw-bold mb-0">
+                {{
+                  details.stats.totalFines
+                    | currency : "VND" : "symbol" : "1.0-0"
+                }}
+              </div>
+            </div>
+            <i class="fas fa-coins fa-2x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thẻ: Tiền phạt chưa thanh toán -->
+      <div
+        class="col"
+        *ngIf="
+          details &&
+          details.stats &&
+          details.stats.totalUnpaidFines !== undefined
+        "
+      >
+        <div
+          class="stat-card bg-secondary text-white p-3 rounded shadow-sm h-100 clickable-card"
+          [class.active-card]="selectedSection === 'FINES_UNPAID'"
+          (click)="showSection('FINES_UNPAID')"
+        >
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-uppercase small opacity-75">
+                Tiền phạt chưa thu
+              </div>
+              <div class="h4 fw-bold mb-0">
+                {{
+                  details.stats.totalUnpaidFines
+                    | currency : "VND" : "symbol" : "1.0-0"
+                }}
+              </div>
+            </div>
+            <i class="fas fa-receipt fa-2x opacity-50"></i>
           </div>
         </div>
       </div>
     </div>
-    
-    <div class="col-12 mb-4" *ngIf="activeView === 'users'">
-        <div class="card shadow">
-            <div class="card-header"><h5 class="m-0 font-weight-bold">Tất Cả Người Dùng</h5></div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover">
-                        <thead><tr><th>ID</th><th>Tên</th><th>Tên Đăng Nhập</th><th>Vai Trò</th></tr></thead>
-                        <tbody>
-                            <tr *ngFor="let user of allUsers">
-                                <td>{{ user.userId }}</td><td>{{ user.name }}</td><td>{{ user.username }}</td><td>{{ user.roles.join(', ') }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="col-12 mb-4" *ngIf="activeView === 'activeLoans'">
-        <div class="card shadow">
-            <div class="card-header"><h5 class="m-0 font-weight-bold">Đang Mượn</h5></div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover">
-                        <thead><tr><th>Tên Sách</th><th>Tên Người Mượn</th><th>Ngày Hết Hạn</th></tr></thead>
-                        <tbody>
-                            <ng-container *ngFor="let loan of allLoans">
-                                <tr *ngIf="loan.status === 'ACTIVE'">
-                                    <td>{{ loan.bookName }}</td><td>{{ loan.userName }}</td><td>{{ loan.dueDate | date:'dd/MM/yyyy' }}</td>
-                                </tr>
-                            </ng-container>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- DANH SÁCH CHI TIẾT (HIỆN KHI CLICK VÀO THẺ) -->
+    <div
+      class="card shadow-sm border-0 mb-5 animate-fade-in"
+      *ngIf="selectedSection"
+    >
+      <div
+        class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center"
+      >
+        <span>
+          <i class="fa-solid fa-list me-2"></i>
+          <ng-container [ngSwitch]="selectedSection">
+            <span *ngSwitchCase="'BOOKS'">Danh Sách Sách</span>
+            <span *ngSwitchCase="'USERS'">Danh Sách Người Dùng</span>
+            <span *ngSwitchCase="'LOANS_ACTIVE'">Danh Sách Đang Mượn</span>
+            <span *ngSwitchCase="'LOANS_OVERDUE'">Danh Sách Quá Hạn</span>
+            <span *ngSwitchCase="'FINES_ALL'"
+              >Danh Sách Tiền Phạt (Tất Cả)</span
+            >
+            <span *ngSwitchCase="'FINES_UNPAID'"
+              >Danh Sách Tiền Phạt Chưa Thu</span
+            >
+          </ng-container>
+        </span>
+        <button
+          class="btn btn-sm btn-outline-light"
+          (click)="selectedSection = null"
+        >
+          <i class="fa-solid fa-times"></i> Đóng
+        </button>
+      </div>
 
-    <div class="col-12 mb-4" *ngIf="activeView === 'overdueLoans'">
-        <div class="card shadow">
-            <div class="card-header bg-danger text-white"><h5 class="m-0 font-weight-bold">Khoản Vay Quá Hạn</h5></div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover">
-                        <thead><tr><th>Tên Sách</th><th>Tên Người Mượn</th><th>Ngày Hết Hạn</th></tr></thead>
-                        <tbody>
-                            <ng-container *ngFor="let loan of allLoans">
-                                <tr *ngIf="loan.status === 'OVERDUE'">
-                                    <td>{{ loan.bookName }}</td><td>{{ loan.userName }}</td><td>{{ loan.dueDate | date:'dd/MM/yyyy' }}</td>
-                                </tr>
-                            </ng-container>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+      <div class="card-body p-0">
+        <div *ngIf="listLoading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
         </div>
+
+        <div class="table-responsive" *ngIf="!listLoading">
+          <table class="table table-hover table-striped mb-0">
+            <!-- HEADER TÙY BIẾN -->
+            <thead class="table-dark">
+              <tr *ngIf="selectedSection === 'BOOKS'">
+                <th>ID</th>
+                <th>Tên Sách</th>
+                <th>Tác Giả</th>
+                <th>Năm XB</th>
+                <th>Số Lượng</th>
+              </tr>
+              <tr *ngIf="selectedSection === 'USERS'">
+                <th>ID</th>
+                <th>Tên</th>
+                <th>Username</th>
+                <th>Vai Trò</th>
+              </tr>
+              <tr
+                *ngIf="selectedSection && selectedSection.startsWith('LOANS')"
+              >
+                <th>ID</th>
+                <th>Sách</th>
+                <th>Người Mượn</th>
+                <th>Ngày Mượn</th>
+                <th>Hạn Trả</th>
+                <th>Trạng Thái</th>
+              </tr>
+              <tr
+                *ngIf="
+                  selectedSection === 'FINES_ALL' ||
+                  selectedSection === 'FINES_UNPAID'
+                "
+              >
+                <th>ID Mượn</th>
+                <th>Người Mượn</th>
+                <th>Sách</th>
+                <th>Hạn Trả</th>
+                <th>Ngày Trả</th>
+                <th>Tiền Phạt</th>
+              </tr>
+            </thead>
+
+            <!-- BODY TÙY BIẾN -->
+            <tbody>
+              <tr *ngIf="tableData.length === 0">
+                <td colspan="6" class="text-center py-4 text-muted">
+                  Không có dữ liệu.
+                </td>
+              </tr>
+
+              <ng-container [ngSwitch]="selectedSection">
+                <!-- Bảng Sách -->
+                <ng-container *ngSwitchCase="'BOOKS'">
+                  <tr *ngFor="let item of pagedTableData">
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>
+                      <span *ngFor="let a of item.authors; let last = last"
+                        >{{ a.name }}{{ !last ? ", " : "" }}</span
+                      >
+                    </td>
+                    <td>{{ item.publishedYear }}</td>
+                    <td>{{ item.numberOfCopiesAvailable }}</td>
+                  </tr>
+                </ng-container>
+
+                <!-- Bảng User -->
+                <ng-container *ngSwitchCase="'USERS'">
+                  <tr *ngFor="let item of pagedTableData">
+                    <td>{{ item.userId }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.username }}</td>
+                    <td>{{ item.roles?.join(", ") }}</td>
+                  </tr>
+                </ng-container>
+
+                <!-- Bảng Tiền Phạt (tất cả / chưa thu) -->
+                <ng-container *ngSwitchCase="'FINES_ALL'">
+                  <tr *ngFor="let item of pagedTableData">
+                    <td>{{ item.loanId }}</td>
+                    <td>{{ item.userName }}</td>
+                    <td>{{ item.bookName }}</td>
+                    <td>{{ item.dueDate | date : "dd/MM/yyyy" }}</td>
+                    <td>
+                      {{
+                        item.returnDate
+                          ? (item.returnDate | date : "dd/MM/yyyy")
+                          : "-"
+                      }}
+                    </td>
+                    <td>
+                      {{
+                        item.fineAmount | currency : "VND" : "symbol" : "1.0-0"
+                      }}
+                    </td>
+                  </tr>
+                </ng-container>
+
+                <ng-container *ngSwitchCase="'FINES_UNPAID'">
+                  <tr *ngFor="let item of pagedTableData">
+                    <td>{{ item.loanId }}</td>
+                    <td>{{ item.userName }}</td>
+                    <td>{{ item.bookName }}</td>
+                    <td>{{ item.dueDate | date : "dd/MM/yyyy" }}</td>
+                    <td>
+                      {{
+                        item.returnDate
+                          ? (item.returnDate | date : "dd/MM/yyyy")
+                          : "-"
+                      }}
+                    </td>
+                    <td>
+                      {{
+                        item.fineAmount | currency : "VND" : "symbol" : "1.0-0"
+                      }}
+                    </td>
+                  </tr>
+                </ng-container>
+
+                <!-- Bảng Mượn -->
+                <ng-container *ngSwitchDefault>
+                  <tr *ngFor="let item of pagedTableData">
+                    <td>{{ item.loanId }}</td>
+                    <td>{{ item.bookName }}</td>
+                    <td>{{ item.userName }}</td>
+                    <td>{{ item.loanDate | date : "dd/MM/yyyy" }}</td>
+                    <td>{{ item.dueDate | date : "dd/MM/yyyy" }}</td>
+                    <td>
+                      <span
+                        class="badge"
+                        [ngClass]="{
+                          'bg-success': item.status === 'ACTIVE',
+                          'bg-danger': item.status === 'OVERDUE',
+                          'bg-secondary': item.status === 'RETURNED'
+                        }"
+                        >{{ item.status }}</span
+                      >
+                    </td>
+                  </tr>
+                </ng-container>
+              </ng-container>
+            </tbody>
+          </table>
+          <div
+            class="d-flex flex-wrap align-items-center justify-content-between px-3 py-3 border-top"
+            *ngIf="selectedSection && totalElements > 0"
+          >
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label me-2 mb-0">Hiển thị</label>
+              <select
+                class="form-select form-select-sm w-auto"
+                [value]="pageSize"
+                (change)="changePageSize($event)"
+              >
+                <option *ngFor="let size of pageSizes" [value]="size">
+                  {{ size }}
+                </option>
+              </select>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <button
+                class="btn btn-sm btn-outline-secondary"
+                (click)="prevPage()"
+                [disabled]="page <= 1"
+              >
+                Trước
+              </button>
+              <button
+                class="btn btn-sm btn-outline-secondary"
+                (click)="nextPage()"
+                [disabled]="totalPages === 0 || page >= totalPages"
+              >
+                Tiếp
+              </button>
+              <span class="text-muted small"
+                >Trang {{ page }} / {{ totalPages || 1 }} ·
+                {{ totalElements }} dòng</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

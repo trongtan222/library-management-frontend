@@ -1,9 +1,9 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpContext } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Users } from '../models/users';
+import { User } from '../models/user';
 import { UserAuthService } from './user-auth.service';
-import { environment } from '../../environments/environment';
+import { ApiService, IS_PUBLIC_API } from './api.service';
 
 type RoleLike = string | { roleName?: string };
 
@@ -17,26 +17,55 @@ export interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
-  private API_URL = `${environment.apiRoot}`;
-  private noAuthHeader = new HttpHeaders({ 'No-Auth': 'True' });
-
+  
   constructor(
     private http: HttpClient,
-    private userAuth: UserAuthService
+    private userAuth: UserAuthService,
+    private apiService: ApiService
   ) {}
-
-  // ... (các phương thức login, register, roleMatch giữ nguyên) ...
 
   // ---------- AUTHENTICATION & REGISTRATION ----------
 
   public login(credentials: { username: string; password: string }): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/authenticate`, credentials, {
-      headers: this.noAuthHeader,
-    });
+    // Login luôn là public
+    return this.http.post<AuthResponse>(
+      this.apiService.buildUrl('/auth/authenticate'), 
+      credentials, 
+      { context: new HttpContext().set(IS_PUBLIC_API, true) }
+    );
   }
 
   public register(registerData: any): Observable<any> {
-    return this.http.post(`${this.API_URL}/auth/register`, registerData, { headers: this.noAuthHeader });
+    // Register luôn là public
+    return this.http.post(
+      this.apiService.buildUrl('/auth/register'), 
+      registerData,
+      { context: new HttpContext().set(IS_PUBLIC_API, true) }
+    );
+  }
+
+  public requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(
+      this.apiService.buildUrl('/auth/forgot-password'),
+      { email },
+      { context: new HttpContext().set(IS_PUBLIC_API, true) }
+    );
+  }
+
+  public confirmPasswordReset(payload: { token: string; newPassword: string }): Observable<any> {
+    return this.http.post(
+      this.apiService.buildUrl('/auth/reset-password'),
+      payload,
+      { context: new HttpContext().set(IS_PUBLIC_API, true) }
+    );
+  }
+
+  // ---------- ACCOUNT ----------
+  public changePassword(payload: { oldPassword: string; newPassword: string }): Observable<any> {
+    return this.http.put(
+      this.apiService.buildUrl('/account/password'),
+      payload
+    );
   }
 
   // ---------- ROLE HANDLING ----------
@@ -67,27 +96,30 @@ export class UsersService {
   
   // ---------- ADMIN USER MANAGEMENT (CRUD) ----------
 
-  getUsersList(): Observable<Users[]> {
-    return this.http.get<Users[]>(`${this.API_URL}/admin/users`);
+  getUsersList(): Observable<User[]> {
+    return this.http.get<User[]>(this.apiService.buildUrl('/admin/users'));
   }
 
   createUser(user: any): Observable<any> {
-    return this.http.post(`${this.API_URL}/admin/users`, user);
+    return this.http.post(this.apiService.buildUrl('/admin/users'), user);
   }
 
-  getUserById(userId: number): Observable<Users> {
-    return this.http.get<Users>(`${this.API_URL}/admin/users/${userId}`);
+  getUserById(userId: number): Observable<User> {
+    return this.http.get<User>(this.apiService.buildUrl(`/admin/users/${userId}`));
   }
 
   updateUser(userId: number, userDetails: { name: string; username: string; roles: string[] }): Observable<unknown> {
-    return this.http.put(`${this.API_URL}/admin/users/${userId}`, userDetails);
+    return this.http.put(this.apiService.buildUrl(`/admin/users/${userId}`), userDetails);
   }
 
   deleteUser(userId: number): Observable<unknown> {
-    return this.http.delete(`${this.API_URL}/admin/users/${userId}`);
+    return this.http.delete(this.apiService.buildUrl(`/admin/users/${userId}`));
   }
 
   resetPassword(userId: number): Observable<{ newPassword: string }> {
-    return this.http.post<{ newPassword: string }>(`${this.API_URL}/admin/users/${userId}/reset-password`, {});
+    return this.http.post<{ newPassword: string }>(
+        this.apiService.buildUrl(`/admin/users/${userId}/reset-password`), 
+        {}
+    );
   }
 }

@@ -25,9 +25,15 @@
       <input type="password" class="form-control" [(ngModel)]="user.password" name="password" required>
     </div>
     <div class="form-group mb-3">
+      <label class="form-label">Xác Nhận Mật Khẩu</label>
+      <input type="password" class="form-control" [(ngModel)]="confirmPassword" name="confirmPassword" required>
+    </div>
+    <div class="form-group mb-3">
       <label class="form-label">Vai Trò</label>
-      <input type="text" class="form-control" [(ngModel)]="user.roles" name="roles">
-      <div class="form-text">Nhập vai trò cách nhau bằng dấu phẩy (ví dụ: ROLE_USER, ROLE_ADMIN)</div>
+      <select class="form-select" [(ngModel)]="selectedRole" name="role" required>
+        <option *ngFor="let role of rolesOptions" [ngValue]="role">{{ role }}</option>
+      </select>
+      <div class="form-text">Chọn một vai trò cho người dùng.</div>
     </div>
     <button class="btn btn-success" type="submit" [disabled]="isLoading || userForm.invalid">
       <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>

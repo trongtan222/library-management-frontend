@@ -1,67 +1,70 @@
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UsersService } from '../services/users.service'; // Giả sử bạn dùng UsersService
+import { UsersService } from '../services/users.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
-    selector: 'app-signup',
-    templateUrl: './signup.component.html',
-    styleUrls: ['./signup.component.css'],
-    standalone: false
+  selector: 'app-signup',
+  templateUrl: './signup.component.html',
+  styleUrls: ['./signup.component.css'],
+  standalone: false
 })
 export class SignupComponent {
-  // Model để binding với form
   public model = {
     name: '',
-    email: '', // <-- THÊM TRƯỜNG EMAIL
+    studentClass: '',
+    phoneNumber: '',
+    email: '', 
     username: '',
     password: '',
     confirmPassword: ''
   };
 
-  // State quản lý giao diện
   public isLoading = false;
   public showPassword = false;
   public showConfirmPassword = false;
-  public errorMessage: string | null = null;
   public fieldErrors: { [key: string]: string } = {};
+errorMessage: any;
 
   constructor(
     private usersService: UsersService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService
   ) {}
 
   public signup(form: NgForm): void {
     if (form.invalid || this.model.password !== this.model.confirmPassword) {
-      this.errorMessage = 'Please check the errors on the form.';
+      this.toastr.warning('Vui lòng kiểm tra lại thông tin trên form.', 'Thông báo');
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = null;
     this.fieldErrors = {};
 
-    // Cập nhật payload để bao gồm cả email
     const payload = {
       name: this.model.name,
-      email: this.model.email, // <-- THÊM EMAIL VÀO PAYLOAD
+      studentClass: this.model.studentClass,
+      phoneNumber: this.model.phoneNumber,
+      email: this.model.email,
       username: this.model.username,
       password: this.model.password
     };
 
     this.usersService.register(payload).subscribe({
       next: () => {
+        this.toastr.success('Đăng ký tài khoản thành công!');
         this.router.navigate(['/login'], { queryParams: { registered: 'true' } });
       },
       error: (err: HttpErrorResponse) => {
         if (err.status === 400 && err.error?.errors) {
           this.fieldErrors = err.error.errors;
-          this.errorMessage = 'Please correct the highlighted fields.';
+          this.toastr.error('Vui lòng sửa các lỗi được đánh dấu.', 'Lỗi nhập liệu');
         } else if (err.status === 409) {
-          this.fieldErrors['username'] = err.error.message || 'This username is already taken.';
+          this.toastr.error(err.error.message || 'Tên đăng nhập đã tồn tại.', 'Lỗi đăng ký');
         } else {
-          this.errorMessage = err.error?.message || 'An unexpected error occurred. Please try again.';
+          this.toastr.error(err.error?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.', 'Lỗi hệ thống');
         }
         this.isLoading = false;
       },

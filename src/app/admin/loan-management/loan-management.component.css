@@ -16,3 +16,6 @@ a {
 a:hover {
     text-decoration: underline;
 }
+.text-muted {
+    color: #fff !important;
+}

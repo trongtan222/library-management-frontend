@@ -1,4 +1,11 @@
-.forbidden {
-    margin-top: 200px;
-    font-size: 50px;
+/* Nếu bạn dùng Bootstrap classes trong HTML (d-flex, vh-100...) 
+   thì file CSS này có thể để trống hoặc tùy chỉnh thêm animation */
+
+.display-1 {
+    font-size: 6rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn {
+    min-width: 150px;
 }

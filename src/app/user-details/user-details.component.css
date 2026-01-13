@@ -1,0 +1,54 @@
+:host {
+  display: block;
+  color: #000000; /* chữ đen mặc định cho component */
+}
+
+/* Tiêu đề */
+.user-details-title {
+  color: #40e0d0;
+  margin-bottom: 1.5rem;
+}
+
+/* Toàn bộ bảng lịch sử mượn */
+.user-details-table {
+  background-color: #0b1120; /* nền rất tối */
+  color: #000000; /* CHỮ ĐEN */
+}
+
+/* Header bảng */
+.user-details-table thead th {
+  background-color: #020617;
+  color: #000000; /* header đen */
+}
+
+/* Ô dữ liệu */
+.user-details-table tbody td {
+  color: #000000; /* chữ đen */
+  border-color: #1f2937;
+}
+
+/* Tên sách: cột đầu tiên, làm đậm và trắng hẳn */
+.user-details-table tbody td:first-child {
+  font-weight: 600;
+  color: #000000;
+}
+
+/* Đảm bảo link, span bên trong cũng sáng */
+.user-details-table a,
+.user-details-table span {
+  color: #000000;
+}
+
+/* Badge trạng thái vẫn nổi rõ */
+.badge {
+  font-weight: 600;
+}
+
+/* Nút Trả sách trên nền vàng giữ chữ đậm */
+.btn-warning {
+  color: #111827;
+}
+.mb-1 {
+  margin-bottom: 0.25rem !important;
+  color: #000000;
+}

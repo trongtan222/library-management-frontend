@@ -7,38 +7,57 @@
   </div>
   <div class="hero-content">
     <div class="hero-text">
-      <p class="eyebrow">CHÀO MỪNG TỚI</p>
-      <h1>Hệ Thống Thư Viện Trực Tuyến</h1>
+      <p class="eyebrow">CHÀO MỪNG CÁC EM ĐẾN VỚI</p>
+      <h1>Thư Viện Trường THCS Phương Tú</h1>
       <p class="subtitle">
-        Khám phá – mượn – theo dõi sách yêu thích của bạn. Nhanh, gọn, mượt.
+        Khơi nguồn tri thức - Thắp sáng ước mơ. <br />
+        Nơi các em tìm thấy những cuốn sách hay phục vụ học tập và giải trí.
       </p>
+      <p class="current-time">Hôm nay: {{ currentTime }}</p>
       <form (ngSubmit)="searchBooks()" class="search-form">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input [(ngModel)]="searchTerm" name="searchTerm" type="search" placeholder="Tìm theo tên sách, tác giả…">
+        <input
+          [(ngModel)]="searchTerm"
+          name="searchTerm"
+          type="search"
+          placeholder="Nhập tên sách, tác giả hoặc môn học..."
+        />
         <button class="btn-search" type="submit">Tìm Kiếm</button>
       </form>
       <div class="cta-buttons">
         <a class="btn btn-primary" routerLink="/borrow-book">
-          <i class="fa-solid fa-swatchbook"></i>
-          <span>Xem Toàn Bộ Sách</span>
+          <i class="fa-solid fa-book-open"></i>
+          <span>Vào Kho Sách</span>
         </a>
-        <a *ngIf="userAuthService.isAdmin()" class="btn btn-secondary" routerLink="/create-book">
+        <a
+          *ngIf="userAuthService.isAdmin()"
+          class="btn btn-secondary"
+          routerLink="/create-book"
+        >
           <i class="fa-solid fa-plus"></i>
           <span>Thêm Sách Mới</span>
         </a>
       </div>
     </div>
     <figure class="hero-image" aria-hidden="true">
-      <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1887&auto=format&fit=crop" alt="Một người đang với tay lấy sách trên kệ" />
+      <img
+        src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=2073&auto=format&fit=crop"
+        alt="Thư viện trường học"
+      />
     </figure>
   </div>
 </section>
 
 <section class="categories-section">
   <div class="section-wrap">
-    <h2 class="section-title">Thể Loại Phổ Biến</h2>
+    <h2 class="section-title">Danh Mục Sách</h2>
     <div class="category-chips">
-      <a class="chip" *ngFor="let category of categories" [routerLink]="['/borrow-book']" [queryParams]="{ genre: category }">
+      <a
+        class="chip"
+        *ngFor="let category of categories"
+        [routerLink]="['/borrow-book']"
+        [queryParams]="{ genre: category }"
+      >
         {{ category }}
       </a>
     </div>
@@ -48,21 +67,36 @@
 <section class="new-books-section">
   <div class="section-wrap">
     <div class="section-header">
-      <h2 class="section-title">Sách Mới Nhất</h2>
+      <h2 class="section-title">Sách Mới Nhập</h2>
       <a routerLink="/borrow-book" class="view-all-link">Xem tất cả →</a>
     </div>
 
     <ng-container *ngIf="newestBooks$ | async as books; else loading">
       <div class="books-grid" *ngIf="books.length > 0; else empty">
-        <a class="book-card" *ngFor="let book of books" [routerLink]="['/books', book.id]">
+        <a
+          class="book-card"
+          *ngFor="let book of books"
+          [routerLink]="['/books', book.id]"
+        >
           <div class="book-cover">
-            <img [src]="book.coverUrl || 'https://placehold.co/200x300/161B22/8b949e?text=' + (book.name | slice:0:1)" alt="Bìa sách {{ book.name }}">
+            <img
+              [src]="
+                book.coverUrl ||
+                'https://placehold.co/200x300/161B22/8b949e?text=' +
+                  (book.name || '?').substring(0, 1)
+              "
+              alt="Bìa sách {{ book.name }}"
+            />
           </div>
           <div class="book-info">
             <h3 class="book-title">{{ book.name }}</h3>
             <p class="book-author">
-              <span *ngIf="book.authors && book.authors.length > 0">{{ book.authors[0].name }}</span>
-              <span *ngIf="!book.authors || book.authors.length === 0">-</span>
+              <span *ngIf="book.authors && book.authors.length > 0">{{
+                book.authors[0].name
+              }}</span>
+              <span *ngIf="!book.authors || book.authors.length === 0"
+                >Nhiều tác giả</span
+              >
             </p>
           </div>
         </a>
@@ -71,25 +105,65 @@
 
     <ng-template #loading>
       <div class="books-grid">
-        <div class="book-card-skeleton" *ngFor="let i of [1,2,3,4,5,6]"></div>
+        <div
+          class="book-card-skeleton"
+          *ngFor="let i of [1, 2, 3, 4, 5, 6]"
+        ></div>
       </div>
     </ng-template>
 
     <ng-template #empty>
-      <p class="text-muted">Hiện tại không có sách mới nào.</p>
+      <p class="text-muted text-center py-5">
+        Hiện tại chưa có sách mới được cập nhật.
+      </p>
     </ng-template>
   </div>
 </section>
 
 <footer class="site-footer">
   <div class="section-wrap">
-    <div class="footer-content">
-      <p>&copy; 2025 Library Management System. Tất cả quyền được bảo lưu.</p>
-      <nav class="footer-nav">
-        <a routerLink="/about">Về chúng tôi</a>
-        <a routerLink="/privacy">Chính sách</a>
-        <a routerLink="/contact">Liên hệ</a>
-      </nav>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3>Trường THCS Phương Tú</h3>
+        <p>
+          <i class="fa-solid fa-location-dot me-2"></i> Địa chỉ: Xã Phương Tú,
+          Huyện Ứng Hòa, TP. Hà Nội
+        </p>
+        <p><i class="fa-solid fa-phone me-2"></i> Điện thoại: 024.3xxx.xxxx</p>
+        <p>
+          <i class="fa-solid fa-envelope me-2"></i> Email:
+          c2phuongtu-uh@hanoi.edu.vn
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h3>Liên Kết Nhanh</h3>
+        <nav class="footer-nav-vertical">
+          <a routerLink="/borrow-book">Tra cứu sách</a>
+          <a routerLink="/my-account">Tài khoản của tôi</a>
+          <a routerLink="/rules">Nội quy thư viện</a>
+          <a href="#">Lịch hoạt động</a>
+        </nav>
+      </div>
+
+      <div class="footer-col">
+        <h3>Giờ Mở Cửa Thư Viện</h3>
+        <ul class="opening-hours">
+          <li><strong>Thứ 2 - Thứ 6:</strong></li>
+          <li>Sáng: 7:30 - 11:30</li>
+          <li>Chiều: 13:30 - 17:00</li>
+          <li class="mt-2 text-warning">
+            <i class="fa-solid fa-circle-exclamation me-1"></i> Nghỉ Thứ 7, Chủ
+            Nhật và các ngày lễ.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>
+        &copy; 2025 Thư Viện Trường THCS Phương Tú. Phát triển bởi Đội ngũ CNTT.
+      </p>
     </div>
   </div>
 </footer>

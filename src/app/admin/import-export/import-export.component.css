@@ -1,0 +1,19 @@
+.container h2 {
+  font-weight: 600;
+}
+
+.card-header {
+  font-weight: 600;
+}
+
+.card {
+  border-radius: 12px;
+}
+
+.btn-group .btn {
+  white-space: nowrap;
+}
+
+.alert ul {
+  margin-bottom: 0;
+}

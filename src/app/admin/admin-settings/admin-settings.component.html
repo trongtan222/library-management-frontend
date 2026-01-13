@@ -1,0 +1,78 @@
+<div class="container py-4">
+  <h2 class="mb-3">Cấu hình hệ thống</h2>
+  <p class="">Chỉnh sửa tham số mượn sách và tiền phạt.</p>
+
+  <div *ngIf="loading" class="text-muted">Đang tải...</div>
+
+  <div class="card bg-dark border-secondary text-light" *ngIf="!loading">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label">Số ngày mượn tối đa (LOAN_MAX_DAYS)</label>
+          <input
+            class="form-control bg-dark text-light border-secondary"
+            type="number"
+            [(ngModel)]="settings['LOAN_MAX_DAYS']"
+          />
+        </div>
+        <div class="col-md-3">
+          <button
+            class="btn btn-primary mt-3 mt-md-0"
+            (click)="saveKey('LOAN_MAX_DAYS')"
+            [disabled]="isSavingDays || isSavingAll"
+          >
+            <span
+              *ngIf="isSavingDays"
+              class="spinner-border spinner-border-sm me-2"
+            ></span>
+            Lưu
+          </button>
+        </div>
+      </div>
+
+      <hr class="border-secondary my-4" />
+
+      <div class="row g-3 align-items-end">
+        <div class="col-md-6">
+          <label class="form-label"
+            >Tiền phạt mỗi ngày (FINE_PER_DAY) - VND</label
+          >
+          <input
+            class="form-control bg-dark text-light border-secondary"
+            type="number"
+            [(ngModel)]="settings['FINE_PER_DAY']"
+          />
+        </div>
+        <div class="col-md-3">
+          <button
+            class="btn btn-primary mt-3 mt-md-0"
+            (click)="saveKey('FINE_PER_DAY')"
+            [disabled]="isSavingFine || isSavingAll"
+          >
+            <span
+              *ngIf="isSavingFine"
+              class="spinner-border spinner-border-sm me-2"
+            ></span>
+            Lưu
+          </button>
+        </div>
+      </div>
+
+      <hr class="border-secondary my-4" />
+
+      <div class="d-flex justify-content-end">
+        <button
+          class="btn btn-success"
+          (click)="saveAll()"
+          [disabled]="isSavingAll"
+        >
+          <span
+            *ngIf="isSavingAll"
+            class="spinner-border spinner-border-sm me-2"
+          ></span>
+          Lưu thay đổi
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

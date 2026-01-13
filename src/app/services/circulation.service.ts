@@ -1,42 +1,85 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { FineDetails } from './admin.service';
+import { ApiService } from './api.service';
+import { LoanDetails } from './admin.service';
 
-@Injectable({ providedIn: 'root' })
+export interface BorrowCreate {
+  bookId: number;
+  memberId: number;
+  loanDays: number;
+  studentName?: string;
+  studentClass?: string;
+  quantity?: number;
+}
+
+export interface ReservationDTO {
+  id: number;
+  bookId: number;
+  bookName: string;
+  bookCover?: string; // Nếu backend có trả về
+  reservationDate: string;
+  status: 'PENDING' | 'FULFILLED' | 'CANCELLED';
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class CirculationService {
-    // SỬA LỖI: Bỏ /api khỏi đây
-    private base = `${environment.apiRoot}/user/circulation`;
 
-    constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private apiService: ApiService
+  ) { }
 
-    loan(body: { bookId: number; memberId: number; loanDays?: number }): Observable<any> {
-        return this.http.post(`${this.base}/loans`, body);
-    }
+  // --- LOANS (MƯỢN TRẢ) ---
 
-    returnLoan(id: number): Observable<any> {
-        return this.http.put(`${this.base}/loans/${id}/return`, {});
-    }
+  loan(data: BorrowCreate): Observable<any> {
+    return this.http.post(this.apiService.buildUrl('/user/circulation/loans'), data);
+  }
 
-    renew(body: { loanId: number; extraDays?: number }): Observable<any> {
-        return this.http.put(`${this.base}/loans/renew`, body);
-    }
+  returnLoan(id: number): Observable<any> {
+    return this.http.put(this.apiService.buildUrl(`/user/circulation/loans/${id}/return`), {});
+  }
 
-    reserve(body: { bookId: number; memberId: number }): Observable<any> {
-        return this.http.post(`${this.base}/reservations`, body);
-    }
+  renew(data: { loanId: number; extraDays: number }): Observable<any> {
+    return this.http.put(this.apiService.buildUrl('/user/circulation/loans/renew'), data);
+  }
 
-    cancelReservation(id: number): Observable<any> {
-        return this.http.delete(`${this.base}/reservations/${id}`);
-    }
+  getMyRenewals(): Observable<Array<{ id: number; loanId: number; memberId: number; extraDays: number; status: string; createdAt: string; decidedAt?: string; adminNote?: string }>> {
+    return this.http.get<Array<{ id: number; loanId: number; memberId: number; extraDays: number; status: string; createdAt: string; decidedAt?: string; adminNote?: string }>>(this.apiService.buildUrl('/user/circulation/my-renewals'));
+  }
 
-    getReservationsByUser(memberId: number): Observable<any[]> {
-        return this.http.get<any[]>(`${this.base}/reservations?memberId=${memberId}`);
-    }
+  getMyLoanHistory(): Observable<LoanDetails[]> {
+    return this.http.get<LoanDetails[]>(this.apiService.buildUrl('/user/circulation/my-loans'));
+  }
+  
+  getLoansByMemberId(memberId: number): Observable<LoanDetails[]> {
+    return this.http.get<LoanDetails[]>(this.apiService.buildUrl(`/user/circulation/loans?memberId=${memberId}`));
+  }
 
-    // Phương thức này giờ đã đúng, không cần tham số
-    getMyFines(): Observable<FineDetails[]> {
-        return this.http.get<FineDetails[]>(`${this.base}/my-fines`);
-    }
+  // --- RESERVATIONS (ĐẶT TRƯỚC) ---
+
+  reserve(data: { bookId: number; memberId: number; studentName?: string; studentClass?: string }): Observable<any> {
+    return this.http.post(this.apiService.buildUrl('/user/circulation/reservations'), data);
+  }
+  
+  placeReservation(data: any): Observable<any> {
+    return this.reserve(data);
+  }
+
+  cancelReservation(id: number): Observable<any> {
+    return this.http.delete(this.apiService.buildUrl(`/user/circulation/reservations/${id}`));
+  }
+
+  // Thêm hàm lấy danh sách đặt trước của tôi
+  getMyReservations(): Observable<ReservationDTO[]> {
+    return this.http.get<ReservationDTO[]>(this.apiService.buildUrl('/user/circulation/my-reservations'));
+  }
+
+  // --- FINES (PHÍ PHẠT) ---
+
+  getMyFines(): Observable<any> {
+    return this.http.get(this.apiService.buildUrl('/user/circulation/my-fines'));
+  }
 }

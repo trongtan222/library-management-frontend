@@ -1,0 +1,94 @@
+:host {
+  display: block;
+  background-color: #ffffff;
+  color: #0f172a;
+  min-height: 100vh;
+}
+
+.rules-header {
+  background: linear-gradient(135deg, #e8f1ff 0%, #f6f8fc 100%);
+  padding: 4rem 0;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rules-header h1 {
+  font-size: 2.5rem;
+  color: #0f172a;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.rules-header p {
+  color: #2563eb;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.section-wrap {
+  width: 100%;
+  max-width: 900px; /* Nhỏ hơn trang chủ một chút để dễ đọc văn bản */
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.rule-section {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.rule-section h2 {
+  color: #0f172a;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #2563eb;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.rule-section h2 i {
+  margin-right: 10px;
+  color: #2563eb;
+}
+
+.rule-section ul {
+  list-style-type: none;
+  padding-left: 0.5rem;
+}
+
+.rule-section ul li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.8rem;
+  line-height: 1.6;
+}
+
+.rule-section ul li::before {
+  content: "•";
+  color: #2563eb;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+  font-size: 1.2rem;
+}
+
+/* Style cho danh sách con (nested ul) */
+.rule-section ul ul {
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.signature {
+  text-align: right;
+  margin-top: 3rem;
+  margin-right: 2rem;
+  font-size: 1.1rem;
+  color: #0f172a;
+}

@@ -21,7 +21,8 @@
   margin-bottom: 1rem;
 }
 
-.card-body p, .card-body span {
+.card-body p,
+.card-body span {
   color: #d1d5db;
 }
 
@@ -46,7 +47,7 @@
   object-fit: cover;
   border-radius: 0.75rem;
   background-color: #374151; /* Màu nền cho ảnh khi đang tải */
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -74,9 +75,70 @@
 }
 
 .average-rating strong {
-    color: #ffc107;
+  color: #ffc107;
 }
 
 .bg-dark {
-    background-color: #111827 !important;
+  background-color: #111827 !important;
+}
+
+/* --- SOCIAL FEATURES STYLING --- */
+.review-item-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.review-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.review-img-thumbnail {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.review-img-thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.review-actions button {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #9ca3af;
+  transition: all 0.2s;
+}
+
+.review-actions button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.review-actions button.liked {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.comments-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1rem;
+}
+
+.comment-item {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.add-comment-form input {
+  background-color: #1f2937 !important;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.add-comment-form input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
 }

@@ -12,11 +12,31 @@
         </div>
 
         <div class="form-group mb-3">
-            <label>Vai Trò</label>
-            <input type="text" class="form-control" [(ngModel)]="user.roles" name="roles">
-            <div class="form-text">Nhập vai trò cách nhau bằng dấu phẩy (ví dụ: ROLE_USER, ROLE_ADMIN)</div>
+            <label>Email</label>
+            <input type="email" class="form-control" [(ngModel)]="user.email" name="email" required>
         </div>
 
-        <button class="btn btn-success" type="submit">Gửi</button>
+        <div class="form-group mb-3">
+            <label>Lớp (studentClass)</label>
+            <input type="text" class="form-control" [(ngModel)]="user.studentClass" name="studentClass">
+        </div>
+
+        <div class="form-group mb-3">
+            <label>Số Điện Thoại</label>
+            <input type="tel" class="form-control" [(ngModel)]="user.phoneNumber" name="phoneNumber">
+        </div>
+
+        <div class="form-group mb-3">
+            <label>Vai Trò</label>
+            <select class="form-select" [(ngModel)]="selectedRole" name="role" required>
+                <option *ngFor="let role of rolesOptions" [ngValue]="role">{{ role }}</option>
+            </select>
+            <div class="form-text">Chọn một vai trò cho người dùng.</div>
+        </div>
+
+        <button class="btn btn-success" type="submit" [disabled]="isLoading">
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
+            {{ isLoading ? 'Đang cập nhật...' : 'Cập nhật' }}
+        </button>
     </form>
 </div>

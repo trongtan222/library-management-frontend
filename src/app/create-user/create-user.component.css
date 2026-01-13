@@ -27,3 +27,12 @@ h3 {
   display: block; /* Đảm bảo thông báo lỗi luôn hiển thị */
   color: var(--danger, #f85149);
 }
+
+.form-check-label {
+  color: var(--text-secondary, #7d8590);
+}
+
+.btn.btn-success[disabled] {
+  opacity: 0.8;
+  cursor: not-allowed;
+}

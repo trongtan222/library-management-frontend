@@ -1,26 +1,84 @@
-<div class="chatbot-container" *ngIf="isUser">
-  <button class="chat-fab" (click)="toggleChat()">
+<div class="chatbot-container" *ngIf="isUser; else notLoggedIn">
+  <button class="chat-fab" (click)="toggleChat()" title="Toggle chat">
     <i class="fas fa-robot"></i>
   </button>
 
   <div class="chat-window" [class.open]="isOpen">
     <div class="chat-header">
-      <h5>Library Assistant</h5>
-      <button class="btn-close" (click)="toggleChat()"></button>
+      <div class="header-title">
+        <h5>Library Assistant 📚</h5>
+        <small>Powered by AI & RAG</small>
+      </div>
+      <div class="header-actions">
+        <button
+          class="btn-action"
+          (click)="clearChat()"
+          title="Clear chat"
+          *ngIf="messages.length > 1"
+        >
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        <button class="btn-close" (click)="toggleChat()"></button>
+      </div>
     </div>
+
     <div class="chat-body" #chatBody>
-      <div *ngFor="let message of messages" class="message" [ngClass]="message.author">
-        <p [innerHTML]="message.text"></p>
+      <div
+        *ngFor="let message of messages"
+        class="message"
+        [ngClass]="message.author"
+      >
+        <div class="message-content">
+          <ng-container *ngIf="message.author === 'bot'; else userMessage">
+            <markdown [data]="message.text"></markdown>
+          </ng-container>
+          <ng-template #userMessage>
+            <p>{{ message.text }}</p>
+          </ng-template>
+          <small class="timestamp" *ngIf="message.timestamp">
+            {{ message.timestamp | date : "short" }}
+          </small>
+        </div>
       </div>
       <div *ngIf="isLoading" class="message bot">
-        <span class="spinner-grow spinner-grow-sm"></span>
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+      <div class="quick-replies" *ngIf="messages.length === 1 && !isLoading">
+        <button
+          class="chip"
+          (click)="fillMessage('Sách Toán lớp 6 còn không?')"
+        >
+          Sách Toán lớp 6
+        </button>
+        <button class="chip" (click)="fillMessage('Thư viện mở cửa lúc nào?')">
+          Giờ mở cửa
+        </button>
+        <button class="chip" (click)="fillMessage('Hướng dẫn mượn sách')">
+          Cách mượn sách
+        </button>
       </div>
     </div>
+
     <div class="chat-footer">
       <form (ngSubmit)="sendMessage()">
-        <input type="text" [(ngModel)]="currentMessage" name="currentMessage" placeholder="Ask about books..." [disabled]="isLoading">
-        <button type="submit" [disabled]="isLoading || !currentMessage.trim()">Send</button>
+        <input
+          type="text"
+          [(ngModel)]="currentMessage"
+          name="currentMessage"
+          placeholder="Hỏi về sách, tác giả, thể loại..."
+          [disabled]="isLoading"
+          autocomplete="off"
+        />
+        <button type="submit" [disabled]="isLoading || !currentMessage.trim()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
       </form>
     </div>
   </div>
 </div>
+
+<ng-template #notLoggedIn></ng-template>

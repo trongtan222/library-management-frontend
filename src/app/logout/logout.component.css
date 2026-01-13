@@ -1,0 +1,112 @@
+/* Màn che mờ phía sau */
+.logout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.75); /* Nền tối mờ */
+  backdrop-filter: blur(5px); /* Hiệu ứng làm mờ kính */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Hộp thoại chính */
+.logout-modal {
+  background: #1f2937; /* Màu nền xám đậm */
+  padding: 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: scale(1);
+  animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Icon vòng tròn */
+.icon-wrapper {
+  width: 70px;
+  height: 70px;
+  background-color: rgba(239, 68, 68, 0.1); /* Màu đỏ nhạt */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.icon-wrapper i {
+  font-size: 30px;
+  color: #ef4444; /* Màu đỏ cảnh báo */
+  margin-left: 4px; /* Căn chỉnh nhẹ cho icon sign-out */
+}
+
+/* Typography */
+h2 {
+  color: #f3f4f6;
+  margin: 0 0 10px;
+  font-size: 1.5rem;
+}
+
+p {
+  color: #9ca3af; /* Màu chữ xám nhạt */
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Khu vực nút bấm */
+.actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+button {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-size: 0.95rem;
+}
+
+/* Nút Hủy */
+.btn-cancel {
+  background-color: #374151;
+  color: #e5e7eb;
+}
+
+.btn-cancel:hover {
+  background-color: #4b5563;
+}
+
+/* Nút Đăng xuất */
+.btn-confirm {
+  background-color: #ef4444; /* Màu đỏ */
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-confirm:hover {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

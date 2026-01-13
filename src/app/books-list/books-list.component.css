@@ -1,51 +1,66 @@
 /* ---------- Borrow Modal (high-contrast) ---------- */
-.borrow-modal{
-  background:#0f1426;               /* nền đậm */
-  color:#f1f3ff;                    /* chữ sáng */
-  border:1px solid rgba(255,255,255,.18);
-  box-shadow:0 20px 60px rgba(0,0,0,.55);
+.borrow-modal {
+  background: #0f1426; /* nền đậm */
+  color: #f1f3ff; /* chữ sáng */
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
 }
-.borrow-modal .modal-header{
-  border-bottom:1px solid rgba(255,255,255,.12);
+.borrow-modal .modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
-.borrow-modal .modal-title{
-  font-weight:800;
-  letter-spacing:.2px;
+.borrow-modal .modal-title {
+  font-weight: 800;
+  letter-spacing: 0.2px;
 }
-.borrow-modal .modal-title .sub{
-  color:#cdd3ff; font-weight:600; font-size:.9rem; opacity:.95;
-  margin-top:4px;
+.borrow-modal .modal-title .sub {
+  color: #cdd3ff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  opacity: 0.95;
+  margin-top: 4px;
 }
 
 /* label, helper text */
-.borrow-modal .form-label{ color:#e6e9ff; font-weight:700; }
-.borrow-modal .form-text{ color:#c7cdfc; }
+.borrow-modal .form-label {
+  color: #e6e9ff;
+  font-weight: 700;
+}
+.borrow-modal .form-text {
+  color: #c7cdfc;
+}
 
 /* input/textarea rõ ràng hơn */
-.borrow-modal .form-control{
-  color:#fff;
-  background:rgba(255,255,255,.09);
-  border:1px solid rgba(255,255,255,.22);
-  border-radius:12px;
+.borrow-modal .form-control {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
 }
-.borrow-modal .form-control::placeholder{ color:#dfe3ff; opacity:.85; }
-.borrow-modal .form-control:focus{
-  background:rgba(255,255,255,.12);
-  border-color:#7c83ff;
-  box-shadow:0 0 0 3px rgba(99,102,241,.35);
+.borrow-modal .form-control::placeholder {
+  color: #dfe3ff;
+  opacity: 0.85;
+}
+.borrow-modal .form-control:focus {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #7c83ff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
 }
 
 /* nút đóng hiển thị rõ */
-.borrow-modal .btn-close{
+.borrow-modal .btn-close {
   filter: invert(1) grayscale(1) brightness(1.6);
-  opacity:.9;
+  opacity: 0.9;
 }
 
 /* backdrop đậm hơn để nổi modal */
-.modal-backdrop.show{ opacity:.65; }
+.modal-backdrop.show {
+  opacity: 0.65;
+}
 
 /* bảo đảm modal nổi trên header nếu header sticky có z-index lớn */
-.modal{ z-index: 1060; }
+.modal {
+  z-index: 1060;
+}
 
 .pagination-summary {
   color: #adb5bd; /* Một màu xám sáng, dễ đọc */
@@ -53,4 +68,50 @@
   font-weight: 500;
   margin-right: 1rem; /* Tạo khoảng cách với các nút bấm */
   white-space: nowrap; /* Đảm bảo không bị xuống dòng */
+}
+
+/* Skeleton theme for table rows */
+.sk-line {
+  height: 14px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #1d2430, #232b3a, #1d2430);
+  background-size: 200% 100%;
+  animation: sk-pulse 1.2s ease-in-out infinite;
+}
+
+.sk-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #1d2430, #232b3a, #1d2430);
+  background-size: 200% 100%;
+  animation: sk-pulse 1.2s ease-in-out infinite;
+}
+
+.w-60 {
+  width: 60px;
+}
+.w-100 {
+  width: 160px;
+}
+.w-90 {
+  width: 140px;
+}
+.w-50 {
+  width: 80px;
+}
+.w-80 {
+  width: 120px;
+}
+.w-40 {
+  width: 60px;
+}
+
+@keyframes sk-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

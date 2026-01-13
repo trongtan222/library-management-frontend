@@ -1,65 +1,65 @@
-h2 {
-  font-weight: 800;
-  color: #f0f6fc;
+/* Card sách (Theme Tối) */
+.book-card {
+  background-color: #161b22; /* Nền thẻ tối màu */
+  border: 1px solid #30363d;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* --- Filter Card --- */
-.filter-card {
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  border-color: #58a6ff; /* Viền sáng lên khi hover */
 }
 
-/* --- Pagination --- */
-.pagination-info {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+/* Ảnh bìa */
+.book-cover {
+  height: 240px;
+  object-fit: cover;
+  width: 100%;
+  border-bottom: 1px solid #30363d;
+  transition: opacity 0.2s;
 }
 
-.page-link {
-  background-color: var(--bg-soft);
-  color: var(--text-muted);
-  border-color: var(--border);
-}
-.page-link:hover {
-  background-color: #30363d;
-  color: var(--accent);
-  border-color: var(--border);
-}
-.page-item.disabled .page-link {
-  background-color: var(--bg-soft);
-  border-color: var(--border);
-  color: #484f58;
+.book-cover:hover {
+  opacity: 0.9; /* Hiệu ứng sáng nhẹ khi di chuột vào ảnh */
 }
 
-/* --- Table Styles --- */
-.book-title-link {
-  font-weight: 600;
-  color: var(--accent);
-}
-.book-title-link:hover {
-  text-decoration: underline;
-  color: #80baff;
+/* Link Tên sách */
+.hover-underline:hover {
+  text-decoration: underline !important;
+  color: #79c0ff !important; /* Đổi màu xanh sáng hơn khi hover */
 }
 
-.btn-sm {
-  font-size: 0.8rem;
-  padding: 0.4rem 0.8rem;
-}
-.btn-warning {
-  background-color: var(--warning);
-  color: var(--bg); /* Chữ đen trên nền vàng */
-  border-color: var(--warning);
+/* Modal Styles (Dark Mode) */
+.dark-modal-content {
+  background-color: #0d1117; /* Nền modal cực tối */
+  border: 1px solid #30363d;
+  box-shadow: 0 0 50px rgba(0,0,0,0.8);
+  color: #c9d1d9;
 }
 
-/* --- Modal Styles --- */
-.dark-modal {
-  background: var(--bg-soft);
-  color: var(--text);
-  border: 1px solid var(--border);
+/* Input trong Modal */
+.dark-input {
+  background-color: #21262d;
+  border: 1px solid #30363d;
+  color: #ffffff !important;
 }
-.dark-modal .modal-header,
-.dark-modal .modal-footer {
-  border-color: var(--border);
+.dark-input:focus {
+  background-color: #21262d; /* Giữ màu nền khi focus */
+  border-color: #58a6ff;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+  color: #ffffff;
 }
+.dark-input::placeholder {
+  color: #8b949e;
+}
+.dark-input option {
+  background-color: #161b22;
+  color: white;
+}
+
+/* Text Utilities Override cho Dark Mode */
+.text-primary { color: #58a6ff !important; } /* Xanh Github */
+.text-info { color: #79c0ff !important; }
+.text-muted { color: #8b949e !important; }
+.bg-dark { background-color: #21262d !important; }

@@ -2,32 +2,150 @@
   <h1 class="mb-4">Reports & Analytics</h1>
 
   <div class="card shadow-sm mb-4">
-    <div class="card-body d-flex align-items-center gap-3">
+    <div class="card-body d-flex align-items-center flex-wrap gap-3">
       <div>
         <label for="startDate" class="form-label">Từ ngày</label>
-        <input type="date" class="form-control" id="startDate" [(ngModel)]="startDate">
+        <input
+          type="date"
+          class="form-control"
+          id="startDate"
+          [(ngModel)]="startDate"
+        />
       </div>
       <div>
         <label for="endDate" class="form-label">Đến ngày</label>
-        <input type="date" class="form-control" id="endDate" [(ngModel)]="endDate">
+        <input
+          type="date"
+          class="form-control"
+          id="endDate"
+          [(ngModel)]="endDate"
+        />
       </div>
-      <button class="btn btn-primary align-self-end" (click)="generateReport()" [disabled]="isLoading">
-        <span *ngIf="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        {{ isLoading ? 'Loading...' : 'Xem Báo Cáo' }}
+      <div class="d-flex gap-2 align-self-end">
+        <button
+          class="btn btn-outline-secondary"
+          (click)="setQuickRange(7)"
+          [disabled]="isLoading"
+        >
+          7 ngày
+        </button>
+        <button
+          class="btn btn-outline-secondary"
+          (click)="setQuickRange(30)"
+          [disabled]="isLoading"
+        >
+          30 ngày
+        </button>
+        <button
+          class="btn btn-outline-secondary"
+          (click)="setThisMonth()"
+          [disabled]="isLoading"
+        >
+          Tháng này
+        </button>
+      </div>
+      <div class="ms-auto d-flex gap-2 align-self-end">
+        <button
+          class="btn btn-success"
+          (click)="exportLoansExcel()"
+          [disabled]="exportingLoans || isLoading"
+        >
+          <span
+            *ngIf="exportingLoans"
+            class="spinner-border spinner-border-sm me-1"
+          ></span>
+          Export mượn sách (Excel)
+        </button>
+        <button
+          class="btn btn-outline-success"
+          (click)="exportBooksExcel()"
+          [disabled]="exportingBooks || isLoading"
+        >
+          <span
+            *ngIf="exportingBooks"
+            class="spinner-border spinner-border-sm me-1"
+          ></span>
+          Export sách
+        </button>
+        <button
+          class="btn btn-outline-primary"
+          (click)="exportUsersExcel()"
+          [disabled]="exportingUsers || isLoading"
+        >
+          <span
+            *ngIf="exportingUsers"
+            class="spinner-border spinner-border-sm me-1"
+          ></span>
+          Export người dùng
+        </button>
+      </div>
+      <button
+        class="btn btn-primary align-self-end"
+        (click)="generateReport()"
+        [disabled]="isLoading"
+      >
+        <span
+          *ngIf="isLoading"
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        {{ isLoading ? "Loading..." : "Xem Báo Cáo" }}
       </button>
     </div>
   </div>
 
-  <div *ngIf="isLoading" class="text-center my-5"><div class="spinner-border" style="width: 3rem; height: 3rem;"></div></div>
+  <div *ngIf="isLoading" class="text-center my-5">
+    <div class="spinner-border" style="width: 3rem; height: 3rem"></div>
+  </div>
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
   <div *ngIf="!isLoading && reportData" class="row">
+    <div class="col-12 mb-4">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <div class="text-muted small">Tổng lượt mượn</div>
+              <div class="h3 mb-0">{{ totalLoans }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <div class="text-muted small">Top sách</div>
+              <div class="h3 mb-0">
+                {{ reportData?.mostLoanedBooks?.length || 0 }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <div class="text-muted small">Tổng tiền phạt (ước tính)</div>
+              <div class="h3 mb-0">{{ totalFines | currency : "VND" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="col-lg-8 mb-4">
       <div class="card shadow h-100">
         <div class="card-header">
-          <h6 class="m-0 font-weight-bold">Thống Kê Lượt Mượn Sách Theo Tháng</h6>
+          <h6 class="m-0 font-weight-bold">
+            Thống Kê Lượt Mượn Sách Theo Tháng
+          </h6>
         </div>
         <div class="card-body">
+          <canvas #loansChart></canvas>
+          <div
+            *ngIf="reportData?.loansByMonth?.length === 0"
+            class="text-muted small mt-2"
+          >
+            Chưa có dữ liệu.
+          </div>
         </div>
       </div>
     </div>
@@ -38,6 +156,29 @@
           <h6 class="m-0 font-weight-bold">Top 5 Sách Mượn Nhiều Nhất</h6>
         </div>
         <div class="card-body">
+          <canvas #topBooksChart></canvas>
+          <div
+            *ngIf="reportData?.mostLoanedBooks?.length === 0"
+            class="text-muted small mt-2"
+          >
+            Chưa có dữ liệu.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header">
+          <h6 class="m-0 font-weight-bold">Tiền phạt theo tháng</h6>
+        </div>
+        <div class="card-body">
+          <canvas #finesChart></canvas>
+          <div
+            *ngIf="!reportData?.finesByMonth?.length"
+            class="text-muted small mt-2"
+          >
+            Chưa có dữ liệu.
+          </div>
         </div>
       </div>
     </div>

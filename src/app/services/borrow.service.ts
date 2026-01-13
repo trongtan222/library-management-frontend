@@ -13,8 +13,8 @@ export interface BorrowCreate {
 
 @Injectable({ providedIn: 'root' })
 export class BorrowService {
-  // SỬA LỖI: Bỏ /api khỏi đây
-  private base = `${environment.apiRoot}/user/circulation`;
+  // environment.apiBaseUrl already includes /api
+  private base = `${environment.apiBaseUrl}/user/circulation`;
 
   constructor(private httpClient: HttpClient) {}
 

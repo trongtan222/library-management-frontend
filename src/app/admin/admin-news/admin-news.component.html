@@ -1,0 +1,89 @@
+<div class="container py-3">
+  <h2><i class="fa-solid fa-newspaper"></i> Tin Tức Hệ Thống</h2>
+
+  <div class="card mt-3">
+    <div class="card-header">Tạo tin mới</div>
+    <div class="card-body">
+      <div class="mb-2">
+        <input
+          class="form-control"
+          [(ngModel)]="newItem.title"
+          placeholder="Tiêu đề"
+        />
+      </div>
+      <div class="mb-2">
+        <textarea
+          class="form-control"
+          [(ngModel)]="newItem.content"
+          rows="3"
+          placeholder="Nội dung"
+        ></textarea>
+      </div>
+      <div class="form-check mb-3">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="sendEmailCreate"
+          [(ngModel)]="sendEmailOnCreate"
+        />
+        <label class="form-check-label" for="sendEmailCreate"
+          >Gửi email thông báo đến tất cả người dùng</label
+        >
+      </div>
+      <button class="btn btn-primary" (click)="create()">
+        <i class="fa-solid fa-plus"></i> Tạo
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-4" *ngIf="isLoading">Đang tải...</div>
+  <div class="list-group mt-4" *ngIf="!isLoading">
+    <div class="list-group-item" *ngFor="let item of items">
+      <div *ngIf="!editing || editing.id !== item.id; else editTpl">
+        <h5 class="mb-1">{{ item.title }}</h5>
+        <p class="mb-1">{{ item.content }}</p>
+        <small class="text-muted">{{ item.createdAt | date : "short" }}</small>
+        <div class="mt-2">
+          <button
+            class="btn btn-sm btn-outline-primary me-2"
+            (click)="startEdit(item)"
+          >
+            <i class="fa-solid fa-pen"></i> Sửa
+          </button>
+          <button class="btn btn-sm btn-outline-danger" (click)="delete(item)">
+            <i class="fa-solid fa-trash"></i> Xóa
+          </button>
+        </div>
+      </div>
+      <ng-template #editTpl>
+        <div class="mb-2">
+          <input class="form-control" [(ngModel)]="editing!.title" />
+        </div>
+        <div class="mb-2">
+          <textarea
+            class="form-control"
+            [(ngModel)]="editing!.content"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="form-check mb-3">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="sendEmailUpdate"
+            [(ngModel)]="sendEmailOnUpdate"
+          />
+          <label class="form-check-label" for="sendEmailUpdate"
+            >Gửi email thông báo bản cập nhật này</label
+          >
+        </div>
+        <button class="btn btn-sm btn-primary me-2" (click)="saveEdit()">
+          <i class="fa-solid fa-save"></i> Lưu
+        </button>
+        <button class="btn btn-sm btn-secondary" (click)="cancelEdit()">
+          Hủy
+        </button>
+      </ng-template>
+    </div>
+  </div>
+</div>

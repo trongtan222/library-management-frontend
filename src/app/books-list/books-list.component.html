@@ -1,81 +1,155 @@
 <h2>Quản Lí Sách</h2>
 
-<div class="d-flex align-items-center justify-content-between mb-3" style="gap: 12px;">
-<div class="input-group" style="max-width: 420px;">
-<span class="input-group-text">🔎</span>
-<input class="form-control"
-type="text"
-placeholder="Search by ID, name, author, genre, year, ISBN..."
-[(ngModel)]="searchTerm"
-(ngModelChange)="loadBooks(1)">
-<button class="btn btn-outline-secondary" *ngIf="searchTerm" (click)="searchTerm=''; loadBooks(1)">Clear</button>
-</div>
+<div
+  class="d-flex align-items-center justify-content-between mb-3"
+  style="gap: 12px"
+>
+  <div class="input-group" style="max-width: 420px">
+    <span class="input-group-text">🔎</span>
+    <input
+      class="form-control"
+      type="text"
+      placeholder="Tìm theo mã, tên sách, tác giả, thể loại, năm, ISBN..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="loadBooks(1)"
+    />
+    <button
+      class="btn btn-outline-secondary"
+      *ngIf="searchTerm"
+      (click)="searchTerm = ''; loadBooks(1)"
+    >
+      Clear
+    </button>
+  </div>
 
-<div class="d-flex align-items-center" style="gap:8px;">
-<small class="text-muted me-2">
-{{ totalElements }} results • Page {{ page }} / {{ totalPages }}
-</small>
-<button class="btn btn-sm btn-outline-secondary" (click)="setPage(1)" [disabled]="page===1">« Đầu</button>
-<button class="btn btn-sm btn-outline-secondary" (click)="prevPage()" [disabled]="page===1">‹ Trước</button>
-<button class="btn btn-sm btn-outline-secondary" (click)="nextPage()" [disabled]="page===totalPages">Tiếp ›</button>
-<button class="btn btn-sm btn-outline-secondary" (click)="setPage(totalPages)" [disabled]="page===totalPages">Cuối »</button>
+  <div class="d-flex align-items-center" style="gap: 8px">
+    <small class="text-muted me-2">
+      {{ totalElements }} results • Page {{ page }} / {{ totalPages || "?" }}
+    </small>
+    <button
+      class="btn btn-sm btn-outline-secondary"
+      (click)="setPage(1)"
+      [disabled]="page === 1"
+      title="Về trang đầu"
+    >
+      « Đầu
+    </button>
+    <button
+      class="btn btn-sm btn-outline-secondary"
+      (click)="prevPage()"
+      [disabled]="page === 1"
+      title="Trang trước"
+    >
+      ‹ Trước
+    </button>
+    <button
+      class="btn btn-sm btn-outline-secondary"
+      (click)="nextPage()"
+      [disabled]="false"
+      title="Trang tiếp theo"
+      style="min-width: 80px"
+    >
+      Tiếp ›
+    </button>
+    <button
+      class="btn btn-sm btn-outline-secondary"
+      (click)="setPage(totalPages || 1)"
+      [disabled]="page === totalPages && totalPages > 0"
+      title="Về trang cuối"
+    >
+      Cuối »
+    </button>
 
-<select class="form-select form-select-sm ms-2" style="width:auto;"
-        [ngModel]="pageSize" (change)="changePageSize($event)">
-  <option *ngFor="let s of pageSizes" [ngValue]="s">{{ s }} / trang</option>
-</select>
-
-</div>
+    <select
+      class="form-select form-select-sm ms-2"
+      style="width: auto"
+      [(ngModel)]="pageSize"
+      (ngModelChange)="changePageSize($event)"
+    >
+      <option *ngFor="let s of pageSizes" [value]="s">{{ s }} / trang</option>
+    </select>
+  </div>
 </div>
 
 <div class="table-responsive">
-<table class="table table-hover align-middle">
-<thead>
-<tr>
-<th>ID</th>
-<th>Tên</th>
-<th>Tác Giả</th> <th>Thể Loại</th> <th>Năm Xuất Bản</th>
-<th>ISBN</th>
-<th>Còn Hàng</th>
-<th>Hành Động</th>
-</tr>
-</thead>
-<tbody>
-<tr *ngIf="books.length === 0">
-<td colspan="8" class="text-center text-muted py-4">Không tìm thấy kết quả nào.</td>
-</tr>
-<tr *ngFor="let r of books">
-<td>{{ r.id }}</td>
-<td>{{ r.name }}</td>
-<td>
-  <span *ngFor="let a of r.authors; let last = last">
-    {{ a.name }}{{ !last ? ', ' : '' }}
-  </span>
-</td>
-<td>
-  <span *ngFor="let c of r.categories; let last = last">
-    {{ c.name }}{{ !last ? ', ' : '' }}
-  </span>
-</td>
-<td>{{ r.publishedYear || '-' }}</td>
-<td>{{ r.isbn || '-' }}</td>
-<td [class.text-danger]="r.numberOfCopiesAvailable === 0">{{ r.numberOfCopiesAvailable }}</td>
-<td>
-<div class="btn-group">
-<button (click)="bookDetails(r.id)" class="btn btn-sm btn-outline-success">Xem</button>
-<button (click)="updateBook(r.id)" class="btn btn-sm btn-outline-info">Chỉnh Sửa</button>
-<button (click)="deleteBook(r)" class="btn btn-sm btn-outline-danger">Xóa</button>
-</div>
-<div class="btn-group ms-2">
-<button class="btn btn-sm btn-primary" [disabled]="r.numberOfCopiesAvailable === 0 || isLoading(r.id)" (click)="openBorrow(r)">
-Mượn
-</button>
-<button class="btn btn-sm btn-warning" [disabled]="isLoading(r.id)" (click)="openReserve(r)">
-Đặt Trước
-</button>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tên</th>
+        <th>Tác Giả</th>
+        <th>Thể Loại</th>
+        <th>Năm Xuất Bản</th>
+        <th>ISBN</th>
+        <th>Còn Hàng</th>
+        <th>Hành Động</th>
+      </tr>
+    </thead>
+    <tbody *ngIf="listLoading">
+      <tr *ngFor="let _ of skeletonRows">
+        <td><div class="sk-line w-60"></div></td>
+        <td><div class="sk-line w-100"></div></td>
+        <td><div class="sk-line w-90"></div></td>
+        <td><div class="sk-line w-90"></div></td>
+        <td><div class="sk-line w-50"></div></td>
+        <td><div class="sk-line w-80"></div></td>
+        <td><div class="sk-line w-40"></div></td>
+        <td>
+          <div class="d-flex gap-1 align-items-center">
+            <div class="sk-circle"></div>
+            <div class="sk-circle"></div>
+            <div class="sk-circle"></div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody *ngIf="!listLoading">
+      <tr *ngIf="books.length === 0">
+        <td colspan="8" class="text-center text-muted py-4">
+          Không tìm thấy kết quả nào.
+        </td>
+      </tr>
+      <tr *ngFor="let r of books; trackBy: trackByBookId">
+        <td>{{ r.id }}</td>
+        <td>{{ r.name }}</td>
+        <td>
+          <span *ngFor="let a of r.authors; let last = last">
+            {{ a.name }}{{ !last ? ", " : "" }}
+          </span>
+        </td>
+        <td>
+          <span *ngFor="let c of r.categories; let last = last">
+            {{ c.name }}{{ !last ? ", " : "" }}
+          </span>
+        </td>
+        <td>{{ r.publishedYear || "-" }}</td>
+        <td>{{ r.isbn || "-" }}</td>
+        <td [class.text-danger]="r.numberOfCopiesAvailable === 0">
+          {{ r.numberOfCopiesAvailable }}
+        </td>
+        <td>
+          <div class="btn-group">
+            <button
+              (click)="bookDetails(r.id)"
+              class="btn btn-sm btn-outline-success"
+            >
+              Xem
+            </button>
+            <button
+              (click)="updateBook(r.id)"
+              class="btn btn-sm btn-outline-info"
+            >
+              Chỉnh Sửa
+            </button>
+            <button
+              (click)="deleteBook(r)"
+              class="btn btn-sm btn-outline-danger"
+            >
+              Xóa
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>

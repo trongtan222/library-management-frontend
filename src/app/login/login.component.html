@@ -5,20 +5,51 @@
     <h1>Đăng nhập</h1>
     <p class="subtitle">Chào mừng trở lại! Vui lòng đăng nhập để tiếp tục.</p>
 
-    <form (ngSubmit)="onSubmit(f)" #f="ngForm" novalidate>
+    <form (ngSubmit)="onSubmit(f)" #f="ngForm" novalidate autocomplete="off">
+      <!-- Hiển thị lỗi từ backend nếu có -->
+      <div *ngIf="error" class="alert alert-danger mb-3">
+        <i class="fa fa-exclamation-circle mr-1"></i> {{ error }}
+      </div>
+
       <div class="field">
         <label for="username">Tên đăng nhập</label>
-        <input id="username" name="username"
-               [(ngModel)]="username" required
-               placeholder="Nhập tên đăng nhập của bạn" />
-        <small class="hint">Tên đăng nhập được cung cấp bởi quản trị viên thư viện.</small>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          [(ngModel)]="username"
+          required
+          #userNameInput="ngModel"
+          [class.is-invalid]="userNameInput.invalid && userNameInput.touched"
+          placeholder="Nhập tên đăng nhập của bạn"
+        />
+        <!-- Validation message -->
+        <div
+          *ngIf="userNameInput.invalid && userNameInput.touched"
+          class="invalid-feedback"
+        >
+          Vui lòng nhập tên đăng nhập.
+        </div>
       </div>
 
       <div class="field">
         <label for="password">Mật khẩu</label>
-        <input id="password" name="password" type="password"
-               [(ngModel)]="password" required
-               placeholder="Nhập mật khẩu của bạn" />
+        <input
+          id="password"
+          name="password"
+          type="password"
+          [(ngModel)]="password"
+          required
+          #passInput="ngModel"
+          [class.is-invalid]="passInput.invalid && passInput.touched"
+          placeholder="Nhập mật khẩu của bạn"
+        />
+        <div
+          *ngIf="passInput.invalid && passInput.touched"
+          class="invalid-feedback"
+        >
+          Vui lòng nhập mật khẩu.
+        </div>
       </div>
 
       <div class="actions">
@@ -26,10 +57,45 @@
           <input type="checkbox" [(ngModel)]="remember" name="remember" />
           <span>Ghi nhớ tôi</span>
         </label>
-        <a class="link" routerLink="/forgot">Quên mật khẩu?</a>
+        <a class="link" routerLink="/forgot-password">Quên mật khẩu?</a>
       </div>
 
-      <button class="btn btn-block" type="submit" [disabled]="f.invalid">Đăng nhập</button>
+      <!-- Nút bấm có trạng thái loading -->
+      <button
+        class="btn btn-block"
+        type="submit"
+        [disabled]="f.invalid || loading"
+      >
+        <span
+          *ngIf="loading"
+          class="spinner-border spinner-border-sm mr-1"
+        ></span>
+        {{ loading ? "Đang xử lý..." : "Đăng nhập" }}
+      </button>
+
+      <!-- Divider -->
+      <div class="or-divider">
+        <span>hoặc</span>
+      </div>
+
+      <!-- Google Login Button -->
+      <button
+        type="button"
+        class="btn btn-google btn-block"
+        (click)="signInWithGoogle()"
+        [disabled]="loading"
+      >
+        <i class="fab fa-google mr-2"></i>
+        Đăng nhập với Google
+      </button>
+
+      <!-- Liên kết sang trang Đăng ký -->
+      <div class="text-center mt-3">
+        <p class="small text-muted">
+          Chưa có tài khoản?
+          <a routerLink="/register" class="link">Đăng ký ngay</a>
+        </p>
+      </div>
     </form>
   </section>
 </main>

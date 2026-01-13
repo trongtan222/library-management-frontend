@@ -1,0 +1,81 @@
+<div class="container mt-4">
+  <div class="card bg-dark text-white border-secondary shadow">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+      <h4 class="mb-0"><i class="fa-solid fa-qrcode me-2"></i>Admin Scanner</h4>
+      <button class="btn btn-outline-light btn-sm" routerLink="/admin/dashboard">
+        <i class="fa-solid fa-times"></i> Đóng
+      </button>
+    </div>
+
+    <div class="card-body p-0 position-relative bg-black text-center" style="min-height: 400px; overflow: hidden;">
+      
+      <div *ngIf="!hasPermission" class="p-5 text-warning">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i></h3>
+        <p>Vui lòng cấp quyền truy cập Camera cho trình duyệt.</p>
+      </div>
+
+      <zxing-scanner 
+        *ngIf="hasPermission && hasDevices"
+        [formats]="allowedFormats"
+        (camerasFound)="onCamerasFound($event)"
+        (permissionResponse)="onPermissionResponse($event)"
+        (scanSuccess)="onCodeResult($event)"
+        [enable]="isScanning" 
+        class="scanner-video">
+      </zxing-scanner>
+
+      <div *ngIf="hasPermission && !hasDevices" class="p-4 text-warning">
+        <h5><i class="fa-solid fa-camera"></i> Không tìm thấy thiết bị Camera</h5>
+        <p>Vui lòng kiểm tra kết nối Camera, hoặc nhập mã thủ công bên dưới.</p>
+        <div class="input-group mt-3">
+          <input type="text" class="form-control bg-dark text-white border-secondary" [value]="manualCode" (input)="manualCode = $event.target.value" placeholder="Nhập ISBN/Barcode hoặc ID"/>
+          <button class="btn btn-primary" (click)="submitManualCode()"><i class="fa-solid fa-search"></i> Tìm</button>
+        </div>
+      </div>
+
+      <div class="scanner-overlay" *ngIf="isScanning && hasPermission">
+        <div class="scan-line"></div>
+        <p class="text-white mt-3 bg-dark bg-opacity-50 d-inline-block px-3 rounded">
+          Di chuyển mã vạch vào khung hình
+        </p>
+      </div>
+
+      <div class="scan-result-panel" *ngIf="!isScanning">
+        <div class="p-4">
+          <h2 class="text-success mb-3"><i class="fa-solid fa-check-circle"></i> Quét Thành Công!</h2>
+          <p class="fs-5 text-muted">Mã: <strong class="text-white">{{ scannedResult }}</strong></p>
+          
+          <div *ngIf="isLoadingBook" class="spinner-border text-primary my-3" role="status"></div>
+
+          <div *ngIf="foundBook" class="book-found-card p-3 mt-3 border border-secondary rounded bg-secondary bg-opacity-25 text-start d-flex">
+            <img [src]="foundBook.coverUrl || 'assets/images/placeholder.png'" 
+                 class="rounded me-3" style="width: 80px; height: 120px; object-fit: cover;">
+            <div class="flex-grow-1">
+               <h5 class="text-info fw-bold">{{ foundBook.name }}</h5>
+               <p class="mb-1 small">
+                 <i class="fa-solid fa-pen-nib"></i> 
+                 {{ (foundBook.authors && foundBook!.authors!.length > 0) ? foundBook!.authors![0].name : 'Unknown' }}
+               </p>
+               <p class="mb-1 small">ISBN: {{ foundBook.isbn }}</p>
+               <div class="mt-2">
+                 <button class="btn btn-warning btn-sm me-2" (click)="foundBook && navigateToEdit(foundBook.id)">
+                    <i class="fa-solid fa-edit"></i> Sửa Sách
+                 </button>
+                <button class="btn btn-success btn-sm" (click)="foundBook && navigateToCreateLoan(foundBook)">
+                  <i class="fa-solid fa-file-signature"></i> Tạo phiếu mượn
+                </button>
+               </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button class="btn btn-lg btn-primary px-5" (click)="resetScan()">
+              <i class="fa-solid fa-qrcode me-2"></i> Quét Tiếp
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

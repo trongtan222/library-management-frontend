@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminService, FineDetails } from 'src/app/services/admin.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-manage-fines',
@@ -11,7 +12,12 @@ export class ManageFinesComponent implements OnInit {
   fines: FineDetails[] = [];
   isLoading = true;
 
-  constructor(private adminService: AdminService) { }
+  isPaymentModalOpen = false;
+  selectedFine: FineDetails | null = null;
+  selectedPaymentMethod: string = 'CASH';
+  paymentNote: string = '';
+
+  constructor(private adminService: AdminService, private toastr: ToastrService) { }
 
   ngOnInit(): void {
     this.loadFines();
@@ -25,12 +31,34 @@ export class ManageFinesComponent implements OnInit {
     });
   }
 
-  markAsPaid(loanId: number): void {
-    if (confirm('Are you sure this fine has been paid?')) {
-      this.adminService.markFineAsPaid(loanId).subscribe(() => {
-        alert('Fine marked as paid.');
-        this.loadFines(); // Tải lại danh sách
-      });
+  openPaymentModal(fine: FineDetails): void {
+    this.selectedFine = fine;
+    this.selectedPaymentMethod = 'CASH';
+    this.paymentNote = '';
+    this.isPaymentModalOpen = true;
+  }
+
+  closePaymentModal(): void {
+    this.isPaymentModalOpen = false;
+    this.selectedFine = null;
+    this.paymentNote = '';
+  }
+
+  confirmPayment(): void {
+    if (!this.selectedFine) {
+      return;
     }
+
+    console.log('Fine payment confirmed', {
+      loanId: this.selectedFine.loanId,
+      paymentMethod: this.selectedPaymentMethod,
+      note: this.paymentNote
+    });
+
+    this.adminService.markFineAsPaid(this.selectedFine.loanId).subscribe(() => {
+      this.toastr.success('Đã đánh dấu là đã thu tiền phạt.');
+      this.closePaymentModal();
+      this.loadFines();
+    });
   }
 }

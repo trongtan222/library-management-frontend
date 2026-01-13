@@ -1,0 +1,43 @@
+/* Tùy chỉnh màu placeholder cho input tối */
+::placeholder {
+  color: #6c757d !important;
+  opacity: 1;
+}
+
+/* Hover effect cho list item */
+.list-group-item-action:hover {
+  background-color: #2c3034 !important;
+  cursor: pointer;
+}
+
+.selected-card {
+  transition: all 0.3s ease;
+  background-color: #1a1e21; /* Nền tối nhẹ cho thẻ đã chọn */
+}
+
+/* Disabled book suggestion item */
+.book-suggestion-item[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.selected-card .alert {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.list-group-item-action {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.list-group-item-action:hover {
+  transform: translateY(-1px);
+}
+
+.input-group-lg .input-group-text {
+  border-right: 0;
+}
+
+.input-group-lg .form-control {
+  border-left: 0;
+}

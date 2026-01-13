@@ -1,0 +1,181 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-0">
+        <i class="fa-solid fa-file-import"></i> Nhập/Xuất Dữ Liệu
+      </h2>
+      <p class="text-muted mb-0">
+        Hỗ trợ CSV/XLSX, template sẵn (Mã SV, Tên, Email, Lớp) và sách mới.
+      </p>
+    </div>
+    <div class="btn-group">
+      <button
+        class="btn btn-outline-info"
+        (click)="downloadTemplate('users')"
+        [disabled]="isDownloadingTemplate"
+      >
+        <i class="fa-solid fa-cloud-download-alt me-1"></i> Tải template Users
+      </button>
+      <button
+        class="btn btn-outline-warning"
+        (click)="downloadTemplate('books')"
+        [disabled]="isDownloadingTemplate"
+      >
+        <i class="fa-solid fa-cloud-download-alt me-1"></i> Tải template Books
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div
+          class="card-header bg-light fw-bold d-flex justify-content-between align-items-center"
+        >
+          <span><i class="fa-solid fa-book me-2"></i>Sách</span>
+          <small class="text-muted"
+            >Cột: Tên sách, ISBN, Năm XB, Số lượng, Ảnh bìa</small
+          >
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Chọn file (CSV/XLSX)</label>
+            <input
+              type="file"
+              class="form-control"
+              accept=".csv,.xlsx"
+              (change)="onFileChange($event, 'books')"
+            />
+          </div>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button
+              class="btn btn-primary"
+              [disabled]="isUploadingBooks"
+              (click)="importBooks()"
+            >
+              <span
+                *ngIf="isUploadingBooks"
+                class="spinner-border spinner-border-sm me-1"
+              ></span>
+              <i class="fa-solid fa-upload me-1" *ngIf="!isUploadingBooks"></i>
+              Nhập sách
+            </button>
+            <button
+              class="btn btn-outline-secondary"
+              [disabled]="isExportingBooks"
+              (click)="exportBooks()"
+            >
+              <span
+                *ngIf="isExportingBooks"
+                class="spinner-border spinner-border-sm me-1"
+              ></span>
+              <i
+                class="fa-solid fa-download me-1"
+                *ngIf="!isExportingBooks"
+              ></i>
+              Xuất sách
+            </button>
+          </div>
+
+          <div *ngIf="booksSummary" class="alert alert-info mb-0">
+            <div class="fw-bold">Kết quả nhập sách</div>
+            <div class="small">
+              Thành công: {{ booksSummary.successCount }} | Lỗi:
+              {{ booksSummary.failedCount }} | Bỏ qua:
+              {{ booksSummary.skippedCount }}
+            </div>
+            <ul
+              *ngIf="booksSummary.errors?.length"
+              class="mt-2 mb-0 small ps-3"
+            >
+              <li *ngFor="let e of booksSummary.errors">{{ e }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div
+          class="card-header bg-light fw-bold d-flex justify-content-between align-items-center"
+        >
+          <span><i class="fa-solid fa-users me-2"></i>Người dùng</span>
+          <small class="text-muted">Cột: Mã SV, Tên, Email, Lớp</small>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Chọn file (CSV/XLSX)</label>
+            <input
+              type="file"
+              class="form-control"
+              accept=".csv,.xlsx"
+              (change)="onFileChange($event, 'users')"
+            />
+          </div>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button
+              class="btn btn-primary"
+              [disabled]="isUploadingUsers"
+              (click)="importUsers()"
+            >
+              <span
+                *ngIf="isUploadingUsers"
+                class="spinner-border spinner-border-sm me-1"
+              ></span>
+              <i class="fa-solid fa-upload me-1" *ngIf="!isUploadingUsers"></i>
+              Nhập users
+            </button>
+            <button
+              class="btn btn-outline-secondary"
+              [disabled]="isExportingUsers"
+              (click)="exportUsers()"
+            >
+              <span
+                *ngIf="isExportingUsers"
+                class="spinner-border spinner-border-sm me-1"
+              ></span>
+              <i
+                class="fa-solid fa-download me-1"
+                *ngIf="!isExportingUsers"
+              ></i>
+              Xuất users
+            </button>
+          </div>
+
+          <div *ngIf="usersSummary" class="alert alert-info mb-0">
+            <div class="fw-bold">Kết quả nhập người dùng</div>
+            <div class="small">
+              Thành công: {{ usersSummary.successCount }} | Lỗi:
+              {{ usersSummary.failedCount }} | Bỏ qua:
+              {{ usersSummary.skippedCount }}
+            </div>
+            <ul
+              *ngIf="usersSummary.errors?.length"
+              class="mt-2 mb-0 small ps-3"
+            >
+              <li *ngFor="let e of usersSummary.errors">{{ e }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-warning mt-4" role="alert">
+    <div class="fw-bold mb-1">
+      <i class="fa-solid fa-circle-info me-1"></i> Lưu ý nhanh
+    </div>
+    <ul class="mb-0 small ps-3">
+      <li>
+        User: mật khẩu tự sinh 10 ký tự, role mặc định ROLE_USER, bỏ qua trùng
+        mã SV.
+      </li>
+      <li>
+        Books: nếu ISBN đã tồn tại, hệ thống cộng thêm số lượng thay vì tạo bản
+        ghi mới.
+      </li>
+      <li>File được đọc theo UTF-8; dùng template để tránh lệch cột.</li>
+    </ul>
+  </div>
+</div>

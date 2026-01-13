@@ -9,86 +9,423 @@
     {{ errorMessage }}
   </div>
 
-  <div *ngIf="book && !isLoading" class="card book-details-card">
+  <div
+    *ngIf="book && !isLoading"
+    class="card book-details-card border-secondary shadow-sm"
+    style="background-color: #161b22; color: #c9d1d9"
+  >
     <div class="row g-0">
-      <div class="col-md-4 text-center text-md-start">
-        <img [src]="book.coverUrl || 'https://placehold.co/300x450/374151/f9fafb?text=No+Cover'" 
-             class="book-cover-img" 
-             alt="Bìa sách {{ book.name }}">
+      <div class="col-md-4 text-center p-4 border-end border-secondary">
+        <img
+          [src]="book.coverUrl || 'assets/images/placeholder.png'"
+          class="book-cover-img rounded shadow mb-4"
+          style="
+            max-width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: cover;
+          "
+          alt="Bìa sách {{ book.name }}"
+        />
+
+        <div
+          class="card mt-3 border-secondary"
+          style="background-color: #0d1117"
+        >
+          <div class="card-body text-center">
+            <h6 class="card-title text-warning mb-3 fw-bold">
+              <i class="fa-solid fa-qrcode me-2"></i>Mã Sách (ID)
+            </h6>
+            <div class="bg-white p-2 d-inline-block rounded">
+              <qrcode
+                [qrdata]="book.id.toString()"
+                [width]="150"
+                [errorCorrectionLevel]="'M'"
+              ></qrcode>
+            </div>
+            <p class="small text-muted mt-2 mb-0">Quét mã để mượn nhanh</p>
+          </div>
+        </div>
       </div>
+
       <div class="col-md-8">
-        <div class="card-body">
-          <h2 class="card-title">{{ book.name }}</h2>
-          <h5 class="card-subtitle mb-2">bởi 
-            <span *ngFor="let a of book.authors; let last = last">{{ a.name }}{{ !last ? ', ' : '' }}</span>
+        <div class="card-body p-4">
+          <h2 class="card-title text-primary fw-bold mb-3">{{ book.name }}</h2>
+
+          <h5 class="card-subtitle mb-3 text-muted">
+            <i class="fa-solid fa-pen-nib me-2"></i>
+            <span *ngFor="let a of book.authors; let last = last"
+              >{{ a.name }}{{ !last ? ", " : "" }}</span
+            >
           </h5>
-          <p class="card-text">
-            <span *ngFor="let c of book.categories" class="badge bg-secondary me-2">{{ c.name }}</span>
-            <span class="text-muted">Xuất bản năm {{ book.publishedYear }}</span>
+
+          <p class="card-text mb-4">
+            <span
+              *ngFor="let c of book.categories"
+              class="badge bg-secondary me-2"
+              >{{ c.name }}</span
+            >
+            <span class="text-muted ms-2"
+              ><i class="fa-solid fa-calendar-days me-1"></i> Xuất bản năm
+              {{ book.publishedYear }}</span
+            >
           </p>
-          <hr>
-          <p><strong>ISBN:</strong> {{ book.isbn }}</p>
-          <p><strong>Số bản sao có sẵn:</strong> 
-            <span [ngClass]="book.numberOfCopiesAvailable > 0 ? 'text-success' : 'text-danger'">
-              {{ book.numberOfCopiesAvailable }}
-            </span>
-          </p>
-          
-          <p class="mt-4">
-            Đây là phần mô tả sách mẫu. Một ứng dụng thực tế sẽ có tóm tắt nội dung sách ở đây.
-          </p>
-          
-          <button *ngIf="isUser" class="btn btn-primary mt-3" (click)="navigateToBorrow()" [disabled]="book.numberOfCopiesAvailable === 0">
-            Tới Trang Mượn Sách
-          </button>
+
+          <!-- Social Sharing Buttons -->
+          <div class="d-flex gap-2 mb-3 flex-wrap">
+            <button
+              class="btn btn-sm btn-outline-primary"
+              (click)="shareOnFacebook()"
+            >
+              <i class="fab fa-facebook me-1"></i> Facebook
+            </button>
+            <button
+              class="btn btn-sm btn-outline-info"
+              (click)="shareOnTwitter()"
+            >
+              <i class="fab fa-twitter me-1"></i> Twitter
+            </button>
+            <button
+              class="btn btn-sm btn-outline-success"
+              (click)="downloadShareImage()"
+            >
+              <i class="fa-solid fa-download me-1"></i> Tải ảnh
+            </button>
+          </div>
+
+          <hr class="border-secondary" />
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+              <p>
+                <strong>Tình trạng:</strong>
+                <span
+                  [ngClass]="
+                    book.numberOfCopiesAvailable > 0
+                      ? 'text-success fw-bold'
+                      : 'text-danger fw-bold'
+                  "
+                >
+                  {{
+                    book.numberOfCopiesAvailable > 0
+                      ? "Còn " + book.numberOfCopiesAvailable + " cuốn"
+                      : "Hết hàng"
+                  }}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="description-box p-3 rounded mb-4"
+            style="background-color: #21262d"
+          >
+            <h6 class="text-info mb-2">Mô tả nội dung:</h6>
+            <p class="mb-0 text-muted">
+              Đây là cuốn sách nổi tiếng thuộc thể loại
+              {{ book.categories[0]?.name }}. Sách hiện đang có sẵn tại thư viện
+              trường THCS Phương Tú.
+            </p>
+          </div>
+
+          <div class="d-flex gap-3">
+            <button
+              *ngIf="isUser"
+              class="btn btn-primary px-4"
+              (click)="navigateToBorrow()"
+              [disabled]="book.numberOfCopiesAvailable === 0"
+            >
+              <i class="fa-solid fa-cart-plus me-2"></i> Mượn Sách Này
+            </button>
+            <button
+              *ngIf="isUser"
+              class="btn btn-outline-danger px-4"
+              (click)="toggleWishlist()"
+            >
+              <i
+                class="fa-heart me-2"
+                [ngClass]="
+                  book.isWishlisted ? 'fa-solid text-danger' : 'fa-regular'
+                "
+              ></i>
+              {{ book.isWishlisted ? "Đã yêu thích" : "Thêm vào yêu thích" }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div *ngIf="book && !isLoading" class="reviews-section mt-4">
-    <hr>
-    <h4>Đánh giá từ độc giả</h4>
+  <div *ngIf="book && !isLoading" class="reviews-section mt-5">
+    <h4 class="mb-4 text-light border-bottom border-secondary pb-2">
+      <i class="fa-solid fa-comments me-2"></i>Đánh giá từ độc giả
+    </h4>
 
-    <div *ngIf="reviewsSummary" class="average-rating mb-3">
+    <div
+      *ngIf="reviewsSummary"
+      class="average-rating mb-4 p-3 rounded"
+      style="background-color: #21262d"
+    >
       <ng-container *ngIf="reviewsSummary.averageRating > 0; else noReviews">
-        <span>Đánh giá trung bình: <strong>{{ reviewsSummary.averageRating | number:'1.1-1' }} / 5 ★</strong></span>
+        <span class="h5 text-warning me-2"
+          >{{ reviewsSummary.averageRating | number : "1.1-1" }}
+          <i class="fa-solid fa-star"></i
+        ></span>
+        <span class="text-muted"
+          >trên 5 ({{ reviewsSummary.reviews.length }} lượt đánh giá)</span
+        >
       </ng-container>
       <ng-template #noReviews>
-        <p class="text-muted">Chưa có đánh giá nào cho sách này.</p>
+        <p class="text-muted mb-0">Chưa có đánh giá nào cho sách này.</p>
       </ng-template>
     </div>
 
-    <div *ngIf="isUser && !isCheckingPermission && userCanReview" class="card my-4 p-3 bg-dark text-light">
-      <h5>Viết đánh giá của bạn</h5>
-      <form (ngSubmit)="submitReview()">
-        <div class="mb-2">
-          <label class="form-label">Điểm số của bạn:</label>
-          <div class="star-rating">
-            <span *ngFor="let star of [5,4,3,2,1]" 
-                  (click)="newReview.rating = star"
-                  [class.selected]="star <= newReview.rating">★</span>
+    <div
+      *ngIf="isUser && !isCheckingPermission && userCanReview"
+      class="card mb-4 bg-dark border-secondary"
+    >
+      <div class="card-body">
+        <h5 class="card-title text-light mb-3">Viết đánh giá của bạn</h5>
+        <form (ngSubmit)="submitReview()">
+          <div class="mb-3">
+            <label class="form-label text-muted">Điểm số:</label>
+            <div class="star-rating fs-3 text-warning" style="cursor: pointer">
+              <span
+                *ngFor="let star of [1, 2, 3, 4, 5]"
+                (click)="newReview.rating = star"
+              >
+                <i
+                  class="fa-star"
+                  [ngClass]="
+                    star <= newReview.rating ? 'fa-solid' : 'fa-regular'
+                  "
+                ></i>
+              </span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <textarea
+              class="form-control bg-dark text-light border-secondary"
+              [(ngModel)]="newReview.comment"
+              name="comment"
+              rows="3"
+              placeholder="Chia sẻ cảm nhận của bạn về cuốn sách..."
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Gửi Đánh Giá</button>
+        </form>
+      </div>
+    </div>
+
+    <div
+      *ngIf="isUser && !isCheckingPermission && !userCanReview"
+      class="alert alert-info bg-dark border-info text-info"
+    >
+      <i class="fa-solid fa-check-circle me-2"></i> Bạn đã đánh giá sách này
+      rồi. Cảm ơn bạn!
+    </div>
+
+    <div
+      *ngIf="reviewsSummary && reviewsSummary.reviews.length > 0"
+      class="review-list"
+    >
+      <div
+        *ngFor="let review of reviewsSummary.reviews"
+        class="card mb-3 bg-dark border-secondary review-item-card"
+      >
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <strong class="text-info">{{ review.userName }}</strong>
+            <small class="text-muted">{{
+              review.createdAt | date : "dd/MM/yyyy"
+            }}</small>
+          </div>
+          <div class="mb-2 text-warning">
+            <i
+              class="fa-solid fa-star"
+              *ngFor="let i of [].constructor(review.rating)"
+            ></i>
+          </div>
+          <p class="card-text text-light mb-2">{{ review.comment }}</p>
+
+          <!-- Image Gallery -->
+          <div
+            *ngIf="review.images && review.images.length > 0"
+            class="review-images mb-3"
+          >
+            <div class="row g-2">
+              <div *ngFor="let img of review.images" class="col-auto">
+                <img
+                  [src]="img"
+                  alt="Review image"
+                  class="review-img-thumbnail"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Like & Comment Actions -->
+          <div class="review-actions d-flex gap-3">
+            <button
+              class="btn btn-sm btn-outline-light"
+              [class.liked]="review.currentUserLiked"
+              (click)="toggleLike(review)"
+              *ngIf="isUser"
+            >
+              <i class="fa-solid fa-thumbs-up me-1"></i>
+              {{ review.likesCount || 0 }} Hữu ích
+            </button>
+            <button
+              class="btn btn-sm btn-outline-light"
+              (click)="toggleComments(review)"
+            >
+              <i class="fa-solid fa-comment me-1"></i>
+              {{ review.commentsCount || 0 }} Bình luận
+            </button>
+          </div>
+
+          <!-- Comments Section (Expandable) -->
+          <div
+            *ngIf="expandedReviewId === review.id"
+            class="comments-section mt-3"
+          >
+            <div class="comments-list mb-3">
+              <div
+                *ngFor="let comment of reviewComments[review.id]"
+                class="comment-item p-2 mb-2 bg-secondary rounded"
+              >
+                <div class="d-flex justify-content-between">
+                  <strong class="text-light">{{ comment.userName }}</strong>
+                  <small class="text-muted">{{
+                    comment.createdAt | date : "dd/MM/yyyy HH:mm"
+                  }}</small>
+                </div>
+                <p class="text-light mb-0">{{ comment.content }}</p>
+              </div>
+            </div>
+
+            <div *ngIf="isUser" class="add-comment-form">
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control bg-dark text-light border-secondary"
+                  [(ngModel)]="newCommentText[review.id]"
+                  placeholder="Viết bình luận..."
+                  (keyup.enter)="addComment(review.id)"
+                />
+                <button
+                  class="btn btn-primary"
+                  (click)="addComment(review.id)"
+                  [disabled]="!newCommentText[review.id]?.trim()"
+                >
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="mb-3">
-          <textarea class="form-control" [(ngModel)]="newReview.comment" name="comment" rows="3" placeholder="Viết bình luận của bạn (tùy chọn)"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Gửi Đánh Giá</button>
-      </form>
-    </div>
-    
-    <div *ngIf="isUser && !isCheckingPermission && !userCanReview" class="alert alert-info">
-      Cảm ơn bạn đã đánh giá sách này!
-    </div>
-
-
-    <div *ngIf="reviewsSummary && reviewsSummary.reviews.length > 0" class="review-list">
-      <div *ngFor="let review of reviewsSummary.reviews" class="review-item card card-body mb-2 bg-dark text-light">
-        <strong>{{ review.userName }}</strong>
-        <span class="text-warning">{{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating) }}</span>
-        <p class="mb-0 mt-1">{{ review.comment }}</p>
-        <small class="text-muted mt-1">{{ review.createdAt | date:'dd/MM/yyyy' }}</small>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Borrow Modal -->
+<div
+  class="modal fade"
+  [class.show]="showBorrowModal"
+  [style.display]="showBorrowModal ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-book me-2"></i>Xác nhận mượn sách
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="closeBorrowModal()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="book" class="mb-3">
+          <p class="text-muted mb-2">
+            <strong>Tên sách:</strong> {{ book.name }}
+          </p>
+          <p class="text-muted mb-3">
+            <strong>Số lượng còn:</strong>
+            <span class="text-success">{{ book.numberOfCopiesAvailable }}</span>
+          </p>
+        </div>
+
+        <form>
+          <div class="mb-3">
+            <label class="form-label">Họ và tên</label>
+            <input
+              type="text"
+              class="form-control bg-dark text-light border-secondary"
+              [(ngModel)]="borrowData.studentName"
+              name="studentName"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Lớp</label>
+            <input
+              type="text"
+              class="form-control bg-dark text-light border-secondary"
+              [(ngModel)]="borrowData.studentClass"
+              name="studentClass"
+              placeholder="Ví dụ: 8A1"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Số ngày mượn</label>
+            <select
+              class="form-select bg-dark text-light border-secondary"
+              [(ngModel)]="borrowData.loanDays"
+              name="loanDays"
+            >
+              <option [value]="7">7 ngày</option>
+              <option [value]="14">14 ngày</option>
+              <option [value]="21">21 ngày</option>
+              <option [value]="30">30 ngày</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeBorrowModal()"
+          [disabled]="borrowLoading"
+        >
+          Hủy
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="confirmBorrow()"
+          [disabled]="borrowLoading"
+        >
+          <span
+            *ngIf="borrowLoading"
+            class="spinner-border spinner-border-sm me-2"
+          ></span>
+          {{ borrowLoading ? "Đang xử lý..." : "Xác nhận mượn" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div
+  class="modal-backdrop fade"
+  [class.show]="showBorrowModal"
+  *ngIf="showBorrowModal"
+  (click)="closeBorrowModal()"
+></div>

@@ -6,6 +6,8 @@
     <p class="subtitle">Tạo tài khoản của bạn để bắt đầu mượn sách.</p>
 
     <form #signupForm="ngForm" (ngSubmit)="signup(signupForm)" autocomplete="off" novalidate>
+      
+      <!-- Họ và tên -->
       <div class="field">
         <label for="name">Họ và tên</label>
         <input id="name" name="name" type="text" placeholder="Nguyễn Văn A" 
@@ -17,6 +19,32 @@
         <div *ngIf="fieldErrors['name']" class="invalid-feedback">{{ fieldErrors['name'] }}</div>
       </div>
 
+      <!-- Lớp (Mới) -->
+      <div class="field">
+        <label for="studentClass">Lớp</label>
+        <input id="studentClass" name="studentClass" type="text" placeholder="Ví dụ: 9A" 
+               [(ngModel)]="model.studentClass" required #studentClass="ngModel"
+               [class.is-invalid]="(studentClass.invalid && studentClass.touched) || fieldErrors['studentClass']">
+        <div *ngIf="studentClass.invalid && (studentClass.dirty || studentClass.touched)" class="invalid-feedback">
+          <span *ngIf="studentClass.errors?.['required']">Vui lòng nhập tên lớp.</span>
+        </div>
+        <div *ngIf="fieldErrors['studentClass']" class="invalid-feedback">{{ fieldErrors['studentClass'] }}</div>
+      </div>
+
+      <!-- Số điện thoại (Mới) -->
+      <div class="field">
+        <label for="phoneNumber">Số điện thoại</label>
+        <input id="phoneNumber" name="phoneNumber" type="tel" placeholder="09xxxxxxxx" 
+               [(ngModel)]="model.phoneNumber" required pattern="[0-9]{10,11}" #phoneNumber="ngModel"
+               [class.is-invalid]="(phoneNumber.invalid && phoneNumber.touched) || fieldErrors['phoneNumber']">
+        <div *ngIf="phoneNumber.invalid && (phoneNumber.dirty || phoneNumber.touched)" class="invalid-feedback">
+          <span *ngIf="phoneNumber.errors?.['required']">Số điện thoại là bắt buộc.</span>
+          <span *ngIf="phoneNumber.errors?.['pattern']">Số điện thoại không hợp lệ (10-11 số).</span>
+        </div>
+        <div *ngIf="fieldErrors['phoneNumber']" class="invalid-feedback">{{ fieldErrors['phoneNumber'] }}</div>
+      </div>
+
+      <!-- Email -->
       <div class="field">
         <label for="email">Email</label>
         <input id="email" name="email" type="email" placeholder="your.email@example.com"
@@ -29,6 +57,7 @@
         <div *ngIf="fieldErrors['email']" class="invalid-feedback">{{ fieldErrors['email'] }}</div>
       </div>
 
+      <!-- Tên đăng nhập -->
       <div class="field">
         <label for="username">Tên đăng nhập</label>
         <input id="username" name="username" type="text" placeholder="tendangnhap"
@@ -41,6 +70,7 @@
         <div *ngIf="fieldErrors['username']" class="invalid-feedback">{{ fieldErrors['username'] }}</div>
       </div>
 
+      <!-- Mật khẩu -->
       <div class="field password-group">
         <label for="password">Mật khẩu</label>
         <input id="password" name="password" [type]="showPassword ? 'text' : 'password'"
@@ -56,6 +86,7 @@
          <div *ngIf="fieldErrors['password']" class="invalid-feedback">{{ fieldErrors['password'] }}</div>
       </div>
       
+      <!-- Xác nhận mật khẩu -->
       <div class="field password-group">
         <label for="confirmPassword">Xác nhận mật khẩu</label>
         <input id="confirmPassword" name="confirmPassword" [type]="showConfirmPassword ? 'text' : 'password'"

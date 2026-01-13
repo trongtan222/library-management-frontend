@@ -1,20 +1,30 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+} from '@angular/router';
 import { UserAuthService } from '../services/user-auth.service';
 import { UsersService } from '../services/users.service';
 
 @Injectable({ providedIn: 'root' })
-export class AuthGuard  {
+export class AuthGuard {
   constructor(
     private userAuthService: UserAuthService,
     private router: Router,
     private userService: UsersService
   ) {}
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean | UrlTree {
     const token = this.userAuthService.getToken();
     if (!token) {
-      return this.router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url }});
+      return this.router.createUrlTree(['/login'], {
+        queryParams: { returnUrl: state.url },
+      });
     }
 
     const needRoles = route.data['roles'] as string[] | undefined;

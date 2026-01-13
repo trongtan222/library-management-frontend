@@ -3,7 +3,7 @@
   backdrop-filter: saturate(140%) blur(8px);
   background: rgba(13, 16, 32, 0.75);
   border-bottom: 1px solid var(--border);
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
   position: sticky; /* Đảm bảo position được thiết lập */
   top: 0;
   z-index: 1050; /* <-- THAY ĐỔI DÒNG NÀY */
@@ -11,7 +11,7 @@
 
 .navbar-brand {
   font-weight: 800;
-  letter-spacing: .2px;
+  letter-spacing: 0.2px;
   background: linear-gradient(90deg, var(--accent-2), var(--accent));
   -webkit-background-clip: text;
   background-clip: text;
@@ -19,7 +19,13 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
+}
+
+.navbar-brand img {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .nav-link {
@@ -61,7 +67,8 @@
   width: 1.2em;
   text-align: center;
 }
-.dropdown-item:hover, .dropdown-item:focus {
+.dropdown-item:hover,
+.dropdown-item:focus {
   color: #fff;
   background-color: rgba(88, 166, 255, 0.1);
 }
@@ -73,4 +80,87 @@
 
 .navbar-text {
   color: var(--text-muted);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  color: #0b1020;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.theme-toggle {
+  position: relative;
+  width: 58px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, #0f172a, #111827);
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 6px;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+}
+
+.theme-toggle .icon {
+  font-size: 0.9rem;
+  color: #f5d742;
+  opacity: 0.65;
+  transition: opacity 0.3s ease, transform 0.35s ease;
+}
+
+.theme-toggle .icon.moon {
+  color: #9ec5ff;
+}
+
+.theme-toggle .toggle-handle {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  transform: translateX(0);
+  transition: transform 0.35s ease, background 0.35s ease;
+  left: 3px;
+}
+
+.theme-toggle.is-dark .toggle-handle {
+  transform: translateX(26px);
+}
+
+.theme-toggle.is-dark {
+  background: linear-gradient(135deg, #0b1020, #0d1117);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.theme-toggle.is-dark .icon.sun {
+  opacity: 0.4;
+  transform: translateX(-6px);
+}
+
+.theme-toggle.is-dark .icon.moon {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.theme-toggle:not(.is-dark) .icon.sun {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.theme-toggle:not(.is-dark) .icon.moon {
+  opacity: 0.4;
+  transform: translateX(6px);
 }

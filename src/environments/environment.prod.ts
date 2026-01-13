@@ -1,5 +1,6 @@
 export const environment = {
-  production: false,
-  apiRoot: 'http://localhost:8080',      // dùng cho circulation
-  adminApi: 'http://localhost:8080/admin'// dùng cho books/users hiện tại
+  production: true,
+  apiBaseUrl: 'https://lms-backend-xxxx.onrender.com/api', // ← THAY lms-backend-xxxx bằng URL backend của bạn
+  enableLogging: false,
+  googleBooksApiKey: '', // provide via CI/CD env replacement; do not hardcode
 };

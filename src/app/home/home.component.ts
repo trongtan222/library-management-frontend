@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Books } from '../models/books';
+// SỬA
+import { Book } from '../models/book';
 import { BooksService } from '../services/books.service';
 import { UserAuthService } from '../services/user-auth.service';
 import { Observable, of } from 'rxjs';
@@ -13,20 +14,30 @@ import { catchError, map } from 'rxjs/operators';
     styleUrls: ['./home.component.css'],
     standalone: false
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
 
   searchTerm: string = '';
+  
   categories = [
-    'Tiểu thuyết',
-    'Khoa học',
-    'Lịch sử',
-    'Phát triển bản thân',
-    'Khoa học máy tính',
-    'Kinh doanh',
-    'Giả tưởng',
-    'Trinh thám'
+    'Sách Giáo Khoa',
+    'Sách Tham Khảo',
+    'Văn Học',
+    'Toán Học',
+    'Vật Lý - Hóa Học',
+    'Sinh Học',
+    'Lịch Sử - Địa Lý',
+    'Ngoại Ngữ',
+    'Kỹ Năng Sống',
+    'Truyện Tranh - Thiếu Nhi',
+    'Báo - Tạp Chí',
+    'Pháp Luật'
   ];
-  newestBooks$!: Observable<Books[]>;
+  
+  // SỬA
+  newestBooks$!: Observable<Book[]>;
+
+  currentTime: string = '';
+  private timeIntervalId: any;
 
   constructor(
     public userAuthService: UserAuthService,
@@ -35,24 +46,39 @@ export class HomeComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.updateCurrentTime();
+    this.timeIntervalId = setInterval(() => this.updateCurrentTime(), 1000);
+
     this.newestBooks$ = this.booksService.getNewestBooks().pipe(
-      // SỬA LỖI TRONG KHỐI MAP NÀY
       map((data: any[]) => (data || []).map(b => ({
           id: b.id,
           name: b.name,
-          authors: b.authors || [], // Sửa từ author
-          categories: b.categories || [], // Sửa từ genre
+          authors: b.authors || [],
+          categories: b.categories || [],
           publishedYear: b.publishedYear,
           isbn: b.isbn,
           numberOfCopiesAvailable: b.numberOfCopiesAvailable,
-          coverUrl: b.coverUrl // Thêm coverUrl (nếu model Books có)
-        } as Books) // Ép kiểu về Books
+          coverUrl: b.coverUrl 
+        } as Book) 
       )),
       catchError((err: HttpErrorResponse) => {
         console.error("Could not load newest books", err);
         return of([]);
       })
     );
+  }
+
+  ngOnDestroy(): void {
+    if (this.timeIntervalId) {
+      clearInterval(this.timeIntervalId);
+    }
+  }
+
+  private updateCurrentTime(): void {
+    const now = new Date();
+    const weekday = now.toLocaleDateString('vi-VN', { weekday: 'long' });
+    const date = now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    this.currentTime = `${weekday}, ${date}`;
   }
 
   searchBooks(): void {

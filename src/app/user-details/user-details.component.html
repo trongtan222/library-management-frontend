@@ -1,27 +1,92 @@
-<h2>Lịch Sử Mượn Sách Của {{ user.name }}</h2>
-<table class="table table-info table-striped">
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3" *ngIf="user">
+        <h2 class="user-details-title mb-0">Hồ sơ người dùng: {{ user.name }}</h2>
+        <div>
+            <button class="btn btn-outline-secondary me-2" (click)="backToList()"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+            <button class="btn btn-primary" (click)="editUser()"><i class="fa-solid fa-user-pen"></i> Chỉnh sửa</button>
+        </div>
+    </div>
+
+    <div *ngIf="isLoadingUser" class="text-muted">Đang tải hồ sơ...</div>
+
+    <div class="card mb-4" *ngIf="user">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Email:</strong> {{ user.email || '—' }}</p>
+                      <p class="mb-1"><strong>Lớp:</strong> {{ user.className || '—' }}</p>
+                      <p class="mb-1"><strong>Số điện thoại:</strong> {{ getPhoneDisplay() }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Tên đăng nhập:</strong> {{ user.username || '—' }}</p>
+                      <p class="mb-1"><strong>Vai trò:</strong> {{ getRoleDisplay() }}</p>
+                    <p class="mb-1"><strong>ID:</strong> {{ user.userId || '—' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3">Lịch sử mượn sách</h3>
+    <div *ngIf="isLoadingLoans" class="text-muted">Đang tải lịch sử...</div>
+    <div *ngIf="!isLoadingLoans && borrow.length === 0" class="alert alert-info">Người dùng chưa mượn cuốn sách nào.</div>
+
+    <table class="table table-striped user-details-table" *ngIf="!isLoadingLoans && borrow.length > 0">
     <thead>
         <tr>
             <th> Tên Sách </th>
             <th> Ngày Mượn </th>
+            <th> Hạn Trả </th>
             <th> Ngày Trả </th>
+            <th> Số Ngày Trễ </th>
             <th> Trạng Thái </th>
+            <th> Tiền Phạt </th>
+            <th> Hành Động </th>
         </tr>
     </thead>
     <tbody>
         <tr *ngFor="let borrower of borrow">
-            <td> {{ borrower.bookName }} </td>
+                        <td>
+                            <ng-container *ngIf="borrower.bookName && borrower.bookName.trim().length > 0; else showBookId">
+                                {{ borrower.bookName }}
+                            </ng-container>
+                            <ng-template #showBookId>
+                                Sách #{{ borrower.bookId || '?' }}
+                            </ng-template>
+                        </td>
             <td> {{ borrower.loanDate | date:'dd/MM/yyyy' }} </td>
-            <td> 
-                {{ borrower.returnDate ? (borrower.returnDate | date:'dd/MM/yyyy') : 'Chưa trả sách' }} 
-            </td>
+            <td> {{ borrower.dueDate | date:'dd/MM/yyyy' }} </td>
             <td>
-                <span class="badge" [ngClass]="{
-                    'bg-success': borrower.status === 'ACTIVE',
-                    'bg-danger': borrower.status === 'OVERDUE',
-                    'bg-secondary': borrower.status === 'RETURNED'
-                }">{{ borrower.status }}</span>
+                {{ borrower.returnDate ? (borrower.returnDate | date:'dd/MM/yyyy') : 'Chưa trả sách' }}
             </td>
+                        <td>
+                            <span *ngIf="borrower.overdueDays && borrower.overdueDays > 0; else noOverdue">
+                                {{ borrower.overdueDays }} ngày
+                            </span>
+                            <ng-template #noOverdue>0</ng-template>
+                        </td>
+                        <td>
+                                <span class="badge" [ngClass]="{
+                                        'bg-success': borrower.status === 'ACTIVE',
+                                        'bg-danger': borrower.status === 'OVERDUE',
+                                        'bg-secondary': borrower.status === 'RETURNED'
+                                }">{{ borrower.status }}</span>
+                        </td>
+                        <td>
+                                <span *ngIf="borrower.fineAmount; else noFine">
+                                    {{ borrower.fineAmount | number:'1.0-0' }} đ
+                                </span>
+                                <ng-template #noFine>0 đ</ng-template>
+                        </td>
+                        <td>
+                                <button
+                                    class="btn btn-sm btn-warning"
+                                    *ngIf="borrower.status === 'ACTIVE' || borrower.status === 'OVERDUE'"
+                                    (click)="onReturnLoan(borrower.loanId)"
+                                >
+                                    Trả sách
+                                </button>
+                        </td>
         </tr>
     </tbody>
 </table>
+</div>
