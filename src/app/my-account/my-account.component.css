@@ -96,6 +96,404 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== GAMIFICATION STYLES ========== */
+
+/* Level Progress Section */
+.level-progress-section {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.level-progress-section .badge {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.level-progress-section .progress {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.level-progress-section .progress-bar {
+  transition:
+    width 1s ease-in-out,
+    background-color 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Stat Cards (STATS Tab) */
+.stat-card {
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+  opacity: 0.8;
+}
+
+.stat-value {
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.bg-gradient-info {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Monthly Chart */
+.monthly-chart {
+  padding: 1rem 0;
+}
+
+.chart-bars {
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.chart-bar-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+}
+
+.chart-bar {
+  width: 100%;
+  min-height: 20px;
+  border-radius: 6px 6px 0 0;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  animation: chartGrowth 0.8s ease-out;
+}
+
+.chart-bar:hover {
+  opacity: 0.8;
+  transform: scaleY(1.05);
+}
+
+.chart-value {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c9d1d9;
+}
+
+.chart-label {
+  color: #8b949e;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+@keyframes chartGrowth {
+  from {
+    height: 0;
+  }
+  to {
+    height: 100%;
+  }
+}
+
+/* Achievement Item */
+.achievement-item {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.3s ease;
+}
+
+.achievement-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px);
+}
+
+/* Badge Grid */
+.badge-grid {
+  margin-top: 1rem;
+}
+
+.badge-card {
+  background: #161b22;
+  border: 2px solid #30363d;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(88, 166, 255, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.badge-card:hover::before {
+  opacity: 1;
+}
+
+.badge-card:hover {
+  transform: translateY(-8px);
+  border-color: #58a6ff;
+  box-shadow: 0 10px 30px rgba(88, 166, 255, 0.2);
+}
+
+/* Badge Earned State */
+.badge-earned {
+  border-color: #ffd700;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.1) 0%,
+    rgba(255, 215, 0, 0.02) 100%
+  );
+}
+
+.badge-earned .badge-icon-wrapper i {
+  color: #ffd700;
+  animation: badgeShine 2s ease-in-out infinite;
+}
+
+/* Badge Locked State */
+.badge-locked {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.badge-locked:hover {
+  opacity: 0.7;
+  filter: grayscale(80%);
+}
+
+.badge-locked .badge-icon-wrapper i {
+  color: #6e7681;
+}
+
+/* Badge Icon Wrapper */
+.badge-icon-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.badge-checkmark,
+.badge-lock {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.badge-checkmark {
+  background: #28a745;
+  color: white;
+  animation: checkmarkPop 0.5s ease-out;
+}
+
+.badge-lock {
+  background: #6e7681;
+  color: #21262d;
+}
+
+@keyframes badgeShine {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+  }
+}
+
+@keyframes checkmarkPop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.badge-name {
+  color: #c9d1d9;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.badge-description {
+  color: #8b949e;
+  font-size: 0.85rem;
+  min-height: 40px;
+  line-height: 1.4;
+}
+
+.badge-points {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 215, 0, 0.15);
+  border-radius: 20px;
+  color: #ffd700;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.badge-earned .badge-points {
+  background: rgba(255, 215, 0, 0.25);
+}
+
+.badge-earned-date {
+  color: #6e7681;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+/* Transaction History Table */
+.table-responsive table {
+  margin-bottom: 0;
+}
+
+.table-responsive thead th {
+  background: #0d1117;
+  border-bottom: 2px solid #30363d;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  padding: 1rem;
+  font-weight: 600;
+}
+
+.table-responsive tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table-responsive tbody tr:hover {
+  background-color: #1c2128;
+}
+
+.table-responsive tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .stat-card {
+    margin-bottom: 1rem;
+  }
+
+  .chart-bars {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+
+  .chart-bar-wrapper {
+    min-width: 30px;
+  }
+
+  .badge-grid .col-md-4 {
+    margin-bottom: 1rem;
+  }
+
+  .member-card .circle-decor {
+    display: none;
+  }
+
+  .achievement-item {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .list-group,
+  .btn,
+  .chart-bar:hover {
+    display: none !important;
+  }
+
+  .col-lg-8 {
+    width: 100%;
+  }
+
+  .badge-card:hover {
+    transform: none;
+  }
 }

@@ -1,93 +1,345 @@
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-lg-8 col-md-10">
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a routerLink="/"><i class="fa-solid fa-home me-1"></i>Trang chủ</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a routerLink="/books"
+          ><i class="fa-solid fa-book me-1"></i>Quản lý sách</a
+        >
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        <i class="fa-solid fa-pen-to-square me-1"></i>Chỉnh sửa:
+        {{ bookForm.get("name")?.value || "Đang tải..." }}
+      </li>
+    </ol>
+  </nav>
 
-      <h2 class="mb-4">Chỉnh Sửa Sách</h2>
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div
+      class="spinner-border text-primary"
+      role="status"
+      style="width: 3rem; height: 3rem"
+    >
+      <span class="visually-hidden">Đang tải...</span>
+    </div>
+    <p class="mt-3 text-muted">Đang tải thông tin sách...</p>
+  </div>
 
-      <!-- Thông báo lỗi -->
-      <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <!-- Main Content -->
+  <div *ngIf="!isLoading" class="row">
+    <!-- Left Column: Form -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-pen-to-square me-2"></i>Chỉnh Sửa Thông Tin
+            Sách
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
+            <div class="row g-3">
+              <!-- Book Name -->
+              <div class="col-md-12">
+                <label for="name" class="form-label">
+                  <i class="fa-solid fa-book me-2 text-primary"></i>Tên Sách
+                  <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  class="form-control"
+                  formControlName="name"
+                  [class.is-invalid]="hasError('name')"
+                  placeholder="Nhập tên sách"
+                />
+                <div *ngIf="hasError('name')" class="invalid-feedback">
+                  <i class="fa-solid fa-circle-exclamation me-1"></i
+                  >{{ getErrorMessage("name") }}
+                </div>
+              </div>
 
-      <!-- Đang tải -->
-      <div *ngIf="loading" class="alert alert-info">Loading...</div>
+              <!-- Author -->
+              <div class="col-md-6">
+                <label for="author" class="form-label">
+                  <i class="fa-solid fa-user-pen me-2 text-primary"></i>Tác Giả
+                  <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="author"
+                  class="form-control"
+                  formControlName="author"
+                  [class.is-invalid]="hasError('author')"
+                  placeholder="Nhập tên tác giả"
+                />
+                <div *ngIf="hasError('author')" class="invalid-feedback">
+                  <i class="fa-solid fa-circle-exclamation me-1"></i
+                  >{{ getErrorMessage("author") }}
+                </div>
+              </div>
 
-      <form (ngSubmit)="onSubmit()" *ngIf="!loading && !error" autocomplete="off">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label for="bookName" class="form-label">Tên Sách</label>
-            <input
-              id="bookName"
-              type="text"
-              class="form-control"
-              name="bookName"
-              [(ngModel)]="book.bookName"
-              required
+              <!-- ISBN -->
+              <div class="col-md-6">
+                <label for="isbn" class="form-label">
+                  <i class="fa-solid fa-barcode me-2 text-primary"></i>ISBN
+                </label>
+                <input
+                  type="text"
+                  id="isbn"
+                  class="form-control"
+                  formControlName="isbn"
+                  [class.is-invalid]="hasError('isbn')"
+                  placeholder="10 hoặc 13 chữ số"
+                />
+                <div *ngIf="hasError('isbn')" class="invalid-feedback">
+                  <i class="fa-solid fa-circle-exclamation me-1"></i
+                  >{{ getErrorMessage("isbn") }}
+                </div>
+              </div>
+
+              <!-- Categories (Multi-select) -->
+              <div class="col-md-6">
+                <label for="categoryIds" class="form-label">
+                  <i class="fa-solid fa-tags me-2 text-primary"></i>Danh Mục
+                  <span class="text-danger">*</span>
+                </label>
+                <select
+                  id="categoryIds"
+                  class="form-select"
+                  formControlName="categoryIds"
+                  multiple
+                  size="4"
+                  [class.is-invalid]="hasError('categoryIds')"
+                >
+                  <option *ngFor="let cat of categories" [value]="cat.id">
+                    {{ cat.name }}
+                  </option>
+                </select>
+                <div class="form-text">
+                  <i class="fa-solid fa-info-circle me-1"></i>Giữ Ctrl để chọn
+                  nhiều danh mục
+                </div>
+                <div *ngIf="hasError('categoryIds')" class="invalid-feedback">
+                  <i class="fa-solid fa-circle-exclamation me-1"></i
+                  >{{ getErrorMessage("categoryIds") }}
+                </div>
+              </div>
+
+              <!-- Genre -->
+              <div class="col-md-6">
+                <label for="genre" class="form-label">
+                  <i class="fa-solid fa-bookmark me-2 text-primary"></i>Thể Loại
+                </label>
+                <input
+                  type="text"
+                  id="genre"
+                  class="form-control"
+                  formControlName="genre"
+                  placeholder="VD: Fiction, Non-Fiction"
+                />
+              </div>
+
+              <!-- Published Year -->
+              <div class="col-md-4">
+                <label for="publishedYear" class="form-label">
+                  <i class="fa-solid fa-calendar me-2 text-primary"></i>Năm Xuất
+                  Bản
+                </label>
+                <input
+                  type="number"
+                  id="publishedYear"
+                  class="form-control"
+                  formControlName="publishedYear"
+                  [class.is-invalid]="hasError('publishedYear')"
+                  placeholder="VD: 2024"
+                  min="1000"
+                  [max]="currentYear"
+                />
+                <div *ngIf="hasError('publishedYear')" class="invalid-feedback">
+                  <i class="fa-solid fa-circle-exclamation me-1"></i
+                  >{{ getErrorMessage("publishedYear") }}
+                </div>
+              </div>
+
+              <!-- Page Count -->
+              <div class="col-md-4">
+                <label for="pageCount" class="form-label">
+                  <i class="fa-solid fa-file me-2 text-primary"></i>Số Trang
+                </label>
+                <input
+                  type="number"
+                  id="pageCount"
+                  class="form-control"
+                  formControlName="pageCount"
+                  [class.is-invalid]="hasError('pageCount')"
+                  placeholder="VD: 350"
+                  min="1"
+                />
+                <div *ngIf="hasError('pageCount')" class="invalid-feedback">
+                  <i class="fa-solid fa-circle-exclamation me-1"></i
+                  >{{ getErrorMessage("pageCount") }}
+                </div>
+              </div>
+
+              <!-- Total Copies -->
+              <div class="col-md-4">
+                <label for="totalCopies" class="form-label">
+                  <i class="fa-solid fa-clone me-2 text-primary"></i>Số Lượng
+                  <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="totalCopies"
+                  class="form-control"
+                  formControlName="totalCopies"
+                  [class.is-invalid]="hasError('totalCopies')"
+                  placeholder="0"
+                  min="0"
+                />
+                <div *ngIf="hasError('totalCopies')" class="invalid-feedback">
+                  <i class="fa-solid fa-circle-exclamation me-1"></i
+                  >{{ getErrorMessage("totalCopies") }}
+                </div>
+              </div>
+
+              <!-- Cover URL -->
+              <div class="col-md-12">
+                <label for="coverUrl" class="form-label">
+                  <i class="fa-solid fa-image me-2 text-primary"></i>URL Ảnh Bìa
+                </label>
+                <input
+                  type="url"
+                  id="coverUrl"
+                  class="form-control"
+                  formControlName="coverUrl"
+                  placeholder="https://example.com/book-cover.jpg"
+                />
+                <div class="form-text">
+                  <i class="fa-solid fa-info-circle me-1"></i>Nhập URL hoặc
+                  upload file bên phải
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="col-md-12">
+                <label for="description" class="form-label">
+                  <i class="fa-solid fa-align-left me-2 text-primary"></i>Mô Tả
+                </label>
+                <textarea
+                  id="description"
+                  class="form-control"
+                  formControlName="description"
+                  rows="4"
+                  placeholder="Nhập mô tả ngắn về nội dung sách..."
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 mt-4 flex-wrap">
+              <button
+                type="submit"
+                class="btn btn-success"
+                [disabled]="isSaving || bookForm.invalid"
+              >
+                <span
+                  *ngIf="isSaving"
+                  class="spinner-border spinner-border-sm me-2"
+                ></span>
+                <i *ngIf="!isSaving" class="fa-solid fa-floppy-disk me-2"></i>
+                {{ isSaving ? "Đang lưu..." : "Lưu thay đổi" }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="cancel()"
+                [disabled]="isSaving"
+              >
+                <i class="fa-solid fa-xmark me-2"></i>Hủy
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Cover Preview & Info -->
+    <div class="col-lg-4">
+      <!-- Cover Preview Card -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+          <h6 class="mb-0">
+            <i class="fa-solid fa-image me-2"></i>Xem Trước Ảnh Bìa
+          </h6>
+        </div>
+        <div class="card-body text-center">
+          <div class="cover-preview-container mb-3">
+            <img
+              [src]="coverPreview"
+              alt="Book Cover"
+              class="cover-preview"
+              (error)="coverPreview = defaultCover"
             />
           </div>
 
-          <div class="col-md-6">
-            <label for="bookAuthor" class="form-label">Tác Giả</label>
+          <div class="mb-3">
+            <label for="coverUpload" class="btn btn-outline-primary btn-sm">
+              <i class="fa-solid fa-upload me-2"></i>Upload Ảnh Mới
+            </label>
             <input
-              id="bookAuthor"
-              type="text"
-              class="form-control"
-              name="bookAuthor"
-              [(ngModel)]="book.bookAuthor"
-              required
+              type="file"
+              id="coverUpload"
+              class="d-none"
+              accept="image/*"
+              (change)="onFileSelected($event)"
             />
           </div>
 
-          <div class="col-md-6">
-            <label for="bookGenre" class="form-label">Thể Loại</label>
-            <input
-              id="bookGenre"
-              type="text"
-              class="form-control"
-              name="bookGenre"
-              [(ngModel)]="book.bookGenre"
-            />
-          </div>
-
-          <div class="col-md-6">
-            <label for="noOfCopies" class="form-label">Số Lượng Bản Sao</label>
-            <input
-              id="noOfCopies"
-              type="number"
-              class="form-control"
-              name="noOfCopies"
-              [(ngModel)]="book.noOfCopies"
-              min="0"
-              required
-            />
-          </div>
-
-          <div class="col-md-6">
-            <label for="publishedYear" class="form-label">Năm Xuất Bản</label>
-            <input
-              id="publishedYear"
-              type="number"
-              class="form-control"
-              name="publishedYear"
-              [(ngModel)]="book.publishedYear"
-            />
-          </div>
-
-          <div class="col-md-6">
-            <label for="isbn" class="form-label">ISBN</label>
-            <input
-              id="isbn"
-              type="text"
-              class="form-control"
-              name="isbn"
-              [(ngModel)]="book.isbn"
-            />
+          <div class="text-muted small">
+            <i class="fa-solid fa-info-circle me-1"></i>
+            Kích thước tối đa: 5MB<br />
+            Định dạng: JPG, PNG, GIF
           </div>
         </div>
+      </div>
 
-        <div class="mt-3 d-flex gap-2">
-          <button class="btn btn-success" type="submit" [disabled]="loading">Lưu</button>
-          <a class="btn btn-outline" [routerLink]="['/books']">Hủy</a>
+      <!-- Quick Info Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h6 class="mb-0">
+            <i class="fa-solid fa-info-circle me-2"></i>Thông Tin Nhanh
+          </h6>
         </div>
-      </form>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Book ID:</span>
+            <strong>#{{ bookId }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Số trang:</span>
+            <strong>{{ bookForm.get("pageCount")?.value || "—" }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Số lượng:</span>
+            <strong>{{ bookForm.get("totalCopies")?.value }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Trạng thái form:</span>
+            <span
+              class="badge"
+              [class.bg-success]="bookForm.valid"
+              [class.bg-danger]="bookForm.invalid"
+            >
+              {{ bookForm.valid ? "✓ Hợp lệ" : "✗ Chưa hợp lệ" }}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

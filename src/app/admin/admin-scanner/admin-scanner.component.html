@@ -1,70 +1,213 @@
 <div class="container mt-4">
   <div class="card bg-dark text-white border-secondary shadow">
-    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+    <div
+      class="card-header border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2"
+    >
       <h4 class="mb-0"><i class="fa-solid fa-qrcode me-2"></i>Admin Scanner</h4>
-      <button class="btn btn-outline-light btn-sm" routerLink="/admin/dashboard">
-        <i class="fa-solid fa-times"></i> Đóng
-      </button>
+
+      <!-- Mode Selector -->
+      <div class="d-flex gap-2 align-items-center">
+        <select
+          class="form-select form-select-sm bg-secondary text-white border-secondary"
+          style="width: auto; min-width: 180px"
+          [(ngModel)]="currentMode"
+          (change)="changeMode(currentMode)"
+        >
+          <option [value]="ScannerMode.SEARCH">
+            <i class="fa-solid fa-search"></i> Tìm kiếm
+          </option>
+          <option [value]="ScannerMode.QUICK_RETURN">
+            <i class="fa-solid fa-rotate-left"></i> Trả nhanh
+          </option>
+          <option [value]="ScannerMode.INVENTORY">
+            <i class="fa-solid fa-clipboard-list"></i> Kiểm kê
+          </option>
+          <option [value]="ScannerMode.LOAN">
+            <i class="fa-solid fa-hand-holding-heart"></i> Mượn sách
+          </option>
+        </select>
+
+        <!-- Camera Selector -->
+        <div class="dropdown" *ngIf="availableCameras.length > 1">
+          <button
+            class="btn btn-outline-light btn-sm dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+          >
+            <i class="fa-solid fa-camera"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end bg-dark border-secondary">
+            <li *ngFor="let camera of availableCameras; let i = index">
+              <a
+                class="dropdown-item text-white"
+                [class.active]="selectedCamera?.deviceId === camera.deviceId"
+                (click)="selectCamera(camera)"
+              >
+                <i
+                  class="fa-solid fa-check me-2"
+                  *ngIf="selectedCamera?.deviceId === camera.deviceId"
+                ></i>
+                {{ camera.label || "Camera " + (i + 1) }}
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <button
+          class="btn btn-outline-light btn-sm"
+          routerLink="/admin/dashboard"
+        >
+          <i class="fa-solid fa-times"></i> Đóng
+        </button>
+      </div>
     </div>
 
-    <div class="card-body p-0 position-relative bg-black text-center" style="min-height: 400px; overflow: hidden;">
-      
+    <!-- Mode Description -->
+    <div
+      class="alert alert-info m-3 mb-0"
+      *ngIf="modeDescriptions[currentMode]"
+    >
+      <i class="fa-solid fa-info-circle me-2"></i>
+      <strong>{{ modeDescriptions[currentMode] }}</strong>
+
+      <!-- Loan Mode Instructions -->
+      <div *ngIf="currentMode === ScannerMode.LOAN" class="mt-2 small">
+        <div *ngIf="isWaitingForUserScan">
+          <i class="fa-solid fa-arrow-right me-2"></i>Bước 1: Quét thẻ người
+          dùng (QR/Barcode chứa User ID)
+        </div>
+        <div *ngIf="!isWaitingForUserScan && loanUserName">
+          <i class="fa-solid fa-user-check me-2 text-success"></i>
+          Đang mượn cho: <strong>{{ loanUserName }}</strong>
+          <button class="btn btn-sm btn-warning ms-2" (click)="resetLoanUser()">
+            <i class="fa-solid fa-rotate"></i> Đổi người
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="card-body p-0 position-relative bg-black text-center"
+      style="min-height: 400px; overflow: hidden"
+    >
       <div *ngIf="!hasPermission" class="p-5 text-warning">
         <h3><i class="fa-solid fa-triangle-exclamation"></i></h3>
         <p>Vui lòng cấp quyền truy cập Camera cho trình duyệt.</p>
       </div>
 
-      <zxing-scanner 
-        *ngIf="hasPermission && hasDevices"
+      <zxing-scanner
+        *ngIf="hasPermission && hasDevices && selectedCamera"
         [formats]="allowedFormats"
+        [device]="selectedCamera"
         (camerasFound)="onCamerasFound($event)"
         (permissionResponse)="onPermissionResponse($event)"
         (scanSuccess)="onCodeResult($event)"
-        [enable]="isScanning" 
-        class="scanner-video">
+        [enable]="isScanning"
+        class="scanner-video"
+      >
       </zxing-scanner>
 
       <div *ngIf="hasPermission && !hasDevices" class="p-4 text-warning">
-        <h5><i class="fa-solid fa-camera"></i> Không tìm thấy thiết bị Camera</h5>
+        <h5>
+          <i class="fa-solid fa-camera"></i> Không tìm thấy thiết bị Camera
+        </h5>
         <p>Vui lòng kiểm tra kết nối Camera, hoặc nhập mã thủ công bên dưới.</p>
         <div class="input-group mt-3">
-          <input type="text" class="form-control bg-dark text-white border-secondary" [value]="manualCode" (input)="manualCode = $event.target.value" placeholder="Nhập ISBN/Barcode hoặc ID"/>
-          <button class="btn btn-primary" (click)="submitManualCode()"><i class="fa-solid fa-search"></i> Tìm</button>
+          <input
+            type="text"
+            class="form-control bg-dark text-white border-secondary"
+            [value]="manualCode"
+            (input)="manualCode = $event.target.value"
+            placeholder="Nhập ISBN/Barcode hoặc ID"
+          />
+          <button class="btn btn-primary" (click)="submitManualCode()">
+            <i class="fa-solid fa-search"></i> Tìm
+          </button>
         </div>
       </div>
 
-      <div class="scanner-overlay" *ngIf="isScanning && hasPermission">
+      <div
+        class="scanner-overlay"
+        *ngIf="
+          isScanning && hasPermission && currentMode === ScannerMode.SEARCH
+        "
+      >
         <div class="scan-line"></div>
-        <p class="text-white mt-3 bg-dark bg-opacity-50 d-inline-block px-3 rounded">
+        <p
+          class="text-white mt-3 bg-dark bg-opacity-50 d-inline-block px-3 rounded"
+        >
           Di chuyển mã vạch vào khung hình
         </p>
       </div>
 
-      <div class="scan-result-panel" *ngIf="!isScanning">
-        <div class="p-4">
-          <h2 class="text-success mb-3"><i class="fa-solid fa-check-circle"></i> Quét Thành Công!</h2>
-          <p class="fs-5 text-muted">Mã: <strong class="text-white">{{ scannedResult }}</strong></p>
-          
-          <div *ngIf="isLoadingBook" class="spinner-border text-primary my-3" role="status"></div>
+      <!-- Continuous Scanning Indicator (Quick Return, Inventory, Loan) -->
+      <div
+        class="scanner-overlay"
+        *ngIf="
+          isScanning && hasPermission && currentMode !== ScannerMode.SEARCH
+        "
+      >
+        <div class="scan-line"></div>
+        <p
+          class="text-success mt-3 bg-dark bg-opacity-75 d-inline-block px-4 py-2 rounded"
+        >
+          <i class="fa-solid fa-circle-notch fa-spin me-2"></i>
+          <strong>Quét liên tục</strong> - Sẵn sàng nhận mã tiếp theo
+        </p>
+      </div>
 
-          <div *ngIf="foundBook" class="book-found-card p-3 mt-3 border border-secondary rounded bg-secondary bg-opacity-25 text-start d-flex">
-            <img [src]="foundBook.coverUrl || 'assets/images/placeholder.png'" 
-                 class="rounded me-3" style="width: 80px; height: 120px; object-fit: cover;">
-            <div class="flex-grow-1">
-               <h5 class="text-info fw-bold">{{ foundBook.name }}</h5>
-               <p class="mb-1 small">
-                 <i class="fa-solid fa-pen-nib"></i> 
-                 {{ (foundBook.authors && foundBook!.authors!.length > 0) ? foundBook!.authors![0].name : 'Unknown' }}
-               </p>
-               <p class="mb-1 small">ISBN: {{ foundBook.isbn }}</p>
-               <div class="mt-2">
-                 <button class="btn btn-warning btn-sm me-2" (click)="foundBook && navigateToEdit(foundBook.id)">
-                    <i class="fa-solid fa-edit"></i> Sửa Sách
-                 </button>
-                <button class="btn btn-success btn-sm" (click)="foundBook && navigateToCreateLoan(foundBook)">
+      <div
+        class="scan-result-panel"
+        *ngIf="!isScanning && currentMode === ScannerMode.SEARCH"
+      >
+        <div class="p-4">
+          <h2 class="text-success mb-3">
+            <i class="fa-solid fa-check-circle"></i> Quét Thành Công!
+          </h2>
+          <p class="fs-5 text-muted">
+            Mã: <strong class="text-white">{{ scannedResult }}</strong>
+          </p>
+
+          <div
+            *ngIf="isLoadingBook"
+            class="spinner-border text-primary my-3"
+            role="status"
+          ></div>
+
+          <div
+            *ngIf="foundBook"
+            class="book-found-card p-3 mt-3 border border-secondary rounded bg-secondary bg-opacity-25 text-start d-flex"
+          >
+            <img
+              [src]="foundBook.coverUrl || 'assets/images/placeholder.png'"
+              class="rounded me-3"
+              style="width: 80px; height: 120px; object-fit: cover"
+            />
+            <div class="grow">
+              <h5 class="text-info fw-bold">{{ foundBook.name }}</h5>
+              <p class="mb-1 small">
+                <i class="fa-solid fa-pen-nib"></i>
+                {{
+                  foundBook.authors && foundBook!.authors!.length > 0
+                    ? foundBook!.authors![0].name
+                    : "Unknown"
+                }}
+              </p>
+              <p class="mb-1 small">ISBN: {{ foundBook.isbn }}</p>
+              <div class="mt-2">
+                <button
+                  class="btn btn-warning btn-sm me-2"
+                  (click)="foundBook && navigateToEdit(foundBook.id)"
+                >
+                  <i class="fa-solid fa-edit"></i> Sửa Sách
+                </button>
+                <button
+                  class="btn btn-success btn-sm"
+                  (click)="foundBook && navigateToCreateLoan(foundBook)"
+                >
                   <i class="fa-solid fa-file-signature"></i> Tạo phiếu mượn
                 </button>
-               </div>
+              </div>
             </div>
           </div>
 
@@ -76,6 +219,80 @@
         </div>
       </div>
 
+      <!-- Inventory List View -->
+      <div
+        class="inventory-panel position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-90 p-3"
+        *ngIf="
+          currentMode === ScannerMode.INVENTORY && inventoryItems.length > 0
+        "
+        style="max-height: 200px; overflow-y: auto"
+      >
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <strong>
+            <i class="fa-solid fa-clipboard-list me-2"></i>
+            Đã quét: {{ inventoryItems.length }} cuốn
+          </strong>
+          <div>
+            <button
+              class="btn btn-sm btn-success me-1"
+              (click)="finishInventory()"
+            >
+              <i class="fa-solid fa-check"></i> Kết thúc
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="clearInventory()">
+              <i class="fa-solid fa-trash"></i> Xóa
+            </button>
+          </div>
+        </div>
+        <div class="list-group list-group-flush">
+          <div
+            class="list-group-item bg-transparent text-white border-secondary p-2"
+            *ngFor="let item of inventoryItems; let i = index"
+          >
+            <small>
+              [{{ i + 1 }}] {{ item.bookName }}
+              <span class="text-muted ms-2" *ngIf="item.isbn"
+                >({{ item.isbn }})</span
+              >
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loan Cart View -->
+      <div
+        class="loan-cart-panel position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-90 p-3"
+        *ngIf="
+          currentMode === ScannerMode.LOAN &&
+          !isWaitingForUserScan &&
+          loanCart.length > 0
+        "
+        style="max-height: 250px; overflow-y: auto"
+      >
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <strong>
+            <i class="fa-solid fa-shopping-cart me-2"></i>
+            Giỏ mượn: {{ loanCart.length }} cuốn
+          </strong>
+          <button class="btn btn-sm btn-success" (click)="completeLoan()">
+            <i class="fa-solid fa-check-circle"></i> Hoàn tất
+          </button>
+        </div>
+        <div class="list-group list-group-flush">
+          <div
+            class="list-group-item bg-transparent text-white border-secondary p-2 d-flex justify-content-between align-items-center"
+            *ngFor="let item of loanCart; let i = index"
+          >
+            <small class="grow"> [{{ i + 1 }}] {{ item.book.name }} </small>
+            <button
+              class="btn btn-sm btn-outline-danger"
+              (click)="removeLoanItem(i)"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

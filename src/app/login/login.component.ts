@@ -3,6 +3,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { UsersService } from '../services/users.service';
 import { UserAuthService } from '../services/user-auth.service';
+import { GamificationService } from '../services/gamification.service';
+import { InactivityService } from '../services/inactivity.service';
 import {
   SocialAuthService,
   GoogleLoginProvider,
@@ -30,7 +32,9 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     // private socialAuthService: SocialAuthService, // Tạm tắt
-    private http: HttpClient
+    private http: HttpClient,
+    private gamificationService: GamificationService,
+    private inactivityService: InactivityService,
   ) {}
 
   ngOnInit(): void {
@@ -53,7 +57,7 @@ export class LoginComponent implements OnInit {
           .map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
           })
-          .join('')
+          .join(''),
       );
       return JSON.parse(jsonPayload);
     } catch (e) {
@@ -90,6 +94,11 @@ export class LoginComponent implements OnInit {
 
         this.userAuth.setToken(token);
 
+        // Save refresh token if available
+        if (res?.refreshToken) {
+          this.userAuth.setRefreshToken(res.refreshToken);
+        }
+
         // Decode JWT an toàn
         const payload = this.safeDecodeJwt(token);
 
@@ -102,7 +111,7 @@ export class LoginComponent implements OnInit {
           .map((r: any) =>
             typeof r === 'string'
               ? r.toUpperCase()
-              : r?.authority?.toUpperCase() || ''
+              : r?.authority?.toUpperCase() || '',
           )
           .filter(Boolean)
           .map((r: string) => (r.startsWith('ROLE_') ? r : `ROLE_${r}`));
@@ -114,9 +123,20 @@ export class LoginComponent implements OnInit {
         const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
         const isAdmin = roles.includes('ROLE_ADMIN');
 
+        // Track login quest for regular users
+        if (!isAdmin) {
+          this.gamificationService.updateQuestProgress('login').subscribe({
+            next: () => console.log('Login quest tracked'),
+            error: (err) => console.error('Failed to track login quest:', err),
+          });
+        }
+
+        // Start inactivity monitoring
+        this.inactivityService.startMonitoring();
+
         // Ưu tiên returnUrl, nếu không thì điều hướng theo role
         this.router.navigateByUrl(
-          returnUrl || (isAdmin ? '/admin/dashboard' : '/')
+          returnUrl || (isAdmin ? '/admin/dashboard' : '/'),
         );
       },
       error: (err) => {
@@ -171,7 +191,7 @@ export class LoginComponent implements OnInit {
           const isAdmin = res.role === 'ROLE_ADMIN';
 
           this.router.navigateByUrl(
-            returnUrl || (isAdmin ? '/admin/dashboard' : '/')
+            returnUrl || (isAdmin ? '/admin/dashboard' : '/'),
           );
         },
         error: (err) => {

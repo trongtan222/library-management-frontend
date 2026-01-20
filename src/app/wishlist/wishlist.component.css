@@ -44,7 +44,8 @@
 }
 
 /* Đổi màu icon và tiêu đề trong phần trống */
-.bg-light i, .bg-light h4 {
+.bg-light i,
+.bg-light h4 {
   color: #9ca3af !important;
 }
 
@@ -64,5 +65,83 @@
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   /* Thêm nền mờ cho ảnh khi chưa load xong */
-  background-color: #374151; 
+  background-color: #374151;
+}
+
+/* --- Skeleton Loading Animation --- */
+.skeleton {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-image {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+}
+
+.skeleton-text {
+  height: 16px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* --- Notes Section Styling --- */
+textarea.form-control {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+  resize: none;
+}
+
+textarea.form-control:focus {
+  background-color: #4b5563;
+  border-color: #60a5fa;
+  color: #ffffff;
+  box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25);
+}
+
+.btn-link {
+  color: #60a5fa;
+}
+
+.btn-link:hover {
+  color: #93c5fd;
+}
+
+/* --- Availability Badge --- */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  font-weight: 600;
+}
+
+/* --- Dropdown Styling --- */
+.dropdown-menu {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dropdown-item {
+  color: #e5e7eb;
+}
+
+.dropdown-item:hover {
+  background-color: #374151;
+  color: #ffffff;
+}
+
+.dropdown-item.active {
+  background-color: #60a5fa;
+  color: #ffffff;
 }

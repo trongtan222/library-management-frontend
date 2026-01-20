@@ -9,9 +9,15 @@ import { FineDetails, LoanDetails } from '../services/admin.service';
 import { UsersService } from '../services/users.service';
 import { User } from '../models/user';
 import { forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators'; // Thêm map
+import { catchError, map } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { ReviewService, Review } from '../services/review.service';
+import {
+  GamificationService,
+  GamificationStats,
+  Badge,
+  UserBadge,
+} from '../services/gamification.service';
 
 @Component({
   selector: 'app-my-account',
@@ -43,10 +49,54 @@ export class MyAccountComponent implements OnInit {
     | 'HISTORY'
     | 'FINES'
     | 'RESERVATIONS'
-    | 'REVIEWS' = 'PROFILE';
+    | 'REVIEWS'
+    | 'STATS'
+    | 'BADGES'
+    | 'SETTINGS' = 'PROFILE';
   myReviews: Review[] = [];
   editingReview?: Review;
   savingReview = false;
+
+  // Gamification Data
+  gamificationStats: GamificationStats | null = null;
+  myBadges: UserBadge[] = [];
+  allBadges: Badge[] = [];
+
+  // Level System
+  levelTiers = [
+    { level: 1, name: 'Đồng', minPoints: 0, maxPoints: 99, color: '#cd7f32' },
+    { level: 2, name: 'Bạc', minPoints: 100, maxPoints: 299, color: '#c0c0c0' },
+    {
+      level: 3,
+      name: 'Vàng',
+      minPoints: 300,
+      maxPoints: 599,
+      color: '#ffd700',
+    },
+    {
+      level: 4,
+      name: 'Bạch kim',
+      minPoints: 600,
+      maxPoints: 999,
+      color: '#e5e4e2',
+    },
+    {
+      level: 5,
+      name: 'Kim cương',
+      minPoints: 1000,
+      maxPoints: Infinity,
+      color: '#b9f2ff',
+    },
+  ];
+
+  // Reading Stats (calculated from loans)
+  readingStats = {
+    booksThisYear: 0,
+    booksThisMonth: 0,
+    totalPages: 0,
+    averagePerMonth: 0,
+    monthlyData: [] as { month: string; count: number }[],
+  };
 
   // Stats
   totalBorrowed = 0;
@@ -69,7 +119,8 @@ export class MyAccountComponent implements OnInit {
     private circulationService: CirculationService,
     private userService: UsersService,
     private toastr: ToastrService,
-    private reviewService: ReviewService
+    private reviewService: ReviewService,
+    private gamificationService: GamificationService,
   ) {}
 
   ngOnInit(): void {
@@ -95,7 +146,7 @@ export class MyAccountComponent implements OnInit {
         catchError((err) => {
           console.warn('Lỗi tải profile, dùng fallback local.', err);
           return of(this.getLocalUserProfile(userId));
-        })
+        }),
       ),
       loans: this.circulationService
         .getMyLoanHistory()
@@ -106,8 +157,17 @@ export class MyAccountComponent implements OnInit {
       renewals: this.circulationService
         .getMyRenewals()
         .pipe(catchError(() => of([]))),
-      // reservations: this.circulationService.getMyReservations().pipe(catchError(() => of([]))) ,
       reviews: this.reviewService.getMyReviews().pipe(catchError(() => of([]))),
+      // Gamification data
+      gamificationStats: this.gamificationService
+        .getMyStats()
+        .pipe(catchError(() => of(null))),
+      myBadges: this.gamificationService
+        .getMyBadges()
+        .pipe(catchError(() => of([]))),
+      allBadges: this.gamificationService
+        .getAllBadges()
+        .pipe(catchError(() => of([]))),
     }).subscribe({
       next: (result) => {
         this.userProfile = result.user;
@@ -116,7 +176,7 @@ export class MyAccountComponent implements OnInit {
         const loans = Array.isArray(result.loans) ? result.loans : [];
 
         this.activeLoans = loans.filter(
-          (l) => l.status === 'ACTIVE' || l.status === 'OVERDUE'
+          (l) => l.status === 'ACTIVE' || l.status === 'OVERDUE',
         );
         this.historyLoans = loans.filter((l) => l.status === 'RETURNED');
 
@@ -125,19 +185,25 @@ export class MyAccountComponent implements OnInit {
         this.renewalRequests = Array.isArray(result.renewals)
           ? result.renewals
           : [];
-        this.myReviews = Array.isArray((result as any).reviews)
-          ? (result as any).reviews
-          : [];
+        this.myReviews = Array.isArray(result.reviews) ? result.reviews : [];
 
-        // this.myReservations = Array.isArray(result.reservations) ? result.reservations : [];
+        // Gamification data
+        this.gamificationStats = result.gamificationStats;
+        this.myBadges = Array.isArray(result.myBadges) ? result.myBadges : [];
+        this.allBadges = Array.isArray(result.allBadges)
+          ? result.allBadges
+          : [];
 
         // Tính toán thống kê
         this.totalBorrowed = loans.length;
         this.totalReturned = this.historyLoans.length;
         this.totalFinesAmount = this.myFines.reduce(
           (sum, f) => sum + (f.fineAmount || 0),
-          0
+          0,
         );
+
+        // Calculate reading stats
+        this.calculateReadingStats(loans);
 
         this.isLoading = false;
       },
@@ -160,7 +226,16 @@ export class MyAccountComponent implements OnInit {
   }
 
   changeTab(
-    tab: 'PROFILE' | 'ACTIVE' | 'HISTORY' | 'FINES' | 'RESERVATIONS' | 'REVIEWS'
+    tab:
+      | 'PROFILE'
+      | 'ACTIVE'
+      | 'HISTORY'
+      | 'FINES'
+      | 'RESERVATIONS'
+      | 'REVIEWS'
+      | 'STATS'
+      | 'BADGES'
+      | 'SETTINGS',
   ) {
     this.currentTab = tab;
     if (tab === 'HISTORY') {
@@ -241,7 +316,7 @@ export class MyAccountComponent implements OnInit {
   renewLoan(loanId: number): void {
     // Nếu đã có yêu cầu PENDING cho loan này thì chặn
     const pending = this.renewalRequests.find(
-      (r) => r.loanId === loanId && r.status === 'PENDING'
+      (r) => r.loanId === loanId && r.status === 'PENDING',
     );
     if (pending) {
       this.toastr.warning('Đã có yêu cầu gia hạn đang chờ xử lý.');
@@ -254,7 +329,7 @@ export class MyAccountComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.toastr.error(
-          err.error?.message || 'Gửi yêu cầu gia hạn thất bại.'
+          err.error?.message || 'Gửi yêu cầu gia hạn thất bại.',
         );
       },
     });
@@ -313,12 +388,156 @@ export class MyAccountComponent implements OnInit {
     return (
       this.renewalRequests &&
       this.renewalRequests.some(
-        (r) => r.loanId === loanId && r.status === status
+        (r) => r.loanId === loanId && r.status === status,
       )
     );
   }
 
   isPendingRenewal(loanId: number): boolean {
     return this.isRenewalStatus(loanId, 'PENDING');
+  }
+
+  // === Gamification Methods ===
+
+  // Get current level info
+  get currentLevelInfo() {
+    const points = this.gamificationStats?.totalPoints || 0;
+    return (
+      this.levelTiers.find(
+        (tier) => points >= tier.minPoints && points <= tier.maxPoints,
+      ) || this.levelTiers[0]
+    );
+  }
+
+  // Get next level info
+  get nextLevelInfo() {
+    const currentLevel = this.currentLevelInfo.level;
+    return this.levelTiers.find((tier) => tier.level === currentLevel + 1);
+  }
+
+  // Calculate level progress percentage
+  get levelProgressPercent(): number {
+    const current = this.currentLevelInfo;
+    const points = this.gamificationStats?.totalPoints || 0;
+
+    if (current.maxPoints === Infinity) return 100;
+
+    const progress =
+      ((points - current.minPoints) / (current.maxPoints - current.minPoints)) *
+      100;
+    return Math.min(Math.max(progress, 0), 100);
+  }
+
+  // Get points needed for next level
+  get pointsToNextLevel(): number {
+    const next = this.nextLevelInfo;
+    if (!next) return 0;
+
+    const points = this.gamificationStats?.totalPoints || 0;
+    return next.minPoints - points;
+  }
+
+  // Check if user has a badge
+  hasBadge(badgeCode: string): boolean {
+    return this.myBadges.some((ub) => ub.badge.code === badgeCode);
+  }
+
+  // Get badge by code
+  getBadgeInfo(badgeCode: string): UserBadge | undefined {
+    return this.myBadges.find((ub) => ub.badge.code === badgeCode);
+  }
+
+  // Calculate reading statistics from loan history
+  calculateReadingStats(loans: LoanDetails[]): void {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    // Books this year
+    this.readingStats.booksThisYear = loans.filter((loan) => {
+      const loanDate = new Date(loan.loanDate);
+      return loanDate.getFullYear() === currentYear;
+    }).length;
+
+    // Books this month
+    this.readingStats.booksThisMonth = loans.filter((loan) => {
+      const loanDate = new Date(loan.loanDate);
+      return (
+        loanDate.getFullYear() === currentYear &&
+        loanDate.getMonth() === currentMonth
+      );
+    }).length;
+
+    // Average per month (last 12 months)
+    const monthsToCheck = 12;
+    const monthCounts: { [key: string]: number } = {};
+
+    for (let i = 0; i < monthsToCheck; i++) {
+      const date = new Date(currentYear, currentMonth - i, 1);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      monthCounts[monthKey] = 0;
+    }
+
+    loans.forEach((loan) => {
+      const loanDate = new Date(loan.loanDate);
+      const monthKey = `${loanDate.getFullYear()}-${String(loanDate.getMonth() + 1).padStart(2, '0')}`;
+      if (monthCounts[monthKey] !== undefined) {
+        monthCounts[monthKey]++;
+      }
+    });
+
+    // Calculate average
+    const totalBooks = Object.values(monthCounts).reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+    this.readingStats.averagePerMonth = Math.round(totalBooks / monthsToCheck);
+
+    // Prepare monthly data for chart
+    this.readingStats.monthlyData = Object.entries(monthCounts)
+      .sort()
+      .map(([month, count]) => ({
+        month: this.formatMonthLabel(month),
+        count,
+      }))
+      .reverse();
+
+    // Estimate total pages (assume average 250 pages per book)
+    this.readingStats.totalPages = this.readingStats.booksThisYear * 250;
+  }
+
+  // Format month label for display
+  formatMonthLabel(monthKey: string): string {
+    const [year, month] = monthKey.split('-');
+    const monthNames = [
+      'T1',
+      'T2',
+      'T3',
+      'T4',
+      'T5',
+      'T6',
+      'T7',
+      'T8',
+      'T9',
+      'T10',
+      'T11',
+      'T12',
+    ];
+    return `${monthNames[parseInt(month) - 1]}`;
+  }
+
+  // Get max count for chart scaling
+  get maxMonthlyCount(): number {
+    return Math.max(...this.readingStats.monthlyData.map((d) => d.count), 1);
+  }
+
+  // Get transaction history (fines with payment info)
+  get transactionHistory() {
+    return this.myFines.map((fine) => ({
+      date: fine.returnDate,
+      description: `Phí phạt: ${fine.bookName}`,
+      amount: fine.fineAmount,
+      status: 'PAID', // Assuming all fines in history are paid
+    }));
   }
 }

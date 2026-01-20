@@ -1,55 +1,273 @@
-<h2 class="d-flex justify-content-between align-items-center">
-  Quản Lí Người Dùng
-  <a routerLink="/create-user" class="btn btn-primary">Tạo Người Dùng Mới</a>
-</h2>
-<table class="table table-success table-striped">
-    <thead>
-        <tr>
-            <th>ID </th>
-            <th>Tên</th>
-            <th>Tên Đăng Nhập</th>
-            <th>Vai Trò</th>
-            <th>Hành Động</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let user of users">
-            <td>{{ user.userId }}</td>
-            <td>{{ user.name }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.roles.join(', ') }}</td>
-            <td>
-              <a [routerLink]="['/user-details', user.userId]" class="btn btn-secondary btn-sm me-2">Xem Chi Tiết</a>
-              <button (click)="updateUser(user.userId)" class="btn btn-info btn-sm">Chỉnh Sửa</button>
-              <button (click)="openConfirmModal(user, 'reset')" class="btn btn-warning btn-sm mx-2">Đặt Lại Mật Khẩu</button>
-              <button (click)="openConfirmModal(user, 'delete')" class="btn btn-danger btn-sm">Xóa</button>
-            </td>
-        </tr>
-    </tbody>
-</table>
+<div class="container-fluid mt-4">
+  <!-- Header with Actions -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+    <h2 class="mb-0">
+      <i class="fa-solid fa-users me-2"></i>Quản Lý Người Dùng
+      <span class="badge bg-secondary ms-2"
+        >{{ filteredUsers.length }} users</span
+      >
+    </h2>
+    <div class="d-flex gap-2">
+      <button
+        class="btn btn-outline-secondary"
+        (click)="viewMode = viewMode === 'table' ? 'card' : 'table'"
+      >
+        <i
+          [class]="
+            viewMode === 'table' ? 'fa-solid fa-th-large' : 'fa-solid fa-table'
+          "
+        ></i>
+        {{ viewMode === "table" ? "Card View" : "Table View" }}
+      </button>
+      <a routerLink="/create-user" class="btn btn-primary">
+        <i class="fa-solid fa-plus me-2"></i>Tạo Người Dùng Mới
+      </a>
+    </div>
+  </div>
 
-<div class="modal fade show" [ngStyle]="{display: userToAction ? 'block' : 'none'}" *ngIf="userToAction">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="background:#0f1426; color:#f1f3ff;">
-      <div class="modal-header">
-        <h5 class="modal-title">{{ actionType === 'delete' ? 'Confirm Deletion' : 'Confirm Password Reset' }}</h5>
-        <button type="button" class="btn-close btn-close-white" (click)="cancelAction()"></button>
-      </div>
-      <div class="modal-body">
-        <p *ngIf="actionType === 'delete'">
-          Are you sure you want to delete user "<strong>{{ userToAction.username }}</strong>"? This action cannot be undone.
-        </p>
-        <p *ngIf="actionType === 'reset'">
-          Are you sure you want to reset the password for user "<strong>{{ userToAction.username }}</strong>"?
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelAction()">Hủy</button>
-        <button [ngClass]="actionType === 'delete' ? 'btn-danger' : 'btn-warning'" (click)="confirmAction()">
-          {{ actionType === 'delete' ? 'Có, Xóa' : 'Có, Đặt Lại' }}
-        </button>
+  <!-- Search & Filters -->
+  <div class="card mb-4 bg-dark border-secondary">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text bg-secondary border-0">
+              <i class="fa-solid fa-search"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control bg-dark text-light border-secondary"
+              placeholder="Tìm theo tên, username, ID..."
+              (input)="onSearchChange($any($event.target).value)"
+              [value]="searchTerm"
+            />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select
+            class="form-select bg-dark text-light border-secondary"
+            [(ngModel)]="selectedRole"
+            (change)="applyFilters()"
+          >
+            <option value="all">Tất cả vai trò</option>
+            <option value="ADMIN">Admin</option>
+            <option value="USER">User</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select
+            class="form-select bg-dark text-light border-secondary"
+            [(ngModel)]="selectedStatus"
+            (change)="applyFilters()"
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Đang hoạt động</option>
+            <option value="inactive">Bị khóa</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button
+            class="btn btn-danger w-100"
+            (click)="bulkDelete()"
+            [disabled]="selectedUserIds.size === 0"
+          >
+            <i class="fa-solid fa-trash me-2"></i>Xóa ({{
+              selectedUserIds.size
+            }})
+          </button>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Table View -->
+  <div class="table-responsive" *ngIf="viewMode === 'table'">
+    <table class="table table-dark table-hover">
+      <thead>
+        <tr>
+          <th style="width: 50px">
+            <input
+              type="checkbox"
+              [checked]="selectAll"
+              (change)="toggleSelectAll()"
+              class="form-check-input"
+            />
+          </th>
+          <th (click)="sortBy('userId')" style="cursor: pointer">
+            ID <i class="fa-solid" [ngClass]="getSortIcon('userId')"></i>
+          </th>
+          <th (click)="sortBy('name')" style="cursor: pointer">
+            Tên <i class="fa-solid" [ngClass]="getSortIcon('name')"></i>
+          </th>
+          <th (click)="sortBy('username')" style="cursor: pointer">
+            Tên Đăng Nhập
+            <i class="fa-solid" [ngClass]="getSortIcon('username')"></i>
+          </th>
+          <th>Vai Trò</th>
+          <th>Trạng Thái</th>
+          <th class="text-center">Hành Động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let user of filteredUsers"
+          [class.table-secondary]="isSelected(user.userId)"
+        >
+          <td>
+            <input
+              type="checkbox"
+              [checked]="isSelected(user.userId)"
+              (change)="toggleUserSelection(user.userId)"
+              class="form-check-input"
+            />
+          </td>
+          <td>
+            <strong>#{{ user.userId }}</strong>
+          </td>
+          <td>{{ user.name }}</td>
+          <td>{{ user.username }}</td>
+          <td>
+            <span
+              *ngFor="let role of user.roles"
+              [class]="'badge me-1 ' + getRoleBadge(role).class"
+            >
+              <i [class]="'fa-solid ' + getRoleBadge(role).icon + ' me-1'"></i
+              >{{ role }}
+            </span>
+          </td>
+          <td>
+            <span [class]="'badge ' + getUserStatusBadge(user).class">
+              <i
+                [class]="'fa-solid ' + getUserStatusBadge(user).icon + ' me-1'"
+              ></i>
+              {{ getUserStatusBadge(user).text }}
+            </span>
+          </td>
+          <td class="text-center">
+            <div class="btn-group btn-group-sm">
+              <a
+                [routerLink]="['/user-details', user.userId]"
+                class="btn btn-secondary"
+                title="Xem Chi Tiết"
+              >
+                <i class="fa-solid fa-eye"></i>
+              </a>
+              <button
+                (click)="updateUser(user.userId)"
+                class="btn btn-info"
+                title="Chỉnh Sửa"
+              >
+                <i class="fa-solid fa-edit"></i>
+              </button>
+              <button
+                (click)="openConfirmModal(user, 'reset')"
+                class="btn btn-warning"
+                title="Đặt Lại Mật Khẩu"
+              >
+                <i class="fa-solid fa-key"></i>
+              </button>
+              <button
+                (click)="openConfirmModal(user, 'delete')"
+                class="btn btn-danger"
+                title="Xóa"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredUsers.length === 0">
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="fa-solid fa-inbox fa-3x mb-3"></i>
+            <p>Không tìm thấy người dùng nào</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Card View (Mobile Friendly) -->
+  <div class="row g-3" *ngIf="viewMode === 'card'">
+    <div class="col-12 col-md-6 col-lg-4" *ngFor="let user of filteredUsers">
+      <div
+        class="card bg-dark border-secondary h-100"
+        [class.border-info]="isSelected(user.userId)"
+      >
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="form-check">
+              <input
+                type="checkbox"
+                [checked]="isSelected(user.userId)"
+                (change)="toggleUserSelection(user.userId)"
+                class="form-check-input"
+                [id]="'check-' + user.userId"
+              />
+              <label
+                class="form-check-label fw-bold"
+                [for]="'check-' + user.userId"
+              >
+                {{ user.name }}
+              </label>
+            </div>
+            <span [class]="'badge ' + getUserStatusBadge(user).class">
+              <i
+                [class]="'fa-solid ' + getUserStatusBadge(user).icon + ' me-1'"
+              ></i>
+              {{ getUserStatusBadge(user).text }}
+            </span>
+          </div>
+
+          <p class="text-muted mb-2">
+            <i class="fa-solid fa-user me-2"></i>{{ user.username }}
+          </p>
+          <p class="text-muted mb-3">
+            <i class="fa-solid fa-hashtag me-2"></i>ID: {{ user.userId }}
+          </p>
+
+          <div class="mb-3">
+            <span
+              *ngFor="let role of user.roles"
+              [class]="'badge me-1 ' + getRoleBadge(role).class"
+            >
+              <i [class]="'fa-solid ' + getRoleBadge(role).icon + ' me-1'"></i
+              >{{ role }}
+            </span>
+          </div>
+
+          <div class="d-flex gap-2">
+            <a
+              [routerLink]="['/user-details', user.userId]"
+              class="btn btn-sm btn-secondary flex-fill"
+            >
+              <i class="fa-solid fa-eye"></i>
+            </a>
+            <button
+              (click)="updateUser(user.userId)"
+              class="btn btn-sm btn-info flex-fill"
+            >
+              <i class="fa-solid fa-edit"></i>
+            </button>
+            <button
+              (click)="openConfirmModal(user, 'reset')"
+              class="btn btn-sm btn-warning flex-fill"
+            >
+              <i class="fa-solid fa-key"></i>
+            </button>
+            <button
+              (click)="openConfirmModal(user, 'delete')"
+              class="btn btn-sm btn-danger flex-fill"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 text-center py-5" *ngIf="filteredUsers.length === 0">
+      <i class="fa-solid fa-inbox fa-3x text-muted mb-3"></i>
+      <p class="text-muted">Không tìm thấy người dùng nào</p>
+    </div>
+  </div>
 </div>
-<div class="modal-backdrop fade show" *ngIf="userToAction"></div>

@@ -1,0 +1,61 @@
+<div class="rules-page-container">
+  <div class="rules-header">
+    <div class="section-wrap">
+      <h1>Nội Quy Thư Viện</h1>
+      <p>Trường THCS Phương Tú</p>
+    </div>
+  </div>
+
+  <div class="section-wrap rules-content">
+    
+    <section class="rule-section">
+      <h2><i class="fa-solid fa-clock"></i> 1. Thời Gian Phục Vụ</h2>
+      <p>Thư viện mở cửa phục vụ bạn đọc vào các ngày trong tuần (từ thứ Hai đến thứ Sáu).</p>
+      <ul>
+        <li><strong>Sáng:</strong> 7h30 - 11h30</li>
+        <li><strong>Chiều:</strong> 13h30 - 17h00</li>
+        <li><em>Nghỉ thứ Bảy, Chủ Nhật và các ngày Lễ, Tết theo quy định.</em></li>
+      </ul>
+    </section>
+
+    <section class="rule-section">
+      <h2><i class="fa-solid fa-id-card"></i> 2. Đối Tượng & Thẻ Thư Viện</h2>
+      <ul>
+        <li>Tất cả cán bộ, giáo viên, nhân viên và học sinh toàn trường đều có quyền sử dụng thư viện.</li>
+        <li>Bạn đọc phải xuất trình <strong>Thẻ học sinh</strong> hoặc <strong>Thẻ thư viện</strong> khi vào phòng đọc và khi làm thủ tục mượn sách.</li>
+        <li>Không được cho người khác mượn thẻ hoặc dùng thẻ của người khác.</li>
+      </ul>
+    </section>
+
+    <section class="rule-section">
+      <h2><i class="fa-solid fa-book"></i> 3. Quy Định Mượn - Trả Sách</h2>
+      <ul>
+        <li><strong>Số lượng:</strong> Mỗi lần mượn tối đa <strong>02 cuốn</strong>.</li>
+        <li><strong>Thời hạn:</strong> Thời gian mượn tối đa là <strong>07 ngày</strong>. Nếu muốn mượn tiếp, bạn đọc phải mang sách đến thư viện để gia hạn.</li>
+        <li>Kiểm tra kỹ tình trạng sách trước khi mượn. Nếu phát hiện rách, bẩn, mất trang cần báo ngay cho thủ thư.</li>
+        <li>Trả sách đúng hạn quy định.</li>
+      </ul>
+    </section>
+
+    <section class="rule-section">
+      <h2><i class="fa-solid fa-triangle-exclamation"></i> 4. Ý Thức Bảo Quản & Kỷ Luật</h2>
+      <ul>
+        <li>Giữ gìn trật tự, không gây ồn ào, không mang đồ ăn, thức uống vào phòng đọc.</li>
+        <li>Tuyệt đối không viết, vẽ bậy, xé trang, gấp trang sách.</li>
+        <li><strong>Xử lý vi phạm:</strong>
+          <ul>
+            <li>Làm mất sách: Phải đền sách mới cùng tên hoặc đền tiền gấp 02 lần giá trị bìa.</li>
+            <li>Làm rách, hư hỏng sách: Tùy mức độ sẽ có hình thức bồi thường phù hợp.</li>
+            <li>Mượn quá hạn: Nhắc nhở trước toàn trường hoặc khóa thẻ thư viện tạm thời.</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <div class="signature">
+      <p><strong>HIỆU TRƯỞNG</strong></p>
+      <p>(Đã ký)</p>
+    </div>
+
+  </div>
+</div>

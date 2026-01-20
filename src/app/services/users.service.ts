@@ -17,54 +17,77 @@ export interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
-  
   constructor(
     private http: HttpClient,
     private userAuth: UserAuthService,
-    private apiService: ApiService
+    private apiService: ApiService,
   ) {}
 
   // ---------- AUTHENTICATION & REGISTRATION ----------
 
-  public login(credentials: { username: string; password: string }): Observable<AuthResponse> {
+  public login(credentials: {
+    username: string;
+    password: string;
+  }): Observable<AuthResponse> {
     // Login luôn là public
     return this.http.post<AuthResponse>(
-      this.apiService.buildUrl('/auth/authenticate'), 
-      credentials, 
-      { context: new HttpContext().set(IS_PUBLIC_API, true) }
+      this.apiService.buildUrl('/auth/authenticate'),
+      credentials,
+      { context: new HttpContext().set(IS_PUBLIC_API, true) },
     );
   }
 
   public register(registerData: any): Observable<any> {
     // Register luôn là public
     return this.http.post(
-      this.apiService.buildUrl('/auth/register'), 
+      this.apiService.buildUrl('/auth/register'),
       registerData,
-      { context: new HttpContext().set(IS_PUBLIC_API, true) }
+      { context: new HttpContext().set(IS_PUBLIC_API, true) },
     );
+  }
+
+  public checkEmailExists(email: string): Observable<boolean> {
+    // Check if email already exists (for async validation)
+    return this.http.get<boolean>(
+      this.apiService.buildUrl(
+        `/public/check-email?email=${encodeURIComponent(email)}`,
+      ),
+      { context: new HttpContext().set(IS_PUBLIC_API, true) },
+    );
+  }
+
+  public logout(): Observable<any> {
+    // Call backend to blacklist token
+    return this.http.post(this.apiService.buildUrl('/auth/logout'), {});
   }
 
   public requestPasswordReset(email: string): Observable<any> {
     return this.http.post(
       this.apiService.buildUrl('/auth/forgot-password'),
       { email },
-      { context: new HttpContext().set(IS_PUBLIC_API, true) }
+      { context: new HttpContext().set(IS_PUBLIC_API, true) },
     );
   }
 
-  public confirmPasswordReset(payload: { token: string; newPassword: string }): Observable<any> {
+  public confirmPasswordReset(payload: {
+    token: string;
+    newPassword: string;
+  }): Observable<any> {
     return this.http.post(
       this.apiService.buildUrl('/auth/reset-password'),
       payload,
-      { context: new HttpContext().set(IS_PUBLIC_API, true) }
+      { context: new HttpContext().set(IS_PUBLIC_API, true) },
     );
   }
 
   // ---------- ACCOUNT ----------
-  public changePassword(payload: { oldPassword: string; newPassword: string }): Observable<any> {
+  public changePassword(payload: {
+    oldPassword: string;
+    newPassword: string;
+  }): Observable<any> {
     return this.http.put(
       this.apiService.buildUrl('/account/password'),
-      payload
+      payload,
     );
   }
 
@@ -75,9 +98,9 @@ export class UsersService {
     if (!rawRoles) return [];
 
     return rawRoles.map((role) => {
-        const up = role.toUpperCase();
-        return up.startsWith('ROLE_') ? up : `ROLE_${up}`;
-      });
+      const up = role.toUpperCase();
+      return up.startsWith('ROLE_') ? up : `ROLE_${up}`;
+    });
   }
 
   public roleMatch(allowedRoles: string[]): boolean {
@@ -93,7 +116,7 @@ export class UsersService {
 
     return userRoles.some((userRole) => normalizedAllowed.includes(userRole));
   }
-  
+
   // ---------- ADMIN USER MANAGEMENT (CRUD) ----------
 
   getUsersList(): Observable<User[]> {
@@ -105,11 +128,19 @@ export class UsersService {
   }
 
   getUserById(userId: number): Observable<User> {
-    return this.http.get<User>(this.apiService.buildUrl(`/admin/users/${userId}`));
+    return this.http.get<User>(
+      this.apiService.buildUrl(`/admin/users/${userId}`),
+    );
   }
 
-  updateUser(userId: number, userDetails: { name: string; username: string; roles: string[] }): Observable<unknown> {
-    return this.http.put(this.apiService.buildUrl(`/admin/users/${userId}`), userDetails);
+  updateUser(
+    userId: number,
+    userDetails: { name: string; username: string; roles: string[] },
+  ): Observable<unknown> {
+    return this.http.put(
+      this.apiService.buildUrl(`/admin/users/${userId}`),
+      userDetails,
+    );
   }
 
   deleteUser(userId: number): Observable<unknown> {
@@ -118,8 +149,15 @@ export class UsersService {
 
   resetPassword(userId: number): Observable<{ newPassword: string }> {
     return this.http.post<{ newPassword: string }>(
-        this.apiService.buildUrl(`/admin/users/${userId}/reset-password`), 
-        {}
+      this.apiService.buildUrl(`/admin/users/${userId}/reset-password`),
+      {},
+    );
+  }
+
+  toggleUserStatus(userId: number, isActive: boolean): Observable<any> {
+    return this.http.put(
+      this.apiService.buildUrl(`/admin/users/${userId}/status`),
+      { isActive },
     );
   }
 }

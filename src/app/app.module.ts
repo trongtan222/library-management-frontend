@@ -1,4 +1,6 @@
 import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+
 import { BrowserModule } from '@angular/platform-browser';
 import { MarkdownModule } from 'ngx-markdown';
 import { SecurityContext } from '@angular/core';
@@ -58,11 +60,14 @@ import { ResetPasswordComponent } from './reset-password/reset-password.componen
 import { AdminSettingsComponent } from './admin/admin-settings/admin-settings.component';
 import { RenewalsComponent } from './admin/renewals/renewals.component';
 import { GamificationComponent } from './gamification/gamification.component';
+import { RulesComponent } from './rules/rules.component';
+import { WishlistComponent } from './wishlist/wishlist.component';
 import {
   SocialLoginModule,
   GoogleLoginProvider,
   SocialAuthServiceConfig,
 } from '@abacritt/angularx-social-login';
+import { SharedModule } from './shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -96,9 +101,11 @@ import {
     AdminSettingsComponent,
     RenewalsComponent,
     GamificationComponent,
+    RulesComponent,
   ],
   imports: [
     BrowserModule,
+    ReactiveFormsModule,
     AppRoutingModule,
     FormsModule,
     RouterModule,
@@ -111,6 +118,8 @@ import {
     }),
     ZXingScannerModule,
     QRCodeComponent,
+    WishlistComponent,
+    SharedModule,
     MarkdownModule.forRoot({
       sanitize: SecurityContext.HTML,
     }),

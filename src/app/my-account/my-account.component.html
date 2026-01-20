@@ -32,6 +32,44 @@
               <span class="badge bg-success">Hoạt động</span>
             </div>
           </div>
+
+          <!-- Level Progress Bar (Gamification) -->
+          <div class="level-progress-section mt-4" *ngIf="gamificationStats">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <span
+                  class="badge"
+                  [style.background-color]="currentLevelInfo.color"
+                  >{{ currentLevelInfo.name }}</span
+                >
+                <small class="ms-2 opacity-75"
+                  >Cấp {{ currentLevelInfo.level }}</small
+                >
+              </div>
+              <small class="opacity-75"
+                >{{ gamificationStats.totalPoints }} điểm</small
+              >
+            </div>
+            <div
+              class="progress"
+              style="height: 8px; background-color: rgba(255, 255, 255, 0.2)"
+            >
+              <div
+                class="progress-bar progress-bar-animated"
+                role="progressbar"
+                [style.width.%]="levelProgressPercent"
+                [style.background-color]="currentLevelInfo.color"
+              ></div>
+            </div>
+            <small class="opacity-75 d-block mt-1" *ngIf="nextLevelInfo">
+              Cần thêm {{ pointsToNextLevel }} điểm để lên
+              {{ nextLevelInfo.name }}
+            </small>
+            <small class="opacity-75 d-block mt-1" *ngIf="!nextLevelInfo">
+              🎉 Bạn đã đạt cấp độ cao nhất!
+            </small>
+          </div>
+
           <!-- Decor circle -->
           <div class="circle-decor"></div>
         </div>
@@ -91,11 +129,32 @@
             >{{ myReviews.length }}</span
           >
         </button>
-        <!-- <button class="list-group-item list-group-item-action p-3 d-flex align-items-center"
-                [class.active-menu]="currentTab === 'RESERVATIONS'"
-                (click)="changeTab('RESERVATIONS')">
-          <i class="fa-solid fa-bookmark me-3 width-20"></i> Đặt Trước
-        </button> -->
+        <button
+          class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+          [class.active-menu]="currentTab === 'STATS'"
+          (click)="changeTab('STATS')"
+        >
+          <i class="fa-solid fa-chart-line me-3 width-20"></i> Thống Kê Đọc Sách
+        </button>
+        <button
+          class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+          [class.active-menu]="currentTab === 'BADGES'"
+          (click)="changeTab('BADGES')"
+        >
+          <i class="fa-solid fa-trophy me-3 width-20"></i> Huy Hiệu
+          <span
+            class="badge bg-warning rounded-pill ms-auto"
+            *ngIf="myBadges.length"
+            >{{ myBadges.length }}</span
+          >
+        </button>
+        <button
+          class="list-group-item list-group-item-action p-3 d-flex align-items-center"
+          [class.active-menu]="currentTab === 'SETTINGS'"
+          (click)="changeTab('SETTINGS')"
+        >
+          <i class="fa-solid fa-gear me-3 width-20"></i> Cài Đặt
+        </button>
       </div>
     </div>
 
@@ -127,7 +186,7 @@
             <div class="stat-box bg-dark border-secondary p-3 rounded">
               <div class="small text-uppercase">Nợ Phạt</div>
               <div class="h2 mb-0 text-danger">
-                {{ totalFinesAmount | currency : "VND" : "symbol" : "1.0-0" }}
+                {{ totalFinesAmount | currency: "VND" : "symbol" : "1.0-0" }}
               </div>
             </div>
           </div>
@@ -162,62 +221,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Change Password -->
-        <div class="card bg-dark border-secondary text-light mt-4">
-          <div class="card-header border-secondary fw-bold">Đổi Mật Khẩu</div>
-          <div class="card-body">
-            <form (ngSubmit)="changePassword()" autocomplete="off">
-              <div class="row g-3">
-                <div class="col-md-4">
-                  <label class="form-label">Mật khẩu cũ</label>
-                  <input
-                    type="password"
-                    class="form-control bg-dark text-light border-secondary"
-                    [(ngModel)]="oldPassword"
-                    name="oldPassword"
-                    required
-                  />
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label">Mật khẩu mới</label>
-                  <input
-                    type="password"
-                    class="form-control bg-dark text-light border-secondary"
-                    [(ngModel)]="newPassword"
-                    name="newPassword"
-                    minlength="6"
-                    required
-                  />
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label">Xác nhận mật khẩu</label>
-                  <input
-                    type="password"
-                    class="form-control bg-dark text-light border-secondary"
-                    [(ngModel)]="confirmPassword"
-                    name="confirmPassword"
-                    [class.is-invalid]="passwordsMismatch"
-                    required
-                  />
-                  <div
-                    *ngIf="passwordsMismatch"
-                    class="invalid-feedback d-block"
-                  >
-                    Mật khẩu xác nhận chưa khớp.
-                  </div>
-                </div>
-              </div>
-              <button
-                class="btn btn-primary mt-3"
-                type="submit"
-                [disabled]="changingPwd || passwordsMismatch"
-              >
-                {{ changingPwd ? "Đang đổi..." : "Đổi mật khẩu" }}
-              </button>
-            </form>
-          </div>
-        </div>
       </div>
 
       <!-- 2. ACTIVE LOANS TAB -->
@@ -246,9 +249,9 @@
               <h5 class="card-title text-info mb-1">{{ loan.bookName }}</h5>
               <div class="text-muted small mb-2">
                 <i class="fa-regular fa-calendar me-1"></i> Mượn:
-                {{ loan.loanDate | date : "dd/MM/yyyy" }} &bull;
+                {{ loan.loanDate | date: "dd/MM/yyyy" }} &bull;
                 <i class="fa-regular fa-calendar-xmark me-1"></i> Hạn:
-                {{ loan.dueDate | date : "dd/MM/yyyy" }}
+                {{ loan.dueDate | date: "dd/MM/yyyy" }}
               </div>
               <span
                 class="badge"
@@ -298,8 +301,8 @@
             <tbody>
               <tr *ngFor="let loan of pagedHistoryLoans">
                 <td>{{ loan.bookName }}</td>
-                <td>{{ loan.loanDate | date : "dd/MM/yyyy" }}</td>
-                <td>{{ loan.returnDate | date : "dd/MM/yyyy" }}</td>
+                <td>{{ loan.loanDate | date: "dd/MM/yyyy" }}</td>
+                <td>{{ loan.returnDate | date: "dd/MM/yyyy" }}</td>
                 <td><span class="badge bg-secondary">Đã Trả</span></td>
               </tr>
               <tr *ngIf="historyLoans.length === 0">
@@ -373,12 +376,12 @@
                   Quá hạn {{ fine.overdueDays }} ngày
                 </p>
                 <small class="text-muted"
-                  >Hạn trả: {{ fine.dueDate | date : "dd/MM/yyyy" }}</small
+                  >Hạn trả: {{ fine.dueDate | date: "dd/MM/yyyy" }}</small
                 >
               </div>
               <div class="text-end">
                 <div class="h4 text-danger mb-0">
-                  {{ fine.fineAmount | currency : "VND" : "symbol" : "1.0-0" }}
+                  {{ fine.fineAmount | currency: "VND" : "symbol" : "1.0-0" }}
                 </div>
                 <small class="text-warning">Chưa thanh toán</small>
               </div>
@@ -414,7 +417,7 @@
                 <h5 class="text-info mb-1">{{ r.bookName }}</h5>
                 <div class="text-muted small mb-2">
                   <i class="fa-regular fa-calendar me-1"></i>
-                  {{ r.createdAt | date : "dd/MM/yyyy HH:mm" }}
+                  {{ r.createdAt | date: "dd/MM/yyyy HH:mm" }}
                   <span
                     class="badge ms-2"
                     [ngClass]="r.approved ? 'bg-success' : 'bg-warning'"
@@ -489,6 +492,321 @@
                 </button>
               </div>
             </ng-template>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. STATS TAB -->
+      <div *ngIf="currentTab === 'STATS'" class="animate-fade-in">
+        <h3 class="mb-4 fw-bold">📊 Thống Kê Đọc Sách</h3>
+
+        <!-- Stats Summary Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3 col-sm-6">
+            <div
+              class="stat-card bg-gradient-primary text-white p-4 rounded shadow"
+            >
+              <div class="stat-icon mb-2">
+                <i class="fa-solid fa-book-open fa-2x"></i>
+              </div>
+              <div class="stat-value display-5 fw-bold">
+                {{ readingStats.booksThisYear }}
+              </div>
+              <div class="stat-label opacity-75">Sách năm nay</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div
+              class="stat-card bg-gradient-success text-white p-4 rounded shadow"
+            >
+              <div class="stat-icon mb-2">
+                <i class="fa-solid fa-calendar-day fa-2x"></i>
+              </div>
+              <div class="stat-value display-5 fw-bold">
+                {{ readingStats.booksThisMonth }}
+              </div>
+              <div class="stat-label opacity-75">Sách tháng này</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div
+              class="stat-card bg-gradient-warning text-white p-4 rounded shadow"
+            >
+              <div class="stat-icon mb-2">
+                <i class="fa-solid fa-file-lines fa-2x"></i>
+              </div>
+              <div class="stat-value display-5 fw-bold">
+                {{ readingStats.totalPages }}
+              </div>
+              <div class="stat-label opacity-75">Trang ước tính</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div
+              class="stat-card bg-gradient-info text-white p-4 rounded shadow"
+            >
+              <div class="stat-icon mb-2">
+                <i class="fa-solid fa-chart-simple fa-2x"></i>
+              </div>
+              <div class="stat-value display-5 fw-bold">
+                {{ readingStats.averagePerMonth }}
+              </div>
+              <div class="stat-label opacity-75">TB sách/tháng</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Chart -->
+        <div class="card bg-dark border-secondary text-light">
+          <div class="card-header border-secondary fw-bold">
+            <i class="fa-solid fa-chart-column me-2"></i> Sách Mượn Theo Tháng
+            (12 tháng qua)
+          </div>
+          <div class="card-body">
+            <div
+              class="monthly-chart"
+              *ngIf="readingStats.monthlyData.length > 0"
+            >
+              <div
+                class="chart-bars d-flex align-items-end justify-content-around"
+                style="height: 200px"
+              >
+                <div
+                  class="chart-bar-wrapper text-center"
+                  *ngFor="let data of readingStats.monthlyData"
+                >
+                  <div
+                    class="chart-bar bg-primary"
+                    [style.height.%]="(data.count / maxMonthlyCount) * 100"
+                    [title]="data.month + ': ' + data.count + ' cuốn'"
+                  >
+                    <span class="chart-value" *ngIf="data.count > 0">{{
+                      data.count
+                    }}</span>
+                  </div>
+                  <div class="chart-label small mt-2">{{ data.month }}</div>
+                </div>
+              </div>
+            </div>
+            <div
+              *ngIf="readingStats.monthlyData.length === 0"
+              class="text-center py-4 text-muted"
+            >
+              Chưa có dữ liệu thống kê
+            </div>
+          </div>
+        </div>
+
+        <!-- Gamification Stats (if available) -->
+        <div
+          class="card bg-dark border-secondary text-light mt-4"
+          *ngIf="gamificationStats"
+        >
+          <div class="card-header border-secondary fw-bold">
+            <i class="fa-solid fa-gamepad me-2"></i> Thành Tựu
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="achievement-item">
+                  <i class="fa-solid fa-medal text-warning fa-2x mb-2"></i>
+                  <div class="h4 mb-0">{{ gamificationStats.badgeCount }}</div>
+                  <small class="text-muted">Huy hiệu</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="achievement-item">
+                  <i class="fa-solid fa-fire text-danger fa-2x mb-2"></i>
+                  <div class="h4 mb-0">{{ gamificationStats.streakDays }}</div>
+                  <small class="text-muted">Ngày streak</small>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="achievement-item">
+                  <i class="fa-solid fa-ranking-star text-info fa-2x mb-2"></i>
+                  <div class="h4 mb-0">#{{ gamificationStats.rank }}</div>
+                  <small class="text-muted">Xếp hạng</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. BADGES TAB -->
+      <div *ngIf="currentTab === 'BADGES'" class="animate-fade-in">
+        <h3 class="mb-4 fw-bold">🏆 Bộ Sưu Tập Huy Hiệu</h3>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="stat-box bg-gradient-warning text-white p-3 rounded">
+              <div class="h3 mb-0">
+                {{ myBadges.length }} / {{ allBadges.length }}
+              </div>
+              <div class="small">Huy hiệu đã đạt được</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="stat-box bg-gradient-info text-white p-3 rounded">
+              <div class="h3 mb-0">
+                {{
+                  ((myBadges.length / (allBadges.length || 1)) * 100).toFixed(
+                    0
+                  )
+                }}%
+              </div>
+              <div class="small">Tỉ lệ hoàn thành</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badge Grid -->
+        <div class="badge-grid row g-3">
+          <div class="col-md-4 col-sm-6" *ngFor="let badge of allBadges">
+            <div
+              class="badge-card"
+              [class.badge-earned]="hasBadge(badge.code)"
+              [class.badge-locked]="!hasBadge(badge.code)"
+            >
+              <div class="badge-icon-wrapper">
+                <i class="fa-solid fa-trophy fa-3x"></i>
+                <div class="badge-checkmark" *ngIf="hasBadge(badge.code)">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+                <div class="badge-lock" *ngIf="!hasBadge(badge.code)">
+                  <i class="fa-solid fa-lock"></i>
+                </div>
+              </div>
+              <h5 class="badge-name mt-3 mb-1">{{ badge.nameVi }}</h5>
+              <p class="badge-description small text-muted mb-2">
+                {{ badge.descriptionVi }}
+              </p>
+              <div class="badge-points">
+                <i class="fa-solid fa-star text-warning"></i>
+                +{{ badge.pointsReward }} điểm
+              </div>
+              <div
+                class="badge-earned-date small text-muted mt-2"
+                *ngIf="hasBadge(badge.code)"
+              >
+                <i class="fa-regular fa-calendar"></i>
+                {{ getBadgeInfo(badge.code)?.earnedAt | date: "dd/MM/yyyy" }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="allBadges.length === 0" class="text-center py-5 text-muted">
+          <i class="fa-solid fa-trophy fa-3x mb-3"></i>
+          <p>Chưa có huy hiệu nào trong hệ thống</p>
+        </div>
+      </div>
+
+      <!-- 8. SETTINGS TAB -->
+      <div *ngIf="currentTab === 'SETTINGS'" class="animate-fade-in">
+        <h3 class="mb-4 fw-bold">⚙️ Cài Đặt Tài Khoản</h3>
+
+        <!-- Change Password -->
+        <div class="card bg-dark border-secondary text-light">
+          <div class="card-header border-secondary fw-bold">
+            <i class="fa-solid fa-lock me-2"></i> Đổi Mật Khẩu
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info bg-opacity-10 border-info mb-4">
+              <i class="fa-solid fa-info-circle me-2"></i>
+              Mật khẩu mạnh nên có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường,
+              số và ký tự đặc biệt.
+            </div>
+            <form (ngSubmit)="changePassword()" autocomplete="off">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label">Mật khẩu cũ *</label>
+                  <input
+                    type="password"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="oldPassword"
+                    name="oldPassword"
+                    required
+                    placeholder="Nhập mật khẩu hiện tại"
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Mật khẩu mới *</label>
+                  <input
+                    type="password"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="newPassword"
+                    name="newPassword"
+                    minlength="6"
+                    required
+                    placeholder="Tối thiểu 6 ký tự"
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Xác nhận mật khẩu *</label>
+                  <input
+                    type="password"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="confirmPassword"
+                    name="confirmPassword"
+                    [class.is-invalid]="passwordsMismatch"
+                    required
+                    placeholder="Nhập lại mật khẩu mới"
+                  />
+                  <div
+                    *ngIf="passwordsMismatch"
+                    class="invalid-feedback d-block"
+                  >
+                    <i class="fa-solid fa-circle-exclamation me-1"></i>
+                    Mật khẩu xác nhận chưa khớp.
+                  </div>
+                </div>
+              </div>
+              <button
+                class="btn btn-primary mt-3"
+                type="submit"
+                [disabled]="changingPwd || passwordsMismatch"
+              >
+                <i class="fa-solid fa-key me-2"></i>
+                {{ changingPwd ? "Đang đổi..." : "Đổi mật khẩu" }}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div
+          class="card bg-dark border-secondary text-light mt-4"
+          *ngIf="transactionHistory.length > 0"
+        >
+          <div class="card-header border-secondary fw-bold">
+            <i class="fa-solid fa-receipt me-2"></i> Lịch Sử Giao Dịch
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Ngày</th>
+                    <th>Mô tả</th>
+                    <th class="text-end">Số tiền</th>
+                    <th class="text-center">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let trans of transactionHistory">
+                    <td>{{ trans.date | date: "dd/MM/yyyy" }}</td>
+                    <td>{{ trans.description }}</td>
+                    <td class="text-end text-danger">
+                      {{ trans.amount | currency: "VND" : "symbol" : "1.0-0" }}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-success">{{ trans.status }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

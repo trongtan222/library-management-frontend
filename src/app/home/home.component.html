@@ -18,11 +18,37 @@
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
         <input
           [(ngModel)]="searchTerm"
+          (input)="onSearchInput(searchTerm)"
           name="searchTerm"
           type="search"
           placeholder="Nhập tên sách, tác giả hoặc môn học..."
+          autocomplete="off"
         />
         <button class="btn-search" type="submit">Tìm Kiếm</button>
+
+        <!-- Autocomplete Suggestions -->
+        <div class="search-suggestions" *ngIf="showSuggestions">
+          <div
+            class="suggestion-item"
+            *ngFor="let book of searchSuggestions"
+            (click)="selectSuggestion(book)"
+          >
+            <img
+              [src]="
+                book.coverUrl ||
+                'https://placehold.co/40x60/161B22/8b949e?text=' +
+                  (book.name || '?').substring(0, 1)
+              "
+              alt="{{ book.name }}"
+            />
+            <div class="suggestion-info">
+              <strong>{{ book.name }}</strong>
+              <small *ngIf="book.authors && book.authors.length > 0">{{
+                book.authors[0].name
+              }}</small>
+            </div>
+          </div>
+        </div>
       </form>
       <div class="cta-buttons">
         <a class="btn btn-primary" routerLink="/borrow-book">
@@ -54,11 +80,164 @@
     <div class="category-chips">
       <a
         class="chip"
-        *ngFor="let category of categories"
+        *ngFor="let category of categories$ | async"
         [routerLink]="['/borrow-book']"
         [queryParams]="{ genre: category }"
       >
         {{ category }}
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- NEWS SECTION -->
+<section class="news-section">
+  <div class="section-wrap">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="fas fa-bullhorn"></i>
+        Bảng Tin Thư Viện
+      </h2>
+    </div>
+
+    <ng-container *ngIf="news$ | async as news; else loadingNews">
+      <div class="news-grid" *ngIf="news.length > 0; else emptyNews">
+        <article class="news-card" *ngFor="let item of news">
+          <div class="news-icon">
+            <i class="fas fa-newspaper"></i>
+          </div>
+          <div class="news-content">
+            <h3 class="news-title">{{ item.title }}</h3>
+            <p class="news-excerpt">{{ item.content.substring(0, 120) }}...</p>
+            <div class="news-meta">
+              <span class="news-date">
+                <i class="far fa-calendar"></i>
+                {{ formatDate(item.createdAt) }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </ng-container>
+
+    <ng-template #loadingNews>
+      <div class="news-grid">
+        <div class="news-card-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+      </div>
+    </ng-template>
+
+    <ng-template #emptyNews>
+      <p class="text-muted text-center py-4">
+        <i class="fas fa-info-circle"></i>
+        Hiện tại chưa có thông báo mới.
+      </p>
+    </ng-template>
+  </div>
+</section>
+
+<!-- LEADERBOARD SECTION -->
+<section
+  class="leaderboard-section"
+  *ngIf="leaderboard$ | async as leaderboard"
+>
+  <div class="section-wrap">
+    <div class="leaderboard-container">
+      <div class="leaderboard-header">
+        <i class="fas fa-trophy"></i>
+        <h2>Bảng Vàng Đọc Sách</h2>
+        <p>Top 5 độc giả xuất sắc tháng này</p>
+      </div>
+
+      <div
+        class="leaderboard-list"
+        *ngIf="leaderboard.length > 0; else emptyLeaderboard"
+      >
+        <div
+          class="leaderboard-item"
+          *ngFor="let entry of leaderboard; let i = index"
+          [class.top-3]="i < 3"
+        >
+          <div class="rank rank-{{ i + 1 }}">
+            <span *ngIf="i === 0">🥇</span>
+            <span *ngIf="i === 1">🥈</span>
+            <span *ngIf="i === 2">🥉</span>
+            <span *ngIf="i >= 3">{{ i + 1 }}</span>
+          </div>
+          <div class="player-info">
+            <div class="player-name">{{ entry.userName }}</div>
+            <div class="player-level">
+              <span
+                class="level-badge"
+                [ngClass]="getLevelBadgeClass(entry.level)"
+              >
+                Level {{ entry.level }}
+              </span>
+            </div>
+          </div>
+          <div class="player-stats">
+            <div class="points">{{ entry.totalPoints }} điểm</div>
+            <div class="badges-count">
+              <i class="fas fa-medal"></i>
+              {{ entry.badgeCount }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #emptyLeaderboard>
+        <p class="text-muted text-center py-4">
+          Chưa có dữ liệu bảng xếp hạng.
+        </p>
+      </ng-template>
+    </div>
+  </div>
+</section>
+
+<!-- RECOMMENDED BOOKS SECTION (for logged-in users) -->
+<section
+  class="recommended-books-section"
+  *ngIf="
+    userAuthService.isLoggedIn() && (recommendedBooks$ | async) as recommended
+  "
+>
+  <div class="section-wrap" *ngIf="recommended.length > 0">
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="fas fa-magic"></i>
+        Có Thể Em Sẽ Thích
+      </h2>
+      <p class="section-subtitle">
+        Gợi ý dành riêng cho em dựa trên sở thích đọc sách
+      </p>
+    </div>
+
+    <div class="books-grid">
+      <a
+        class="book-card"
+        *ngFor="let book of recommended"
+        [routerLink]="['/books', book.id]"
+      >
+        <div class="book-cover">
+          <img
+            [src]="
+              book.coverUrl ||
+              'https://placehold.co/200x300/161B22/8b949e?text=' +
+                (book.name || '?').substring(0, 1)
+            "
+            alt="Bìa sách {{ book.name }}"
+          />
+        </div>
+        <div class="book-info">
+          <h3 class="book-title">{{ book.name }}</h3>
+          <p class="book-author">
+            <span *ngIf="book.authors && book.authors.length > 0">{{
+              book.authors[0].name
+            }}</span>
+            <span *ngIf="!book.authors || book.authors.length === 0"
+              >Nhiều tác giả</span
+            >
+          </p>
+        </div>
       </a>
     </div>
   </div>

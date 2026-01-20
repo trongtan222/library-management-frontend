@@ -1,21 +1,169 @@
 <div class="container-fluid mt-4">
-  <!-- SỬA: Đổi tiêu đề thành màu trắng -->
-  <h2 class="mb-4 fw-bold">
-    <i class="fa-solid fa-chart-line"></i> Dashboard Thống Kê
-  </h2>
+  <!-- HEADER với Date Range Filter -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">
+      <i class="fa-solid fa-chart-line"></i> Dashboard Thống Kê
+    </h2>
+    <div class="d-flex gap-2">
+      <select
+        class="form-select form-select-sm w-auto"
+        [(ngModel)]="dateRange"
+        (change)="onDateRangeChange(dateRange)"
+      >
+        <option *ngFor="let opt of dateRangeOptions" [value]="opt.value">
+          {{ opt.label }}
+        </option>
+      </select>
+    </div>
+  </div>
 
-  <div *ngIf="isLoading" class="text-center my-5">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <!-- QUICK ACTIONS BUTTONS -->
+  <div class="row g-2 mb-4">
+    <div class="col-auto">
+      <button class="btn btn-primary btn-sm" (click)="quickCreateLoan()">
+        <i class="fa-solid fa-plus-circle me-1"></i> Tạo phiếu mượn nhanh
+      </button>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-success btn-sm" (click)="quickScanReturn()">
+        <i class="fa-solid fa-qrcode me-1"></i> Quét mã trả sách
+      </button>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-info btn-sm" (click)="quickAddUser()">
+        <i class="fa-solid fa-user-plus me-1"></i> Thêm user mới
+      </button>
+    </div>
+  </div>
+
+  <!-- SKELETON LOADING -->
+  <div *ngIf="isLoading">
+    <!-- Skeleton Quick Actions -->
+    <div class="row g-2 mb-4">
+      <div class="col-auto">
+        <div class="skeleton" style="width: 200px; height: 32px"></div>
+      </div>
+      <div class="col-auto">
+        <div class="skeleton" style="width: 180px; height: 32px"></div>
+      </div>
+      <div class="col-auto">
+        <div class="skeleton" style="width: 150px; height: 32px"></div>
+      </div>
+    </div>
+
+    <!-- Skeleton Alert Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="skeleton skeleton-card"></div>
+      </div>
+      <div class="col-md-4">
+        <div class="skeleton skeleton-card"></div>
+      </div>
+      <div class="col-md-4">
+        <div class="skeleton skeleton-card"></div>
+      </div>
+    </div>
+
+    <!-- Skeleton Charts -->
+    <div class="row g-4 mb-5">
+      <div class="col-lg-5">
+        <div class="card shadow-sm h-100 border-secondary bg-dark">
+          <div class="card-body">
+            <div class="skeleton skeleton-chart"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card shadow-sm h-100 border-secondary bg-dark">
+          <div class="card-body">
+            <div class="skeleton skeleton-chart"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3">
+        <div class="card shadow-sm h-100 border-secondary bg-dark">
+          <div class="card-body">
+            <div class="skeleton skeleton-chart"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skeleton Stat Cards -->
+    <div class="row row-cols-1 row-cols-md-3 row-cols-xl-6 g-3 mb-4">
+      <div class="col" *ngFor="let i of [1, 2, 3, 4, 5, 6]">
+        <div class="skeleton skeleton-card"></div>
+      </div>
     </div>
   </div>
 
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
   <div *ngIf="!isLoading">
+    <!-- ALERT/WARNING CARDS -->
+    <div class="row g-3 mb-4" *ngIf="details">
+      <div class="col-md-4" *ngIf="details.stats.overdueLoans > 0">
+        <div
+          class="alert alert-danger mb-0 cursor-pointer"
+          (click)="showSection('LOANS_OVERDUE')"
+        >
+          <div class="d-flex align-items-center">
+            <i class="fa-solid fa-exclamation-triangle fa-2x me-3"></i>
+            <div>
+              <h6 class="mb-1 fw-bold">Cảnh báo: Sách quá hạn!</h6>
+              <p class="mb-0 small">
+                <strong>{{ details.stats.overdueLoans }}</strong> phiếu mượn
+                chưa trả. Bấm để xem chi tiết.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4" *ngIf="details.stats.totalUnpaidFines > 0">
+        <div
+          class="alert alert-warning mb-0 cursor-pointer text-dark"
+          (click)="showSection('FINES_UNPAID')"
+        >
+          <div class="d-flex align-items-center">
+            <i class="fa-solid fa-coins fa-2x me-3"></i>
+            <div>
+              <h6 class="mb-1 fw-bold">Tiền phạt chưa thu!</h6>
+              <p class="mb-0 small">
+                <strong>{{
+                  details.stats.totalUnpaidFines
+                    | currency: "VND" : "symbol" : "1.0-0"
+                }}</strong>
+                cần thu. Bấm để xem danh sách.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="col-md-4"
+        *ngIf="
+          details.mostLoanedBooks &&
+          details.mostLoanedBooks.length > 0 &&
+          details.mostLoanedBooks[0].loanCount > 10
+        "
+      >
+        <div class="alert alert-info mb-0">
+          <div class="d-flex align-items-center">
+            <i class="fa-solid fa-fire fa-2x me-3"></i>
+            <div>
+              <h6 class="mb-1 fw-bold">Sách HOT nhất!</h6>
+              <p class="mb-0 small">
+                <strong>{{ details.mostLoanedBooks[0].bookName }}</strong> -
+                {{ details.mostLoanedBooks[0].loanCount }} lượt mượn
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row g-4 mb-5">
-      <div class="col-lg-8">
-        <!-- SỬA: Thêm bg-dark text-white, đổi viền thành secondary -->
+      <div class="col-lg-5">
         <div class="card shadow-sm h-100 border-secondary bg-dark text-white">
           <div class="card-header bg-dark border-secondary fw-bold text-white">
             <i class="fa-solid fa-arrow-trend-up me-2"></i>Xu Hướng Mượn Sách
@@ -33,7 +181,6 @@
       </div>
 
       <div class="col-lg-4">
-        <!-- SỬA: Thêm bg-dark text-white -->
         <div class="card shadow-sm h-100 border-secondary bg-dark text-white">
           <div class="card-header bg-dark border-secondary fw-bold text-white">
             <i class="fa-solid fa-chart-pie me-2"></i>Tỷ Lệ Trạng Thái
@@ -46,6 +193,23 @@
               style="position: relative; height: 250px; width: 250px"
             >
               <canvas id="statusChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP 5 SÁCH HOT (MỚI) -->
+      <div class="col-lg-3">
+        <div class="card shadow-sm h-100 border-secondary bg-dark text-white">
+          <div class="card-header bg-dark border-secondary fw-bold text-white">
+            <i class="fa-solid fa-fire me-2"></i>Top 5 Sách Hot
+          </div>
+          <div class="card-body">
+            <div
+              class="chart-container"
+              style="position: relative; height: 300px; width: 100%"
+            >
+              <canvas id="topBooksChart"></canvas>
             </div>
           </div>
         </div>
@@ -139,7 +303,7 @@
               <div class="h4 fw-bold mb-0">
                 {{
                   details.stats.totalFines
-                    | currency : "VND" : "symbol" : "1.0-0"
+                    | currency: "VND" : "symbol" : "1.0-0"
                 }}
               </div>
             </div>
@@ -170,7 +334,7 @@
               <div class="h4 fw-bold mb-0">
                 {{
                   details.stats.totalUnpaidFines
-                    | currency : "VND" : "symbol" : "1.0-0"
+                    | currency: "VND" : "symbol" : "1.0-0"
                 }}
               </div>
             </div>
@@ -300,17 +464,17 @@
                     <td>{{ item.loanId }}</td>
                     <td>{{ item.userName }}</td>
                     <td>{{ item.bookName }}</td>
-                    <td>{{ item.dueDate | date : "dd/MM/yyyy" }}</td>
+                    <td>{{ item.dueDate | date: "dd/MM/yyyy" }}</td>
                     <td>
                       {{
                         item.returnDate
-                          ? (item.returnDate | date : "dd/MM/yyyy")
+                          ? (item.returnDate | date: "dd/MM/yyyy")
                           : "-"
                       }}
                     </td>
                     <td>
                       {{
-                        item.fineAmount | currency : "VND" : "symbol" : "1.0-0"
+                        item.fineAmount | currency: "VND" : "symbol" : "1.0-0"
                       }}
                     </td>
                   </tr>
@@ -321,17 +485,17 @@
                     <td>{{ item.loanId }}</td>
                     <td>{{ item.userName }}</td>
                     <td>{{ item.bookName }}</td>
-                    <td>{{ item.dueDate | date : "dd/MM/yyyy" }}</td>
+                    <td>{{ item.dueDate | date: "dd/MM/yyyy" }}</td>
                     <td>
                       {{
                         item.returnDate
-                          ? (item.returnDate | date : "dd/MM/yyyy")
+                          ? (item.returnDate | date: "dd/MM/yyyy")
                           : "-"
                       }}
                     </td>
                     <td>
                       {{
-                        item.fineAmount | currency : "VND" : "symbol" : "1.0-0"
+                        item.fineAmount | currency: "VND" : "symbol" : "1.0-0"
                       }}
                     </td>
                   </tr>
@@ -343,15 +507,15 @@
                     <td>{{ item.loanId }}</td>
                     <td>{{ item.bookName }}</td>
                     <td>{{ item.userName }}</td>
-                    <td>{{ item.loanDate | date : "dd/MM/yyyy" }}</td>
-                    <td>{{ item.dueDate | date : "dd/MM/yyyy" }}</td>
+                    <td>{{ item.loanDate | date: "dd/MM/yyyy" }}</td>
+                    <td>{{ item.dueDate | date: "dd/MM/yyyy" }}</td>
                     <td>
                       <span
                         class="badge"
                         [ngClass]="{
                           'bg-success': item.status === 'ACTIVE',
                           'bg-danger': item.status === 'OVERDUE',
-                          'bg-secondary': item.status === 'RETURNED'
+                          'bg-secondary': item.status === 'RETURNED',
                         }"
                         >{{ item.status }}</span
                       >

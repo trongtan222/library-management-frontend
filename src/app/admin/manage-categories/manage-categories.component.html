@@ -1,57 +1,258 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Quản lý Danh mục</h2>
-    <a class="btn btn-outline-secondary" routerLink="/books"><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách sách</a>
+    <h2 class="mb-0">🗂️ Quản lý Danh mục Pro</h2>
+    <a class="btn btn-outline-secondary" routerLink="/books"
+      ><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách sách</a
+    >
+  </div>
+
+  <!-- Migration Modal (Safe Delete) -->
+  <div
+    *ngIf="isDeleting && categoryToDelete"
+    class="alert alert-warning border-danger"
+  >
+    <h5 class="alert-heading">
+      <i class="fa-solid fa-triangle-exclamation me-2"></i>
+      Không thể xóa "{{ categoryToDelete.name }}"
+    </h5>
+    <p class="mb-3">
+      Danh mục này có
+      <strong>{{ categoryToDelete.bookCount }} cuốn sách</strong>. Bạn phải
+      chuyển sách sang danh mục khác trước khi xóa.
+    </p>
+    <div class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label"
+          >Chuyển {{ categoryToDelete.bookCount }} cuốn sách sang:</label
+        >
+        <select class="form-select" [(ngModel)]="migrateTargetId">
+          <option [value]="null">-- Chọn danh mục --</option>
+          <option
+            *ngFor="let c of categories"
+            [value]="c.id"
+            [disabled]="c.id === categoryToDelete.id"
+          >
+            {{ c.name }} ({{ c.bookCount || 0 }} sách)
+          </option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <button
+          class="btn btn-danger me-2"
+          (click)="confirmMigrationDelete()"
+          [disabled]="!migrateTargetId"
+        >
+          <i class="fa-solid fa-right-left me-1"></i> Chuyển sách & Xóa
+        </button>
+        <button class="btn btn-secondary" (click)="cancelDelete()">
+          <i class="fa-solid fa-xmark me-1"></i> Hủy
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="input-group mb-3">
     <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-    <input class="form-control" [(ngModel)]="search" placeholder="Tìm theo tên..." />
+    <input
+      class="form-control"
+      [(ngModel)]="search"
+      placeholder="Tìm theo tên..."
+    />
   </div>
 
   <div class="card mb-4">
     <div class="card-body">
+      <h5 class="card-title mb-3">
+        <i class="fa-solid fa-plus-circle me-2"></i>Thêm danh mục mới
+      </h5>
       <div class="row g-3 align-items-end">
-        <div class="col-md-6">
-          <label class="form-label">Thêm danh mục mới</label>
-          <input class="form-control" [(ngModel)]="newName" placeholder="Tên danh mục" />
+        <div class="col-md-4">
+          <label class="form-label">Tên danh mục *</label>
+          <input
+            class="form-control"
+            [(ngModel)]="newName"
+            placeholder="Ví dụ: Công nghệ thông tin"
+          />
         </div>
         <div class="col-md-3">
-          <button class="btn btn-success" (click)="create()">Tạo</button>
+          <label class="form-label">Danh mục cha (Hierarchy)</label>
+          <select class="form-select" [(ngModel)]="newParentId">
+            <option [value]="null">-- Không có (Root) --</option>
+            <option *ngFor="let c of getParentCategories()" [value]="c.id">
+              {{ c.name }}
+            </option>
+          </select>
         </div>
+        <div class="col-md-2">
+          <label class="form-label">Màu sắc</label>
+          <input
+            type="color"
+            class="form-control form-control-color"
+            [(ngModel)]="newColor"
+          />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Icon</label>
+          <select class="form-select" [(ngModel)]="newIconClass">
+            <option value="fa-solid fa-book">📚 Book</option>
+            <option value="fa-solid fa-laptop-code">💻 Tech</option>
+            <option value="fa-solid fa-flask">🧪 Science</option>
+            <option value="fa-solid fa-palette">🎨 Art</option>
+            <option value="fa-solid fa-briefcase">💼 Business</option>
+            <option value="fa-solid fa-heart">❤️ Romance</option>
+            <option value="fa-solid fa-ghost">👻 Horror</option>
+            <option value="fa-solid fa-star">⭐ Featured</option>
+          </select>
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-success w-100" (click)="create()">
+            <i class="fa-solid fa-check"></i> Tạo
+          </button>
+        </div>
+      </div>
+      <div class="mt-2 d-flex align-items-center gap-2">
+        <span class="text-muted small">Preview:</span>
+        <span class="badge" [style.backgroundColor]="newColor">
+          <i [class]="newIconClass"></i> {{ newName || "Tên danh mục" }}
+        </span>
       </div>
     </div>
   </div>
 
   <div *ngIf="isLoading" class="text-muted">Đang tải...</div>
 
-  <table class="table" *ngIf="!isLoading">
+  <table class="table table-hover" *ngIf="!isLoading">
     <thead>
       <tr>
-        <th style="width:80px">ID</th>
-        <th>Tên</th>
-        <th style="width:220px">Hành động</th>
+        <th style="width: 80px">ID</th>
+        <th style="width: 60px">Icon</th>
+        <th>Tên (Tree View)</th>
+        <th style="width: 100px">Số sách</th>
+        <th style="width: 120px">Màu & Preview</th>
+        <th style="width: 150px">Danh mục cha</th>
+        <th style="width: 280px">Hành động</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let c of filtered()">
+      <tr *ngFor="let c of buildTreeData()" [class]="getIndentClass(c)">
         <td>{{ c.id }}</td>
-        <td>
-          <ng-container *ngIf="!editing || editing.id !== c.id; else editTpl">
-            {{ c.name }}
+        <td class="text-center">
+          <ng-container
+            *ngIf="!editing || editing.id !== c.id; else editIconTpl"
+          >
+            <i
+              [class]="c.iconClass || 'fa-solid fa-book'"
+              [style.color]="c.color || '#6c757d'"
+              class="fs-5"
+            ></i>
           </ng-container>
-          <ng-template #editTpl>
-            <input class="form-control" [(ngModel)]="editing!.name" />
+          <ng-template #editIconTpl>
+            <select
+              class="form-select form-select-sm"
+              [(ngModel)]="editing!.iconClass"
+            >
+              <option value="fa-solid fa-book">📚</option>
+              <option value="fa-solid fa-laptop-code">💻</option>
+              <option value="fa-solid fa-flask">🧪</option>
+              <option value="fa-solid fa-palette">🎨</option>
+              <option value="fa-solid fa-briefcase">💼</option>
+              <option value="fa-solid fa-heart">❤️</option>
+              <option value="fa-solid fa-ghost">👻</option>
+              <option value="fa-solid fa-star">⭐</option>
+            </select>
           </ng-template>
         </td>
         <td>
-          <ng-container *ngIf="!editing || editing.id !== c.id; else editingBtns">
-            <button class="btn btn-sm btn-primary me-2" (click)="startEdit(c)"><i class="fa-solid fa-pen"></i> Sửa</button>
-            <button class="btn btn-sm btn-danger" (click)="remove(c.id)"><i class="fa-solid fa-trash"></i> Xóa</button>
+          <ng-container
+            *ngIf="!editing || editing.id !== c.id; else editNameTpl"
+          >
+            <span *ngIf="c.parentId" class="tree-indent">└─</span>
+            {{ c.name }}
+          </ng-container>
+          <ng-template #editNameTpl>
+            <input
+              class="form-control form-control-sm"
+              [(ngModel)]="editing!.name"
+            />
+          </ng-template>
+        </td>
+        <td class="text-center">
+          <span
+            class="badge"
+            [class.bg-success]="(c.bookCount || 0) > 0"
+            [class.bg-secondary]="(c.bookCount || 0) === 0"
+            [title]="(c.bookCount || 0) + ' cuốn sách'"
+          >
+            {{ c.bookCount || 0 }} <i class="fa-solid fa-book-open ms-1"></i>
+          </span>
+        </td>
+        <td>
+          <ng-container
+            *ngIf="!editing || editing.id !== c.id; else editColorTpl"
+          >
+            <span class="badge" [style.backgroundColor]="c.color || '#6c757d'">
+              <i [class]="c.iconClass || 'fa-solid fa-book'"></i> {{ c.name }}
+            </span>
+          </ng-container>
+          <ng-template #editColorTpl>
+            <input
+              type="color"
+              class="form-control form-control-color"
+              [(ngModel)]="editing!.color"
+            />
+          </ng-template>
+        </td>
+        <td>
+          <ng-container
+            *ngIf="!editing || editing.id !== c.id; else editParentTpl"
+          >
+            <span *ngIf="c.parentId" class="text-muted small">
+              {{ getParentName(c.parentId) }}
+            </span>
+            <span *ngIf="!c.parentId" class="badge bg-info">Root</span>
+          </ng-container>
+          <ng-template #editParentTpl>
+            <select
+              class="form-select form-select-sm"
+              [(ngModel)]="editing!.parentId"
+            >
+              <option [value]="null">-- Root --</option>
+              <option *ngFor="let p of getParentCategories()" [value]="p.id">
+                {{ p.name }}
+              </option>
+            </select>
+          </ng-template>
+        </td>
+        <td>
+          <ng-container
+            *ngIf="!editing || editing.id !== c.id; else editingBtns"
+          >
+            <div class="btn-group btn-group-sm">
+              <button
+                class="btn btn-primary"
+                (click)="startEdit(c)"
+                [disabled]="isDeleting"
+              >
+                <i class="fa-solid fa-pen"></i> Sửa
+              </button>
+              <button
+                class="btn btn-danger"
+                (click)="promptDelete(c)"
+                [disabled]="isDeleting"
+              >
+                <i class="fa-solid fa-shield-halved"></i> Xóa an toàn
+              </button>
+            </div>
           </ng-container>
           <ng-template #editingBtns>
-            <button class="btn btn-sm btn-success me-2" (click)="saveEdit()"><i class="fa-solid fa-check"></i> Lưu</button>
-            <button class="btn btn-sm btn-secondary" (click)="cancelEdit()"><i class="fa-solid fa-xmark"></i> Huỷ</button>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-success" (click)="saveEdit()">
+                <i class="fa-solid fa-check"></i> Lưu
+              </button>
+              <button class="btn btn-secondary" (click)="cancelEdit()">
+                <i class="fa-solid fa-xmark"></i> Huỷ
+              </button>
+            </div>
           </ng-template>
         </td>
       </tr>

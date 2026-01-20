@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build -- --configuration production",
+  "public": true,
+  "buildCommand": "ng build --configuration production",
   "outputDirectory": "dist/browser",
   "rewrites": [
     {

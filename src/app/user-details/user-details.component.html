@@ -1,92 +1,350 @@
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3" *ngIf="user">
-        <h2 class="user-details-title mb-0">Hồ sơ người dùng: {{ user.name }}</h2>
-        <div>
-            <button class="btn btn-outline-secondary me-2" (click)="backToList()"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
-            <button class="btn btn-primary" (click)="editUser()"><i class="fa-solid fa-user-pen"></i> Chỉnh sửa</button>
-        </div>
+  <!-- Header with Action Toolbar -->
+  <div
+    class="d-flex justify-content-between align-items-center mb-4"
+    *ngIf="user"
+  >
+    <h2 class="user-details-title mb-0">
+      <i class="fa-solid fa-user-circle me-2"></i>Hồ sơ người dùng
+    </h2>
+    <div class="action-toolbar">
+      <button class="btn btn-outline-secondary me-2" (click)="backToList()">
+        <i class="fa-solid fa-arrow-left"></i> Quay lại
+      </button>
+      <button class="btn btn-info me-2" (click)="editUser()">
+        <i class="fa-solid fa-user-pen"></i> Sửa
+      </button>
+      <button
+        class="btn me-2"
+        [ngClass]="user.isActive ? 'btn-danger' : 'btn-success'"
+        (click)="toggleLockStatus()"
+      >
+        <i
+          [ngClass]="
+            user.isActive ? 'fa-solid fa-lock' : 'fa-solid fa-lock-open'
+          "
+        ></i>
+        {{ user.isActive ? "Khóa" : "Mở khóa" }}
+      </button>
+      <button class="btn btn-warning me-2" (click)="resetUserPassword()">
+        <i class="fa-solid fa-key"></i> Reset MK
+      </button>
+      <button class="btn btn-primary" (click)="navigateToCreateLoan()">
+        <i class="fa-solid fa-plus"></i> Tạo phiếu mượn
+      </button>
     </div>
+  </div>
 
-    <div *ngIf="isLoadingUser" class="text-muted">Đang tải hồ sơ...</div>
+  <div *ngIf="isLoadingUser" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Đang tải...</span>
+    </div>
+  </div>
 
-    <div class="card mb-4" *ngIf="user">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Email:</strong> {{ user.email || '—' }}</p>
-                      <p class="mb-1"><strong>Lớp:</strong> {{ user.className || '—' }}</p>
-                      <p class="mb-1"><strong>Số điện thoại:</strong> {{ getPhoneDisplay() }}</p>
-                </div>
-                <div class="col-md-6">
-                    <p class="mb-1"><strong>Tên đăng nhập:</strong> {{ user.username || '—' }}</p>
-                      <p class="mb-1"><strong>Vai trò:</strong> {{ getRoleDisplay() }}</p>
-                    <p class="mb-1"><strong>ID:</strong> {{ user.userId || '—' }}</p>
-                </div>
+  <!-- User Profile Card with Avatar -->
+  <div class="card mb-4 shadow-sm" *ngIf="user && !isLoadingUser">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <!-- Avatar -->
+        <div class="col-md-2 text-center">
+          <div
+            class="avatar-circle"
+            [style.background-color]="getAvatarColor()"
+          >
+            {{ getAvatarInitials() }}
+          </div>
+          <!-- Trust Score Badge -->
+          <div class="mt-3">
+            <span
+              class="badge badge-lg"
+              [ngClass]="'bg-' + getTrustScore().color"
+            >
+              <i [ngClass]="'fa-solid ' + getTrustScore().icon + ' me-1'"></i>
+              {{ getTrustScore().label }}
+            </span>
+            <div class="text-muted small mt-1">
+              {{ getTrustScore().score.toFixed(0) }}% đúng hạn
             </div>
+          </div>
         </div>
+
+        <!-- User Info -->
+        <div class="col-md-10">
+          <h4 class="mb-3">{{ user.name }}</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <p class="mb-2">
+                <i class="fa-solid fa-envelope text-primary me-2"></i>
+                <strong>Email:</strong> {{ user.email || "—" }}
+              </p>
+              <p class="mb-2">
+                <i class="fa-solid fa-chalkboard text-primary me-2"></i>
+                <strong>Lớp:</strong> {{ user.className || "—" }}
+              </p>
+              <p class="mb-2">
+                <i class="fa-solid fa-phone text-primary me-2"></i>
+                <strong>Số điện thoại:</strong> {{ getPhoneDisplay() }}
+              </p>
+            </div>
+            <div class="col-md-6">
+              <p class="mb-2">
+                <i class="fa-solid fa-user text-primary me-2"></i>
+                <strong>Tên đăng nhập:</strong> {{ user.username || "—" }}
+              </p>
+              <p class="mb-2">
+                <i class="fa-solid fa-shield text-primary me-2"></i>
+                <strong>Vai trò:</strong>
+                <span class="badge bg-warning text-dark ms-2">{{
+                  getRoleDisplay()
+                }}</span>
+              </p>
+              <p class="mb-2">
+                <i class="fa-solid fa-hashtag text-primary me-2"></i>
+                <strong>ID:</strong> {{ user.userId || "—" }}
+              </p>
+              <p class="mb-2">
+                <i class="fa-solid fa-circle-check text-primary me-2"></i>
+                <strong>Trạng thái:</strong>
+                <span
+                  class="badge ms-2"
+                  [ngClass]="user.isActive ? 'bg-success' : 'bg-secondary'"
+                >
+                  {{ user.isActive ? "Đang hoạt động" : "Bị khóa" }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <h3 class="mb-3">Lịch sử mượn sách</h3>
-    <div *ngIf="isLoadingLoans" class="text-muted">Đang tải lịch sử...</div>
-    <div *ngIf="!isLoadingLoans && borrow.length === 0" class="alert alert-info">Người dùng chưa mượn cuốn sách nào.</div>
+  <!-- Statistics Cards -->
+  <div class="row g-3 mb-4" *ngIf="!isLoadingLoans">
+    <div class="col-md-3">
+      <div class="stat-card stat-card-primary">
+        <div class="stat-icon">
+          <i class="fa-solid fa-books"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalLoans }}</h3>
+          <p>Tổng sách đã mượn</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card stat-card-info">
+        <div class="stat-icon">
+          <i class="fa-solid fa-book-open"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.currentLoans }}</h3>
+          <p>Đang mượn</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card stat-card-danger">
+        <div class="stat-icon">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.overdueLoans }}</h3>
+          <p>Sách quá hạn</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card stat-card-warning">
+        <div class="stat-icon">
+          <i class="fa-solid fa-coins"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalFines | number : "1.0-0" }} đ</h3>
+          <p>Tổng tiền phạt</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <table class="table table-striped user-details-table" *ngIf="!isLoadingLoans && borrow.length > 0">
-    <thead>
-        <tr>
-            <th> Tên Sách </th>
-            <th> Ngày Mượn </th>
-            <th> Hạn Trả </th>
-            <th> Ngày Trả </th>
-            <th> Số Ngày Trễ </th>
-            <th> Trạng Thái </th>
-            <th> Tiền Phạt </th>
-            <th> Hành Động </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let borrower of borrow">
-                        <td>
-                            <ng-container *ngIf="borrower.bookName && borrower.bookName.trim().length > 0; else showBookId">
-                                {{ borrower.bookName }}
-                            </ng-container>
-                            <ng-template #showBookId>
-                                Sách #{{ borrower.bookId || '?' }}
-                            </ng-template>
-                        </td>
-            <td> {{ borrower.loanDate | date:'dd/MM/yyyy' }} </td>
-            <td> {{ borrower.dueDate | date:'dd/MM/yyyy' }} </td>
-            <td>
-                {{ borrower.returnDate ? (borrower.returnDate | date:'dd/MM/yyyy') : 'Chưa trả sách' }}
-            </td>
-                        <td>
-                            <span *ngIf="borrower.overdueDays && borrower.overdueDays > 0; else noOverdue">
-                                {{ borrower.overdueDays }} ngày
-                            </span>
-                            <ng-template #noOverdue>0</ng-template>
-                        </td>
-                        <td>
-                                <span class="badge" [ngClass]="{
-                                        'bg-success': borrower.status === 'ACTIVE',
-                                        'bg-danger': borrower.status === 'OVERDUE',
-                                        'bg-secondary': borrower.status === 'RETURNED'
-                                }">{{ borrower.status }}</span>
-                        </td>
-                        <td>
-                                <span *ngIf="borrower.fineAmount; else noFine">
-                                    {{ borrower.fineAmount | number:'1.0-0' }} đ
-                                </span>
-                                <ng-template #noFine>0 đ</ng-template>
-                        </td>
-                        <td>
-                                <button
-                                    class="btn btn-sm btn-warning"
-                                    *ngIf="borrower.status === 'ACTIVE' || borrower.status === 'OVERDUE'"
-                                    (click)="onReturnLoan(borrower.loanId)"
-                                >
-                                    Trả sách
-                                </button>
-                        </td>
-        </tr>
-    </tbody>
-</table>
+  <!-- Loan History Section -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0">
+        <i class="fa-solid fa-history me-2"></i>Lịch sử mượn sách
+        <span class="badge bg-secondary ms-2"
+          >{{ borrow.length }} giao dịch</span
+        >
+      </h5>
+    </div>
+    <div class="card-body">
+      <div *ngIf="isLoadingLoans" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Đang tải...</span>
+        </div>
+      </div>
+
+      <div
+        *ngIf="!isLoadingLoans && borrow.length === 0"
+        class="text-center py-5"
+      >
+        <i class="fa-solid fa-book-open fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Người dùng chưa mượn cuốn sách nào.</p>
+      </div>
+
+      <div *ngIf="!isLoadingLoans && borrow.length > 0">
+        <div class="table-responsive">
+          <table class="table table-hover user-details-table">
+            <thead>
+              <tr>
+                <th><i class="fa-solid fa-book me-2"></i>Tên Sách</th>
+                <th><i class="fa-solid fa-calendar me-2"></i>Ngày Mượn</th>
+                <th><i class="fa-solid fa-calendar-check me-2"></i>Hạn Trả</th>
+                <th><i class="fa-solid fa-calendar-xmark me-2"></i>Ngày Trả</th>
+                <th><i class="fa-solid fa-hourglass me-2"></i>Số Ngày Trễ</th>
+                <th><i class="fa-solid fa-circle-info me-2"></i>Trạng Thái</th>
+                <th><i class="fa-solid fa-money-bill me-2"></i>Tiền Phạt</th>
+                <th><i class="fa-solid fa-wrench me-2"></i>Hành Động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let borrower of paginatedLoans">
+                <td>
+                  <strong>
+                    <ng-container
+                      *ngIf="
+                        borrower.bookName &&
+                          borrower.bookName.trim().length > 0;
+                        else showBookId
+                      "
+                    >
+                      {{ borrower.bookName }}
+                    </ng-container>
+                    <ng-template #showBookId>
+                      Sách #{{ borrower.bookId || "?" }}
+                    </ng-template>
+                  </strong>
+                </td>
+                <td>{{ borrower.loanDate | date : "dd/MM/yyyy" }}</td>
+                <td>{{ borrower.dueDate | date : "dd/MM/yyyy" }}</td>
+                <td>
+                  <span *ngIf="borrower.returnDate; else notReturned">
+                    {{ borrower.returnDate | date : "dd/MM/yyyy" }}
+                  </span>
+                  <ng-template #notReturned>
+                    <span class="text-muted fst-italic">Chưa trả</span>
+                  </ng-template>
+                </td>
+                <td>
+                  <span
+                    *ngIf="
+                      borrower.overdueDays && borrower.overdueDays > 0;
+                      else noOverdue
+                    "
+                    class="badge bg-danger"
+                  >
+                    {{ borrower.overdueDays }} ngày
+                  </span>
+                  <ng-template #noOverdue>
+                    <span class="text-success">—</span>
+                  </ng-template>
+                </td>
+                <td>
+                  <span [ngClass]="getStatusBadgeClass(borrower.status)">
+                    <i
+                      [ngClass]="
+                        'fa-solid ' + getStatusIcon(borrower.status) + ' me-1'
+                      "
+                    ></i>
+                    {{ borrower.status }}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    *ngIf="
+                      borrower.fineAmount && borrower.fineAmount > 0;
+                      else noFine
+                    "
+                    class="text-danger fw-bold"
+                  >
+                    {{ borrower.fineAmount | number : "1.0-0" }} đ
+                  </span>
+                  <ng-template #noFine>
+                    <span class="text-success">0 đ</span>
+                  </ng-template>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-warning"
+                    *ngIf="
+                      borrower.status === 'ACTIVE' ||
+                      borrower.status === 'OVERDUE'
+                    "
+                    (click)="onReturnLoan(borrower.loanId)"
+                  >
+                    <i class="fa-solid fa-rotate-left me-1"></i>Trả sách
+                  </button>
+                  <span
+                    *ngIf="borrower.status === 'RETURNED'"
+                    class="text-muted"
+                  >
+                    <i class="fa-solid fa-check"></i> Đã trả
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div
+          class="d-flex justify-content-between align-items-center mt-3"
+          *ngIf="totalPages > 1"
+        >
+          <div class="text-muted">
+            Hiển thị {{ (currentPage - 1) * pageSize + 1 }} -
+            {{ Math.min(currentPage * pageSize, borrow.length) }}
+            trong tổng số {{ borrow.length }} giao dịch
+          </div>
+          <nav>
+            <ul class="pagination mb-0">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(1)">
+                  <i class="fa-solid fa-angles-left"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(currentPage - 1)">
+                  <i class="fa-solid fa-angle-left"></i>
+                </a>
+              </li>
+              <li
+                class="page-item"
+                *ngFor="let page of [].constructor(totalPages); let i = index"
+                [class.active]="i + 1 === currentPage"
+              >
+                <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
+              </li>
+              <li
+                class="page-item"
+                [class.disabled]="currentPage === totalPages"
+              >
+                <a class="page-link" (click)="goToPage(currentPage + 1)">
+                  <i class="fa-solid fa-angle-right"></i>
+                </a>
+              </li>
+              <li
+                class="page-item"
+                [class.disabled]="currentPage === totalPages"
+              >
+                <a class="page-link" (click)="goToPage(totalPages)">
+                  <i class="fa-solid fa-angles-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

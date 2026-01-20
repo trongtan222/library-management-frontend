@@ -1,21 +1,41 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminService } from '../../services/admin.service';
 import { ToastrService } from 'ngx-toastr';
+import {
+  GroupedSettingsResponse,
+  CategoryGroup,
+  SettingDto,
+  SettingDataType,
+} from '../../models/setting';
 
 @Component({
-    selector: 'app-admin-settings',
-    templateUrl: './admin-settings.component.html',
-    styleUrls: ['./admin-settings.component.css'],
-    standalone: false
+  selector: 'app-admin-settings',
+  templateUrl: './admin-settings.component.html',
+  styleUrls: ['./admin-settings.component.css'],
+  standalone: false,
 })
 export class AdminSettingsComponent implements OnInit {
-  settings: Record<string, string> = {};
+  groupedSettings: GroupedSettingsResponse | null = null;
+  categories: string[] = [];
+  activeTab: string = 'LOAN_POLICY';
   loading = false;
-  isSavingDays = false;
-  isSavingFine = false;
-  isSavingAll = false;
+  savingKeys = new Set<string>();
+  resettingKeys = new Set<string>();
 
-  constructor(private adminService: AdminService, private toastr: ToastrService) {}
+  // Expose enum to template
+  SettingDataType = SettingDataType;
+
+  // Confirmation modal state
+  showResetModal = false;
+  resetModalKey: string = '';
+  resetModalTitle: string = '';
+  resetModalDefaultValue: string = '';
+  isResettingCategory = false;
+
+  constructor(
+    private adminService: AdminService,
+    private toastr: ToastrService,
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -23,76 +43,146 @@ export class AdminSettingsComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    this.adminService.getSettings().subscribe({
-      next: (list) => {
-        const map: Record<string, string> = {};
-        for (const s of list) {
-          map[s.key] = s.value;
+    this.adminService.getGroupedSettings().subscribe({
+      next: (response) => {
+        this.groupedSettings = response;
+        this.categories = Object.keys(response.groups);
+        if (this.categories.length > 0 && !this.activeTab) {
+          this.activeTab = this.categories[0];
         }
-        this.settings = map;
       },
       error: () => this.toastr.error('Không tải được cấu hình'),
-      complete: () => (this.loading = false)
+      complete: () => (this.loading = false),
     });
   }
 
-  saveKey(key: string): void {
-    const raw = this.settings[key] ?? '';
-    const valueNum = Number(raw);
-    // Validate: không âm, không NaN
-    if (isNaN(valueNum)) {
-      this.toastr.warning('Giá trị phải là số hợp lệ');
-      return;
-    }
-    if (valueNum < 0) {
-      this.toastr.warning('Không được nhập số âm');
-      return;
-    }
+  getActiveGroup(): CategoryGroup | null {
+    if (!this.groupedSettings || !this.activeTab) return null;
+    return this.groupedSettings.groups[this.activeTab] || null;
+  }
 
-    const isDays = key === 'LOAN_MAX_DAYS';
-    const isFine = key === 'FINE_PER_DAY';
-    if (isDays) this.isSavingDays = true;
-    if (isFine) this.isSavingFine = true;
-
-    this.adminService.updateSetting(key, String(valueNum)).subscribe({
-      next: () => this.toastr.success('Đã lưu thiết lập'),
-      error: () => this.toastr.error('Lưu thiết lập thất bại'),
-      complete: () => {
-        if (isDays) this.isSavingDays = false;
-        if (isFine) this.isSavingFine = false;
+  saveSetting(setting: SettingDto): void {
+    // Validate based on dataType
+    if (setting.dataType === SettingDataType.NUMBER) {
+      const num = Number(setting.value);
+      if (isNaN(num)) {
+        this.toastr.warning('Giá trị phải là số hợp lệ');
+        return;
       }
-    });
-  }
-
-  saveAll(): void {
-    // Validate cả hai trước khi gửi
-    const daysRaw = this.settings['LOAN_MAX_DAYS'] ?? '';
-    const fineRaw = this.settings['FINE_PER_DAY'] ?? '';
-    const days = Number(daysRaw);
-    const fine = Number(fineRaw);
-    if ([days, fine].some(v => isNaN(v))) {
-      this.toastr.warning('Giá trị phải là số hợp lệ');
-      return;
-    }
-    if (days < 0 || fine < 0) {
-      this.toastr.warning('Không được nhập số âm');
-      return;
+      if (num < 0) {
+        this.toastr.warning('Không được nhập số âm');
+        return;
+      }
     }
 
-    this.isSavingAll = true;
-    // Gửi tuần tự để đơn giản
-    this.adminService.updateSetting('LOAN_MAX_DAYS', String(days)).subscribe({
+    this.savingKeys.add(setting.key);
+    this.adminService.updateSetting(setting.key, setting.value).subscribe({
       next: () => {
-        this.adminService.updateSetting('FINE_PER_DAY', String(fine)).subscribe({
-          next: () => this.toastr.success('Đã lưu tất cả thiết lập'),
-          error: () => this.toastr.error('Lưu FINE_PER_DAY thất bại'),
-          complete: () => (this.isSavingAll = false)
-        });
+        this.toastr.success(`Đã lưu: ${setting.description || setting.key}`);
+        this.load(); // Reload to get updated audit info
       },
-      error: () => {
-        this.toastr.error('Lưu LOAN_MAX_DAYS thất bại');
-        this.isSavingAll = false;
-      }
+      error: () => this.toastr.error('Lưu thiết lập thất bại'),
+      complete: () => this.savingKeys.delete(setting.key),
     });
+  }
+
+  isSaving(key: string): boolean {
+    return this.savingKeys.has(key);
+  }
+
+  isResetting(key: string): boolean {
+    return this.resettingKeys.has(key);
+  }
+
+  // Reset modal handlers
+  openResetModal(setting: SettingDto): void {
+    if (!setting.defaultValue) {
+      this.toastr.warning('Thiết lập này không có giá trị mặc định');
+      return;
+    }
+    this.resetModalKey = setting.key;
+    this.resetModalTitle = setting.description || setting.key;
+    this.resetModalDefaultValue = setting.defaultValue;
+    this.isResettingCategory = false;
+    this.showResetModal = true;
+  }
+
+  openResetCategoryModal(): void {
+    const group = this.getActiveGroup();
+    if (!group) return;
+
+    this.resetModalKey = this.activeTab;
+    this.resetModalTitle = `tất cả thiết lập trong "${group.displayName}"`;
+    this.resetModalDefaultValue = '';
+    this.isResettingCategory = true;
+    this.showResetModal = true;
+  }
+
+  confirmReset(): void {
+    if (this.isResettingCategory) {
+      this.resetCategory();
+    } else {
+      this.resetSingleSetting();
+    }
+  }
+
+  resetSingleSetting(): void {
+    this.resettingKeys.add(this.resetModalKey);
+    this.adminService.resetSettingToDefault(this.resetModalKey).subscribe({
+      next: () => {
+        this.toastr.success('Đã khôi phục về giá trị mặc định');
+        this.load();
+        this.closeResetModal();
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Khôi phục thất bại';
+        this.toastr.error(msg);
+      },
+      complete: () => this.resettingKeys.delete(this.resetModalKey),
+    });
+  }
+
+  resetCategory(): void {
+    this.adminService.resetCategoryToDefaults(this.activeTab).subscribe({
+      next: (response: any) => {
+        this.toastr.success(response.message || 'Đã khôi phục danh mục');
+        this.load();
+        this.closeResetModal();
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Khôi phục thất bại';
+        this.toastr.error(msg);
+      },
+    });
+  }
+
+  closeResetModal(): void {
+    this.showResetModal = false;
+    this.resetModalKey = '';
+    this.resetModalTitle = '';
+    this.resetModalDefaultValue = '';
+    this.isResettingCategory = false;
+  }
+
+  formatDateTime(dateTime: string | null): string {
+    if (!dateTime) return 'Chưa cập nhật';
+    const date = new Date(dateTime);
+    return date.toLocaleString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  getCategoryIcon(category: string): string {
+    const group = this.groupedSettings?.groups[category];
+    return group?.icon || '⚙️';
+  }
+
+  getCategoryDisplayName(category: string): string {
+    const group = this.groupedSettings?.groups[category];
+    return group?.displayName || category;
   }
 }

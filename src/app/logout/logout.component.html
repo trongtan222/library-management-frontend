@@ -2,17 +2,43 @@
   <div class="logout-modal">
     <!-- Icon minh họa -->
     <div class="icon-wrapper">
-      <i class="fa fa-sign-out"></i>
+      <i class="fas fa-sign-out-alt"></i>
     </div>
 
     <!-- Tiêu đề và nội dung -->
-    <h2>Đăng xuất?</h2>
-    <p>Bạn có chắc chắn muốn kết thúc phiên làm việc này không?</p>
+    <h2>Tạm biệt, {{ userName }}!</h2>
+    <p class="main-message">Bạn có chắc chắn muốn đăng xuất không?</p>
+
+    <!-- Countdown Timer -->
+    <div class="countdown-wrapper">
+      <i class="fas fa-clock"></i>
+      <p class="countdown-text">
+        Tự động đăng xuất sau
+        <span class="countdown-number">{{ countdown }}</span> giây...
+      </p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoggingOut" class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Đang đăng xuất...</p>
+    </div>
 
     <!-- Các nút hành động -->
-    <div class="actions">
-      <button class="btn-cancel" (click)="onCancel()">Hủy bỏ</button>
-      <button class="btn-confirm" (click)="onConfirm()">Đăng xuất</button>
+    <div class="actions" *ngIf="!isLoggingOut">
+      <button class="btn-cancel" (click)="onCancel()">
+        <i class="fas fa-times"></i>
+        Ở lại
+      </button>
+      <button class="btn-confirm" (click)="onConfirm()">
+        <i class="fas fa-sign-out-alt"></i>
+        Đăng xuất ngay
+      </button>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="(10 - countdown) * 10"></div>
     </div>
   </div>
 </div>

@@ -19,3 +19,62 @@ a:hover {
 .text-muted {
     color: #fff !important;
 }
+
+/* Sortable Columns */
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+.sortable:hover {
+    background-color: #32383e;
+}
+.sortable i {
+    opacity: 0.5;
+    font-size: 0.8em;
+}
+.sortable:hover i {
+    opacity: 1;
+}
+
+/* Hover Tooltips for Book/User Names */
+.book-name-hover,
+.user-name-hover {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted #6c757d;
+}
+.book-name-hover:hover,
+.user-name-hover:hover {
+    color: #a5b4fc;
+}
+
+/* Action Buttons */
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Status Badge Enhancement */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35em 0.65em;
+}
+
+/* Empty State Icon */
+.fa-inbox {
+    display: block;
+}
+
+/* Filter Card */
+.card.bg-dark {
+    border-radius: 0.5rem;
+}
+
+/* Export Button Hover */
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+    transition: all 0.3s ease;
+}

@@ -84,7 +84,9 @@
 
 /* --- SOCIAL FEATURES STYLING --- */
 .review-item-card {
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .review-item-card:hover {
@@ -141,4 +143,39 @@
 .add-comment-form input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+/* Related Books Section */
+.related-books-section {
+  background-color: #161b22;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.related-book-card {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  cursor: pointer;
+  background-color: #0d1117;
+}
+
+.related-book-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+}
+
+.related-book-cover {
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 1px solid #30363d;
+}
+
+.related-book-card .card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.related-book-card .card-text {
+  font-size: 0.75rem;
 }

@@ -1,23 +1,74 @@
-<div class="container d-flex flex-column justify-content-center align-items-center vh-100">
-    <div class="text-center">
-        <h1 class="display-1 fw-bold text-danger">
-            <i class="fa-solid fa-ban"></i> 403
-        </h1>
-        
-        <h2 class="mb-3">Truy cập bị từ chối</h2>
-        
-        <p class="lead mb-4">
-            Xin lỗi, bạn không có quyền truy cập vào trang này.<br>
-            Vui lòng liên hệ quản trị viên hoặc đăng nhập bằng tài khoản khác.
-        </p>
-
-        <div class="d-flex justify-content-center gap-3">
-            <a routerLink="/" class="btn btn-primary">
-                <i class="fa-solid fa-house me-2"></i> Về Trang Chủ
-            </a>
-            <a routerLink="/login" class="btn btn-outline-secondary">
-                <i class="fa-solid fa-sign-in-alt me-2"></i> Đăng Nhập Lại
-            </a>
-        </div>
+<div class="forbidden-container">
+  <div class="forbidden-content">
+    <!-- Friendly Illustration -->
+    <div class="illustration">
+      <div class="guard-emoji">🚪🔒</div>
+      <div class="error-code">403</div>
     </div>
+
+    <!-- Friendly Message -->
+    <h1 class="friendly-title">Oops! Khu vực này có chút riêng tư</h1>
+
+    <p class="friendly-message">
+      Có vẻ bạn đi lạc rồi! 😅 Trang này chỉ dành cho
+      <strong>Admin</strong> hoặc <strong>Thủ thư</strong>.<br />
+      Đừng lo, chúng tôi sẽ giúp bạn quay lại đúng hướng.
+    </p>
+
+    <!-- Auto-redirect Countdown -->
+    <div class="countdown-box" *ngIf="countdown > 0 && !showReportForm">
+      <i class="fa-solid fa-clock"></i>
+      Tự động quay về Trang chủ sau <strong>{{ countdown }}</strong> giây...
+    </div>
+
+    <!-- Report Success Message -->
+    <div class="alert-success" *ngIf="reportSubmitted">
+      <i class="fa-solid fa-check-circle"></i>
+      Cảm ơn bạn! Báo cáo đã được gửi đến Admin.
+    </div>
+
+    <!-- Report Form -->
+    <div class="report-form" *ngIf="showReportForm && !reportSubmitted">
+      <h3><i class="fa-solid fa-flag"></i> Báo cáo vấn đề</h3>
+      <p class="report-hint">
+        Nếu bạn tin rằng mình có quyền truy cập, vui lòng mô tả vấn đề:
+      </p>
+      <textarea
+        [(ngModel)]="reportMessage"
+        placeholder="Ví dụ: Tôi là thủ thư nhưng không vào được trang quản lý sách..."
+        rows="4"
+      ></textarea>
+      <div class="report-actions">
+        <button
+          class="btn btn-primary"
+          (click)="submitReport()"
+          [disabled]="!reportMessage.trim()"
+        >
+          <i class="fa-solid fa-paper-plane"></i> Gửi báo cáo
+        </button>
+        <button class="btn btn-outline" (click)="cancelReport()">Hủy</button>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="action-buttons" *ngIf="!showReportForm">
+      <button class="btn btn-back" (click)="goBack()">
+        <i class="fa-solid fa-arrow-left"></i> Quay lại trang trước
+      </button>
+      <button class="btn btn-primary" (click)="goHome()">
+        <i class="fa-solid fa-house"></i> Về Trang Chủ
+      </button>
+      <button class="btn btn-outline" (click)="goToLogin()">
+        <i class="fa-solid fa-sign-in-alt"></i> Đăng Nhập Lại
+      </button>
+    </div>
+
+    <!-- Report Issue Link -->
+    <div class="support-link" *ngIf="!showReportForm">
+      <button class="btn-link" (click)="toggleReportForm()">
+        <i class="fa-solid fa-question-circle"></i> Bạn tin rằng mình có quyền
+        truy cập?
+      </button>
+    </div>
+  </div>
 </div>

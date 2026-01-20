@@ -1,6 +1,4 @@
-/* src/app/users-list/users-list.component.css */
-
-/* Custom styles for the user list table to match the dark theme */
+/* Enhanced Dark Theme for Users List */
 
 h2 {
   font-weight: 800;
@@ -8,51 +6,221 @@ h2 {
   margin-bottom: 1.5rem;
 }
 
-.table {
-  /* Ghi đè màu nền và màu chữ của bảng */
-  --bs-table-color: var(--text); /* Màu chữ chính từ theme */
-  --bs-table-bg: var(--card); /* Màu nền thẻ từ theme */
-  --bs-table-border-color: var(--border);
-  --bs-table-striped-bg: rgba(139, 148, 158, 0.05); /* Làm cho màu sọc tinh tế hơn */
-  --bs-table-hover-bg: rgba(139, 148, 158, 0.1);
+/* Card Filters Section */
+.card {
+  border-radius: 12px;
+}
 
-  border-radius: var(--radius-md);
-  overflow: hidden; /* Đảm bảo bo góc được áp dụng cho bảng */
+.form-control:focus,
+.form-select:focus {
+  background-color: #1a1f2e;
+  border-color: #60a5fa;
+  color: #f0f6fc;
+  box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25);
+}
+
+.input-group-text {
+  color: #9ca3af;
+}
+
+/* Table Styling */
+.table {
+  --bs-table-color: #e5e7eb;
+  --bs-table-bg: #1f2937;
+  --bs-table-border-color: #374151;
+  --bs-table-striped-bg: rgba(139, 148, 158, 0.05);
+  --bs-table-hover-bg: rgba(96, 165, 250, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-/* Tăng độ tương phản cho header của bảng */
 .table thead th {
-  color: var(--text-muted);
+  color: #9ca3af;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 0.8rem;
   letter-spacing: 0.05em;
-  background-color: var(--bg-soft);
+  background-color: #111827;
+  border-bottom: 2px solid #374151;
+  padding: 1rem;
+  user-select: none;
 }
 
-/* Đảm bảo các ô dữ liệu có màu chữ đúng */
+.table thead th:hover {
+  color: #60a5fa;
+  cursor: pointer;
+}
+
 .table td {
-  color: var(--text);
+  color: #e5e7eb;
   vertical-align: middle;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #374151;
 }
 
-/* Tùy chỉnh các nút bấm */
+.table tbody tr:hover {
+  background-color: rgba(96, 165, 250, 0.08);
+}
+
+.table tbody tr.table-secondary {
+  background-color: rgba(96, 165, 250, 0.15);
+  border-left: 3px solid #60a5fa;
+}
+
+/* Sort Icons */
+.fa-sort,
+.fa-sort-up,
+.fa-sort-down {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.fa-sort-up,
+.fa-sort-down {
+  color: #60a5fa;
+}
+
+/* Status Badges */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.4rem 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.badge.bg-success {
+  background-color: #10b981 !important;
+}
+
+.badge.bg-secondary {
+  background-color: #6b7280 !important;
+}
+
+.badge.bg-warning {
+  background-color: #f59e0b !important;
+}
+
+.badge.bg-primary {
+  background-color: #3b82f6 !important;
+}
+
+/* Button Styling */
+.btn-group .btn {
+  padding: 0.375rem 0.75rem;
+}
+
 .btn-info {
   background-color: #3178c6;
   color: #fff;
   border: none;
 }
 
+.btn-info:hover {
+  background-color: #2563eb;
+}
+
 .btn-warning {
-  background-color: #d29922;
-  color: #0d1117; /* Chữ màu tối để nổi bật trên nền vàng */
+  background-color: #f59e0b;
+  color: #1f2937;
   border: none;
 }
 
+.btn-warning:hover {
+  background-color: #d97706;
+}
+
 .btn-danger {
-  background-color: #da3633;
+  background-color: #ef4444;
   color: #fff;
   border: none;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.btn-outline-secondary {
+  color: #9ca3af;
+  border-color: #4b5563;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #374151;
+  border-color: #6b7280;
+  color: #f9fafb;
+}
+
+/* Card View Styling */
+.card-body {
+  padding: 1.5rem;
+}
+
+.card.border-info {
+  border-color: #60a5fa !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+.form-check-input:checked {
+  background-color: #60a5fa;
+  border-color: #60a5fa;
+}
+
+.form-check-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25);
+}
+
+/* Empty State */
+.fa-inbox {
+  color: #4b5563;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .btn-group .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .table thead th {
+    font-size: 0.7rem;
+    padding: 0.5rem;
+  }
+
+  .table td {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* Animation */
+.card,
+.table,
+.btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Bulk Actions Toolbar */
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

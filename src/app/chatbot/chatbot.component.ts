@@ -15,6 +15,15 @@ interface Message {
   author: 'user' | 'bot';
   text: string;
   timestamp?: Date;
+  bookCard?: BookCard; // For interactive book responses
+}
+
+interface BookCard {
+  id: number;
+  title: string;
+  author: string;
+  imageUrl?: string;
+  available: boolean;
 }
 
 @Component({
@@ -33,12 +42,21 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   conversationId: string | null = null;
   private hasInitializedChat = false;
 
+  // Voice input
+  isListening = false;
+  recognition: any = null;
+  voiceSupported = false;
+
   private destroy$ = new Subject<void>();
+  private readonly STORAGE_KEY = 'chatbot_history';
+  private readonly CONVERSATION_KEY = 'chatbot_conversation_id';
 
   constructor(
     private userAuthService: UserAuthService,
-    private chatbotService: ChatbotService
-  ) {}
+    private chatbotService: ChatbotService,
+  ) {
+    this.initializeVoiceRecognition();
+  }
 
   // Dynamic getter so chatbot re-checks login state on each render/change detection
   get isUser(): boolean {
@@ -53,23 +71,83 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   private initializeChatIfNeeded(): void {
     if (!this.hasInitializedChat && this.isUser) {
       this.hasInitializedChat = true;
-      // Generate new conversation ID
-      this.conversationId = this.generateUUID();
-      this.messages.push({
-        author: 'bot',
-        text: 'Hello! How can I help you find a book today? You can ask about books, authors, genres, or borrowing information.',
-        timestamp: new Date(),
-      });
+
+      // Try to load existing chat from localStorage
+      const savedHistory = this.loadChatHistory();
+      const savedConversationId = localStorage.getItem(this.CONVERSATION_KEY);
+
+      if (savedHistory && savedHistory.length > 0 && savedConversationId) {
+        this.messages = savedHistory;
+        this.conversationId = savedConversationId;
+      } else {
+        // Start fresh conversation
+        this.conversationId = this.generateUUID();
+        this.messages.push({
+          author: 'bot',
+          text: 'Hello! How can I help you find a book today? You can ask about books, authors, genres, or borrowing information.',
+          timestamp: new Date(),
+        });
+        this.saveChatHistory();
+      }
+    }
+  }
+
+  private initializeVoiceRecognition(): void {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      this.voiceSupported = true;
+      this.recognition = new SpeechRecognition();
+      this.recognition.continuous = false;
+      this.recognition.interimResults = false;
+      this.recognition.lang = 'vi-VN'; // Vietnamese
+
+      this.recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        this.currentMessage = transcript;
+        this.isListening = false;
+      };
+
+      this.recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        this.isListening = false;
+      };
+
+      this.recognition.onend = () => {
+        this.isListening = false;
+      };
     }
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+
+    // Clean up voice recognition
+    if (this.recognition) {
+      this.recognition.stop();
+    }
   }
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
+  }
+
+  toggleVoiceInput(): void {
+    if (!this.voiceSupported) {
+      alert('Trình duyệt của bạn không hỗ trợ nhập liệu bằng giọng nói.');
+      return;
+    }
+
+    if (this.isListening) {
+      this.recognition.stop();
+      this.isListening = false;
+    } else {
+      this.recognition.start();
+      this.isListening = true;
+    }
   }
 
   sendMessage(): void {
@@ -83,6 +161,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     });
     this.currentMessage = '';
     this.isLoading = true;
+    this.saveChatHistory();
     this.scrollToBottom();
 
     this.chatbotService
@@ -104,13 +183,18 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             botText = 'Sorry, I could not process that response.';
           }
 
+          // Try to parse book card from response
+          const bookCard = this.parseBookCard(botText);
+
           this.messages.push({
             author: 'bot',
             text: botText,
             timestamp: new Date(),
+            bookCard: bookCard || undefined,
           });
 
           this.isLoading = false;
+          this.saveChatHistory();
           this.scrollToBottom();
         },
         error: (err: HttpErrorResponse) => {
@@ -121,6 +205,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
             timestamp: new Date(),
           });
           this.isLoading = false;
+          this.saveChatHistory();
           this.scrollToBottom();
         },
       });
@@ -140,6 +225,77 @@ export class ChatbotComponent implements OnInit, OnDestroy {
       text: 'Chat cleared. Starting a new conversation. How can I help you?',
       timestamp: new Date(),
     });
+    this.saveChatHistory();
+  }
+
+  borrowBook(bookId: number): void {
+    // Navigate to borrow page with book ID
+    window.location.href = `/borrow-book?bookId=${bookId}`;
+  }
+
+  viewBookDetails(bookId: number): void {
+    // Navigate to book details page
+    window.location.href = `/book-details/${bookId}`;
+  }
+
+  private parseBookCard(text: string): BookCard | null {
+    // Try to extract book information from bot response
+    // Format: "BOOK_CARD:{id:123,title:'Clean Code',author:'Robert Martin',available:true}"
+    const bookCardMatch = text.match(/BOOK_CARD:\{([^}]+)\}/);
+    if (!bookCardMatch) return null;
+
+    try {
+      const cardData = bookCardMatch[1];
+      const id = cardData.match(/id:(\d+)/)?.[1];
+      const title = cardData.match(/title:'([^']+)'/)?.[1];
+      const author = cardData.match(/author:'([^']+)'/)?.[1];
+      const available =
+        cardData.match(/available:(true|false)/)?.[1] === 'true';
+
+      if (id && title && author) {
+        return {
+          id: parseInt(id),
+          title,
+          author,
+          available,
+        };
+      }
+    } catch (e) {
+      console.error('Failed to parse book card:', e);
+    }
+    return null;
+  }
+
+  private saveChatHistory(): void {
+    try {
+      // Save messages (limit to last 50 to avoid storage issues)
+      const messagesToSave = this.messages.slice(-50);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(messagesToSave));
+
+      // Save conversation ID
+      if (this.conversationId) {
+        localStorage.setItem(this.CONVERSATION_KEY, this.conversationId);
+      }
+    } catch (e) {
+      console.error('Failed to save chat history:', e);
+    }
+  }
+
+  private loadChatHistory(): Message[] | null {
+    try {
+      const saved = localStorage.getItem(this.STORAGE_KEY);
+      if (saved) {
+        const messages = JSON.parse(saved);
+        // Convert timestamp strings back to Date objects
+        return messages.map((msg: any) => ({
+          ...msg,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
+        }));
+      }
+    } catch (e) {
+      console.error('Failed to load chat history:', e);
+    }
+    return null;
   }
 
   private extractErrorMessage(err: HttpErrorResponse): string {
@@ -180,7 +336,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
         const r = (Math.random() * 16) | 0;
         const v = c === 'x' ? r : (r & 0x3) | 0x8;
         return v.toString(16);
-      }
+      },
     );
   }
 }

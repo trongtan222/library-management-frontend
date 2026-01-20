@@ -7,11 +7,21 @@ import {
   BorrowCreate,
 } from '../services/circulation.service';
 import { UserAuthService } from '../services/user-auth.service';
-import { Book } from '../models/book'; // Đảm bảo file model tên là book.ts hoặc books.ts
+import { Book } from '../models/book';
 import { Subject } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
+import {
+  takeUntil,
+  finalize,
+  debounceTime,
+  distinctUntilChanged,
+} from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
 import { BarcodeFormat } from '@zxing/library';
+
+interface CartItem {
+  book: Book;
+  addedAt: Date;
+}
 
 @Component({
   selector: 'app-borrow-book',
@@ -25,6 +35,16 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
   genres: string[] = [];
   searchTerm: string = '';
   selectedGenre: string = '';
+
+  // Borrow Cart
+  cartItems: CartItem[] = [];
+  showCartModal = false;
+
+  // Debounce Search
+  private searchSubject = new Subject<string>();
+
+  // Skeleton Loading
+  skeletonArray = Array(8).fill(0);
 
   // Cấu hình phân trang
   currentPage: number = 1;
@@ -74,7 +94,7 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
     private circulationService: CirculationService,
     private router: Router,
     private route: ActivatedRoute,
-    private toastr: ToastrService
+    private toastr: ToastrService,
   ) {}
 
   ngOnInit(): void {
@@ -87,6 +107,14 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
+
+    // Setup debounce search
+    this.searchSubject
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.currentPage = 1;
+        this.loadBooks();
+      });
 
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
@@ -111,11 +139,11 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
         this.searchTerm,
         this.selectedGenre,
         this.currentPage - 1,
-        this.pageSize
+        this.pageSize,
       )
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => (this.isLoadingPage = false))
+        finalize(() => (this.isLoadingPage = false)),
       )
       .subscribe({
         next: (response: any) => {
@@ -162,6 +190,12 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
 
   // --- Filter Functions ---
   onFilterChange(): void {
+    // Use debounce for search
+    this.searchSubject.next(this.searchTerm);
+  }
+
+  onGenreChange(): void {
+    // Instant filter for dropdown
     this.currentPage = 1;
     this.loadBooks();
   }
@@ -171,6 +205,87 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
     this.selectedGenre = '';
     this.currentPage = 1;
     this.loadBooks();
+  }
+
+  // --- Cart Functions ---
+  addToCart(book: Book): void {
+    // Check if already in cart
+    if (this.isInCart(book.id)) {
+      this.toastr.info('Sách này đã có trong giỏ!');
+      return;
+    }
+
+    // Check availability
+    if (book.numberOfCopiesAvailable <= 0) {
+      this.toastr.warning('Sách này hiện không có sẵn!');
+      return;
+    }
+
+    this.cartItems.push({
+      book,
+      addedAt: new Date(),
+    });
+
+    this.toastr.success(`Đã thêm "${book.name}" vào giỏ!`, '', {
+      timeOut: 2000,
+    });
+  }
+
+  removeFromCart(bookId: number): void {
+    this.cartItems = this.cartItems.filter((item) => item.book.id !== bookId);
+    this.toastr.info('Đã xóa khỏi giỏ');
+  }
+
+  isInCart(bookId: number): boolean {
+    return this.cartItems.some((item) => item.book.id === bookId);
+  }
+
+  get cartCount(): number {
+    return this.cartItems.length;
+  }
+
+  toggleCartModal(): void {
+    this.showCartModal = !this.showCartModal;
+  }
+
+  clearCart(): void {
+    this.cartItems = [];
+    this.toastr.info('Đã xóa toàn bộ giỏ');
+  }
+
+  borrowAllFromCart(): void {
+    if (this.cartItems.length === 0) {
+      this.toastr.warning('Giỏ sách trống!');
+      return;
+    }
+
+    if (!this.borrowData.studentName || !this.borrowData.studentClass) {
+      this.toastr.warning('Vui lòng điền đầy đủ Họ tên và Lớp!');
+      return;
+    }
+
+    const borrowPromises = this.cartItems.map((item) => {
+      const payload: BorrowCreate = {
+        bookId: item.book.id,
+        memberId: this.userId!,
+        loanDays: this.borrowData.loanDays,
+      };
+      return this.circulationService.loan(payload).toPromise();
+    });
+
+    Promise.all(borrowPromises)
+      .then(() => {
+        this.toastr.success(
+          `Đã mượn thành công ${this.cartItems.length} cuốn sách!`,
+        );
+        this.cartItems = [];
+        this.showCartModal = false;
+        this.loadBooks();
+      })
+      .catch((err: HttpErrorResponse) => {
+        const msg = err.error?.message || 'Lỗi khi mượn sách hàng loạt.';
+        this.toastr.error(msg);
+      });
   }
 
   goToPage(page: number): void {
@@ -231,7 +346,7 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.toastr.success(
-            `Đã mượn thành công sách "${this.selectedBook?.name}".`
+            `Đã mượn thành công sách "${this.selectedBook?.name}".`,
           );
           this.loadBooks();
           this.closeModal();
@@ -282,7 +397,7 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.toastr.success(
-            `Đã đặt trước thành công cuốn "${this.selectedBook?.name}".`
+            `Đã đặt trước thành công cuốn "${this.selectedBook?.name}".`,
           );
           this.closeModal();
         },
@@ -316,12 +431,10 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
   onCodeResult(resultString: string) {
     if (!resultString) return;
 
-    // Tắt scanner ngay sau khi quét được
-    this.enableScanner = false;
-
     const bookId = Number(resultString);
     if (isNaN(bookId)) {
-      this.toastr.error('Mã QR không hợp lệ (Không phải ID sách)!');
+      this.playBeep('error');
+      this.toastr.error('Mã QR không hợp lệ!');
       return;
     }
 
@@ -331,13 +444,49 @@ export class BorrowBookComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (book) => {
           if (book) {
-            this.toastr.info(`Đã tìm thấy: ${book.name}`);
-            this.openBorrowForm(book);
+            this.playBeep('success');
+            this.addToCart(book);
+            this.toastr.success(`✓ ${book.name}`, '', { timeOut: 1500 });
           } else {
+            this.playBeep('error');
             this.toastr.error('Không tìm thấy sách với ID này.');
           }
         },
-        error: () => this.toastr.error('Lỗi khi tìm sách từ mã QR.'),
+        error: () => {
+          this.playBeep('error');
+          this.toastr.error('Lỗi khi tìm sách từ mã QR.');
+        },
       });
+  }
+
+  private playBeep(type: 'success' | 'error'): void {
+    // Create audio context for beep sound
+    try {
+      const audioContext = new AudioContext();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      if (type === 'success') {
+        oscillator.frequency.value = 800; // Higher pitch for success
+        oscillator.type = 'sine';
+      } else {
+        oscillator.frequency.value = 400; // Lower pitch for error
+        oscillator.type = 'square';
+      }
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.1,
+      );
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (e) {
+      console.warn('Cannot play beep sound:', e);
+    }
   }
 }

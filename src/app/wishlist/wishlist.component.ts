@@ -1,96 +1,137 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common'; // <--- Thêm import này (cho *ngIf, *ngFor, date pipe)
-import { RouterModule } from '@angular/router'; // <--- Thêm import này (cho routerLink)
-import { WishlistService } from '../services/wishlist.service';
-import { BooksService } from '../services/books.service';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { WishlistService, WishlistItem } from '../services/wishlist.service';
+import { CirculationService } from '../services/circulation.service';
 import { ToastrService } from 'ngx-toastr';
-import { Book } from '../models/book'; // Đảm bảo bạn đã có model Book
 
 @Component({
   selector: 'app-wishlist',
-  standalone: true, // <--- Quan trọng: Xác định đây là Standalone Component
-  imports: [CommonModule, RouterModule], // <--- Quan trọng: Khai báo các module cần dùng
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './wishlist.component.html',
-  styleUrls: ['./wishlist.component.css']
+  styleUrls: ['./wishlist.component.css'],
 })
 export class WishlistComponent implements OnInit {
-  wishlistItems: any[] = [];
-  wishlistBooks: Book[] = [];
+  wishlistItems: WishlistItem[] = [];
   isLoading = true;
+  currentSort = 'recent';
+  editingNotes: { [key: number]: boolean } = {};
+  tempNotes: { [key: number]: string } = {};
 
   constructor(
     private wishlistService: WishlistService,
-    private booksService: BooksService,
+    private circulationService: CirculationService,
     private toastr: ToastrService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadWishlist();
   }
 
-  loadWishlist(): void {
+  loadWishlist(sort: string = 'recent'): void {
     this.isLoading = true;
-    this.wishlistService.getMyWishlist().subscribe({
+    this.currentSort = sort;
+    this.wishlistService.getMyWishlist(sort).subscribe({
       next: (data) => {
         this.wishlistItems = data || [];
-        // Chuẩn hoá thành danh sách Book để UI hiển thị ổn định
-        const ids: number[] = [];
-        for (const item of this.wishlistItems) {
-          const id = (item?.book?.id) ?? item?.bookId ?? item?.id ?? item;
-          if (typeof id === 'number' && !isNaN(id)) {
-            ids.push(id);
-          }
-        }
-        // Tải chi tiết từng sách (tuần tự để đảm bảo thứ tự)
-        this.wishlistBooks = [];
-        const loadNext = (index: number) => {
-          if (index >= ids.length) {
-            this.isLoading = false;
-            return;
-          }
-          const bid = ids[index];
-          this.booksService.getBookById(bid).subscribe({
-            next: (book) => {
-              this.wishlistBooks.push(book);
-              loadNext(index + 1);
-            },
-            error: () => {
-              // Nếu lỗi, vẫn tiếp tục để không chặn UI
-              loadNext(index + 1);
-            }
-          });
-        };
-        loadNext(0);
         this.isLoading = false;
         console.log('Wishlist data:', data);
       },
       error: (err) => {
-        // Chỉ hiện lỗi nếu không phải do chưa đăng nhập (401)
         if (err.status !== 401) {
-            this.toastr.error('Không thể tải danh sách yêu thích');
+          this.toastr.error('Không thể tải danh sách yêu thích');
         }
         this.isLoading = false;
-      }
+      },
     });
   }
 
   remove(bookId: number): void {
-    if(!confirm('Bạn có chắc muốn bỏ sách này khỏi danh sách yêu thích?')) return;
+    if (!confirm('Bạn có chắc muốn bỏ sách này khỏi danh sách yêu thích?'))
+      return;
 
     this.wishlistService.removeFromWishlist(bookId).subscribe({
       next: () => {
         this.toastr.success('Đã xóa khỏi danh sách yêu thích');
-        // Xoá khỏi danh sách Book hiển thị
-        this.wishlistBooks = this.wishlistBooks.filter(b => b.id !== bookId);
-        // Đồng bộ mảng thô nếu cần
-        this.wishlistItems = this.wishlistItems.filter(item => {
-          const id = (item?.book?.id) ?? item?.bookId ?? item?.id ?? item;
-          return id !== bookId;
-        });
+        this.wishlistItems = this.wishlistItems.filter(
+          (item) => item.bookId !== bookId
+        );
       },
       error: () => {
         this.toastr.error('Lỗi khi xóa sách');
-      }
+      },
     });
+  }
+
+  startEditNotes(item: WishlistItem): void {
+    this.editingNotes[item.bookId] = true;
+    this.tempNotes[item.bookId] = item.notes || '';
+  }
+
+  saveNotes(item: WishlistItem): void {
+    const notes = this.tempNotes[item.bookId] || '';
+    this.wishlistService.updateNotes(item.bookId, notes).subscribe({
+      next: () => {
+        item.notes = notes;
+        this.editingNotes[item.bookId] = false;
+        this.toastr.success('Đã lưu ghi chú');
+      },
+      error: () => {
+        this.toastr.error('Lỗi khi lưu ghi chú');
+      },
+    });
+  }
+
+  cancelEditNotes(bookId: number): void {
+    this.editingNotes[bookId] = false;
+    delete this.tempNotes[bookId];
+  }
+
+  borrowBook(item: WishlistItem): void {
+    if (item.availableCopies <= 0) {
+      this.toastr.warning('Sách này hiện đã hết, vui lòng chờ có sách trả về!');
+      return;
+    }
+
+    // Get current user info from localStorage (assuming it's stored during login)
+    const userStr = localStorage.getItem('currentUser');
+    if (!userStr) {
+      this.toastr.error('Vui lòng đăng nhập để mượn sách');
+      return;
+    }
+
+    const user = JSON.parse(userStr);
+    const borrowData = {
+      bookId: item.bookId,
+      memberId: user.userId || user.id,
+      loanDays: 14, // Default loan period
+      quantity: 1,
+    };
+
+    this.circulationService.loan(borrowData).subscribe({
+      next: () => {
+        this.toastr.success('Đã gửi yêu cầu mượn sách thành công!');
+        this.remove(item.bookId); // Auto remove from wishlist
+      },
+      error: (err) => {
+        if (err.status === 400) {
+          this.toastr.error(
+            'Bạn đã mượn quá số sách cho phép hoặc sách không khả dụng'
+          );
+        } else {
+          this.toastr.error('Lỗi khi gửi yêu cầu mượn sách');
+        }
+      },
+    });
+  }
+
+  getAvailabilityClass(availableCopies: number): string {
+    return availableCopies > 0 ? 'badge bg-success' : 'badge bg-danger';
+  }
+
+  getAvailabilityText(availableCopies: number): string {
+    return availableCopies > 0 ? `Còn ${availableCopies} cuốn` : 'Hết sách';
   }
 }

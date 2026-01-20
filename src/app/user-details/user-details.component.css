@@ -1,54 +1,312 @@
 :host {
   display: block;
-  color: #000000; /* chữ đen mặc định cho component */
+  color: #000000;
 }
 
-/* Tiêu đề */
+/* Header & Action Toolbar */
 .user-details-title {
-  color: #40e0d0;
-  margin-bottom: 1.5rem;
-}
-
-/* Toàn bộ bảng lịch sử mượn */
-.user-details-table {
-  background-color: #0b1120; /* nền rất tối */
-  color: #000000; /* CHỮ ĐEN */
-}
-
-/* Header bảng */
-.user-details-table thead th {
-  background-color: #020617;
-  color: #000000; /* header đen */
-}
-
-/* Ô dữ liệu */
-.user-details-table tbody td {
-  color: #000000; /* chữ đen */
-  border-color: #1f2937;
-}
-
-/* Tên sách: cột đầu tiên, làm đậm và trắng hẳn */
-.user-details-table tbody td:first-child {
+  color: #1e40af;
   font-weight: 600;
+}
+
+.action-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.action-toolbar .btn {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Avatar Circle */
+.avatar-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 3px solid #e5e7eb;
+}
+
+.badge-lg {
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+}
+
+/* Statistics Cards */
+.stat-card {
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+.stat-card-primary .stat-icon {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.stat-card-info .stat-icon {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0ea5e9;
+}
+
+.stat-card-danger .stat-icon {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.stat-card-warning .stat-icon {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.stat-content h3 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
   color: #000000;
 }
 
-/* Đảm bảo link, span bên trong cũng sáng */
-.user-details-table a,
-.user-details-table span {
+.stat-content p {
+  font-size: 0.875rem;
+  margin: 0;
+  color: #6b7280;
+}
+
+/* User Info Card */
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
   color: #000000;
 }
 
-/* Badge trạng thái vẫn nổi rõ */
+.card-header {
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.card-body p {
+  color: #374151;
+}
+
+.card-body strong {
+  color: #000000;
+}
+
+/* Table Styling */
+.user-details-table {
+  background-color: #ffffff;
+  color: #000000;
+  margin-bottom: 0;
+}
+
+.user-details-table thead th {
+  background-color: #f9fafb;
+  color: #000000;
+  font-weight: 600;
+  border-bottom: 2px solid #e5e7eb;
+  padding: 1rem;
+}
+
+.user-details-table tbody td {
+  color: #374151;
+  border-color: #e5e7eb;
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+
+.user-details-table tbody tr:hover {
+  background-color: #f9fafb;
+  transition: background-color 0.2s;
+}
+
+.user-details-table tbody td:first-child strong {
+  color: #1e40af;
+}
+
+/* Status Badges with Icons */
 .badge {
   font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
 }
 
-/* Nút Trả sách trên nền vàng giữ chữ đậm */
+.badge.bg-success {
+  background-color: #10b981 !important;
+}
+
+.badge.bg-primary {
+  background-color: #3b82f6 !important;
+}
+
+.badge.bg-danger {
+  background-color: #ef4444 !important;
+}
+
+.badge.bg-secondary {
+  background-color: #6b7280 !important;
+}
+
+.badge.bg-warning {
+  background-color: #f59e0b !important;
+  color: #111827 !important;
+}
+
+.badge.bg-info {
+  background-color: #0ea5e9 !important;
+}
+
+/* Pagination */
+.pagination {
+  --bs-pagination-bg: #ffffff;
+  --bs-pagination-border-color: #e5e7eb;
+  --bs-pagination-hover-bg: #f9fafb;
+  --bs-pagination-hover-border-color: #d1d5db;
+  --bs-pagination-focus-bg: #f9fafb;
+  --bs-pagination-active-bg: #3b82f6;
+  --bs-pagination-active-border-color: #3b82f6;
+  --bs-pagination-disabled-bg: #f9fafb;
+  --bs-pagination-disabled-border-color: #e5e7eb;
+}
+
+.pagination .page-link {
+  color: #000000;
+  cursor: pointer;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #9ca3af;
+}
+
+.pagination .page-item.active .page-link {
+  color: #ffffff;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
 .btn-warning {
   color: #111827;
 }
+
+.btn-info {
+  background-color: #0ea5e9;
+  border-color: #0ea5e9;
+  color: #ffffff;
+}
+
+.btn-info:hover {
+  background-color: #0284c7;
+  border-color: #0284c7;
+}
+
+/* Empty State */
+.text-center i.fa-3x {
+  opacity: 0.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .action-toolbar {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .action-toolbar .btn {
+    flex: 1 1 auto;
+    min-width: fit-content;
+  }
+
+  .avatar-circle {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+
+  .stat-content h3 {
+    font-size: 1.5rem;
+  }
+
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+}
+
+/* Loading Spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Shadow for Cards */
+.shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Text colors for light theme */
+.text-muted {
+  color: #6b7280 !important;
+}
+
 .mb-1 {
   margin-bottom: 0.25rem !important;
+  color: #000000;
+}
+
+/* Spinner color for light theme */
+.spinner-border {
+  border-color: #3b82f6;
+  border-right-color: transparent;
+}
+
+/* Card header text */
+.card-header h5 {
   color: #000000;
 }

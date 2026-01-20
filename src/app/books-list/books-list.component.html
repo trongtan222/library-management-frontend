@@ -1,24 +1,106 @@
 <h2>Quản Lí Sách</h2>
 
+<!-- Advanced Filters -->
+<div class="filters-bar mb-3 p-3 bg-light rounded border">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label small mb-1">🔍 Tìm kiếm</label>
+      <div class="input-group">
+        <span class="input-group-text">🔎</span>
+        <input
+          class="form-control"
+          type="text"
+          placeholder="Tên sách, tác giả, ISBN..."
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+        />
+        <button
+          class="btn btn-outline-secondary"
+          *ngIf="searchTerm"
+          (click)="searchTerm = ''; loadBooks(1)"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label small mb-1">Trạng thái</label>
+      <select
+        class="form-select"
+        [(ngModel)]="filterStatus"
+        (change)="onFilterChange()"
+      >
+        <option value="all">Tất cả</option>
+        <option value="available">Còn hàng</option>
+        <option value="outOfStock">Hết hàng</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label small mb-1">Sắp xếp năm</label>
+      <select
+        class="form-select"
+        [(ngModel)]="filterYear"
+        (change)="onFilterChange()"
+      >
+        <option value="all">Mặc định</option>
+        <option value="newest">Mới nhất</option>
+        <option value="oldest">Cũ nhất</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label small mb-1">Thể loại</label>
+      <select
+        class="form-select"
+        [(ngModel)]="filterCategory"
+        (change)="onFilterChange()"
+      >
+        <option value="">Tất cả</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <button class="btn btn-outline-secondary w-100" (click)="resetFilters()">
+        <i class="fa-solid fa-rotate-right"></i> Đặt lại
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toolbar -->
 <div
   class="d-flex align-items-center justify-content-between mb-3"
   style="gap: 12px"
 >
-  <div class="input-group" style="max-width: 420px">
-    <span class="input-group-text">🔎</span>
-    <input
-      class="form-control"
-      type="text"
-      placeholder="Tìm theo mã, tên sách, tác giả, thể loại, năm, ISBN..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="loadBooks(1)"
-    />
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn btn-outline-primary" (click)="navigateToImport()">
+      <i class="fa-solid fa-file-import"></i> Nhập Excel
+    </button>
+
+    <div class="btn-group" *ngIf="selectedBooks.size > 0">
+      <button class="btn btn-outline-success" (click)="exportSelected()">
+        <i class="fa-solid fa-download"></i> Xuất ({{ selectedBooks.size }})
+      </button>
+      <button class="btn btn-outline-danger" (click)="bulkDelete()">
+        <i class="fa-solid fa-trash"></i> Xóa ({{ selectedBooks.size }})
+      </button>
+    </div>
+
     <button
       class="btn btn-outline-secondary"
-      *ngIf="searchTerm"
-      (click)="searchTerm = ''; loadBooks(1)"
+      (click)="toggleViewMode()"
+      [title]="
+        viewMode === 'table' ? 'Chuyển sang dạng lưới' : 'Chuyển sang dạng bảng'
+      "
     >
-      Clear
+      <i
+        [ngClass]="
+          viewMode === 'table' ? 'fa-solid fa-grip' : 'fa-solid fa-table'
+        "
+      ></i>
     </button>
   </div>
 
@@ -71,22 +153,34 @@
   </div>
 </div>
 
-<div class="table-responsive">
+<!-- Table View -->
+<div class="table-responsive" *ngIf="viewMode === 'table'">
   <table class="table table-hover align-middle">
     <thead>
       <tr>
+        <th style="width: 40px">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            [(ngModel)]="selectAllChecked"
+            (change)="toggleSelectAll()"
+          />
+        </th>
+        <th style="width: 60px">Ảnh</th>
         <th>ID</th>
         <th>Tên</th>
         <th>Tác Giả</th>
         <th>Thể Loại</th>
-        <th>Năm Xuất Bản</th>
+        <th>Năm</th>
         <th>ISBN</th>
-        <th>Còn Hàng</th>
+        <th>Còn</th>
         <th>Hành Động</th>
       </tr>
     </thead>
     <tbody *ngIf="listLoading">
       <tr *ngFor="let _ of skeletonRows">
+        <td><div class="sk-circle"></div></td>
+        <td><div class="sk-thumbnail"></div></td>
         <td><div class="sk-line w-60"></div></td>
         <td><div class="sk-line w-100"></div></td>
         <td><div class="sk-line w-90"></div></td>
@@ -95,7 +189,7 @@
         <td><div class="sk-line w-80"></div></td>
         <td><div class="sk-line w-40"></div></td>
         <td>
-          <div class="d-flex gap-1 align-items-center">
+          <div class="d-flex gap-1">
             <div class="sk-circle"></div>
             <div class="sk-circle"></div>
             <div class="sk-circle"></div>
@@ -105,13 +199,35 @@
     </tbody>
     <tbody *ngIf="!listLoading">
       <tr *ngIf="books.length === 0">
-        <td colspan="8" class="text-center text-muted py-4">
+        <td colspan="10" class="text-center text-muted py-4">
           Không tìm thấy kết quả nào.
         </td>
       </tr>
       <tr *ngFor="let r of books; trackBy: trackByBookId">
+        <td>
+          <input
+            type="checkbox"
+            class="form-check-input"
+            [checked]="isBookSelected(r.id)"
+            (change)="toggleBookSelection(r.id)"
+          />
+        </td>
+        <td>
+          <img
+            [src]="r.coverUrl || 'assets/images/placeholder.png'"
+            class="book-thumbnail"
+            [alt]="r.name"
+          />
+        </td>
         <td>{{ r.id }}</td>
-        <td>{{ r.name }}</td>
+        <td>
+          <a
+            [routerLink]="['/book-details', r.id]"
+            class="text-decoration-none"
+          >
+            {{ r.name }}
+          </a>
+        </td>
         <td>
           <span *ngFor="let a of r.authors; let last = last">
             {{ a.name }}{{ !last ? ", " : "" }}
@@ -124,8 +240,15 @@
         </td>
         <td>{{ r.publishedYear || "-" }}</td>
         <td>{{ r.isbn || "-" }}</td>
-        <td [class.text-danger]="r.numberOfCopiesAvailable === 0">
-          {{ r.numberOfCopiesAvailable }}
+        <td>
+          <span
+            class="badge"
+            [ngClass]="
+              r.numberOfCopiesAvailable > 0 ? 'bg-success' : 'bg-danger'
+            "
+          >
+            {{ r.numberOfCopiesAvailable }}
+          </span>
         </td>
         <td>
           <div class="btn-group">
@@ -139,7 +262,7 @@
               (click)="updateBook(r.id)"
               class="btn btn-sm btn-outline-info"
             >
-              Chỉnh Sửa
+              Sửa
             </button>
             <button
               (click)="deleteBook(r)"
@@ -152,4 +275,257 @@
       </tr>
     </tbody>
   </table>
+</div>
+
+<!-- Grid View -->
+<div *ngIf="viewMode === 'grid'" class="books-grid">
+  <!-- Skeleton Grid -->
+  <div *ngIf="listLoading" class="row g-3">
+    <div class="col-md-2 col-sm-4" *ngFor="let _ of skeletonRows">
+      <div class="card book-grid-card">
+        <div class="sk-thumbnail-large"></div>
+        <div class="card-body">
+          <div class="sk-line w-100 mb-2"></div>
+          <div class="sk-line w-70"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid Books -->
+  <div *ngIf="!listLoading" class="row g-3">
+    <div
+      class="col-md-2 col-sm-4 col-6"
+      *ngFor="let book of books; trackBy: trackByBookId"
+    >
+      <div
+        class="card book-grid-card h-100"
+        [class.selected]="isBookSelected(book.id)"
+      >
+        <div class="position-relative">
+          <input
+            type="checkbox"
+            class="form-check-input position-absolute top-0 start-0 m-2"
+            style="z-index: 10"
+            [checked]="isBookSelected(book.id)"
+            (change)="toggleBookSelection(book.id)"
+          />
+          <img
+            [src]="book.coverUrl || 'assets/images/placeholder.png'"
+            class="card-img-top book-cover"
+            [alt]="book.name"
+            style="height: 240px; object-fit: cover; cursor: pointer"
+            (click)="bookDetails(book.id)"
+          />
+          <span
+            class="badge position-absolute top-0 end-0 m-2"
+            [ngClass]="
+              book.numberOfCopiesAvailable > 0 ? 'bg-success' : 'bg-danger'
+            "
+          >
+            {{ book.numberOfCopiesAvailable }}
+          </span>
+        </div>
+        <div class="card-body p-2">
+          <h6 class="card-title mb-1 text-truncate" [title]="book.name">
+            {{ book.name }}
+          </h6>
+          <div class="small text-muted text-truncate">
+            {{ book.authors?.[0]?.name || "N/A" }}
+          </div>
+          <div class="d-flex gap-1 mt-2">
+            <button
+              class="btn btn-sm btn-outline-success flex-fill"
+              (click)="bookDetails(book.id)"
+              title="Xem"
+            >
+              <i class="fa-solid fa-eye"></i>
+            </button>
+            <button
+              class="btn btn-sm btn-outline-info flex-fill"
+              (click)="updateBook(book.id)"
+              title="Sửa"
+            >
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button
+              class="btn btn-sm btn-outline-danger flex-fill"
+              (click)="deleteBook(book)"
+              title="Xóa"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="books.length === 0" class="col-12 text-center py-5 text-muted">
+      <i class="fa-solid fa-box-open fa-3x mb-3 opacity-50"></i>
+      <p>Không tìm thấy sách nào.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<!-- Borrow Modal -->
+<div class="modal-backdrop fade show" *ngIf="showBorrow"></div>
+<div class="modal fade show d-block" tabindex="-1" *ngIf="showBorrow">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          📚 Tạo Phiếu Mượn
+          <div class="small text-muted mt-1">{{ borrowingBook?.name }}</div>
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeBorrow()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label"
+            >ID Thành Viên <span class="text-danger">*</span></label
+          >
+          <input
+            type="number"
+            class="form-control"
+            [(ngModel)]="borrowForm.memberId"
+            placeholder="Nhập ID người mượn"
+            min="1"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label"
+            >Ngày Hết Hạn <span class="text-danger">*</span></label
+          >
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="borrowForm.dueDate"
+          />
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" (click)="closeBorrow()">
+          Hủy
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="submitBorrow()"
+          [disabled]="isLoading(borrowingBook!.id)"
+        >
+          <span
+            *ngIf="isLoading(borrowingBook!.id)"
+            class="spinner-border spinner-border-sm me-1"
+          ></span>
+          Xác nhận Mượn
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reserve Modal -->
+<div class="modal-backdrop fade show" *ngIf="showReserve"></div>
+<div class="modal fade show d-block" tabindex="-1" *ngIf="showReserve">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          🔖 Đặt Trước Sách
+          <div class="small text-muted mt-1">{{ reservingBook?.name }}</div>
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeReserve()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label"
+            >ID Thành Viên <span class="text-danger">*</span></label
+          >
+          <input
+            type="number"
+            class="form-control"
+            [(ngModel)]="reserveForm.memberId"
+            placeholder="Nhập ID người đặt trước"
+            min="1"
+          />
+        </div>
+        <div class="alert alert-info mb-0">
+          <i class="fa-solid fa-info-circle me-2"></i>
+          Sách sẽ được giữ trong 24h khi có người trả.
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeReserve()"
+        >
+          Hủy
+        </button>
+        <button
+          type="button"
+          class="btn btn-warning"
+          (click)="submitReserve()"
+          [disabled]="isLoading(reservingBook!.id)"
+        >
+          <span
+            *ngIf="isLoading(reservingBook!.id)"
+            class="spinner-border spinner-border-sm me-1"
+          ></span>
+          Xác nhận Đặt
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-backdrop fade show" *ngIf="bookToDelete"></div>
+<div class="modal fade show d-block" tabindex="-1" *ngIf="bookToDelete">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-triangle-exclamation me-2"></i>Xác nhận xóa
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="bookToDelete = null"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>Bạn có chắc chắn muốn xóa sách:</p>
+        <div class="alert alert-warning">
+          <strong>{{ bookToDelete.name }}</strong>
+          <div class="small text-muted">ID: {{ bookToDelete.id }}</div>
+        </div>
+        <p class="text-danger mb-0">
+          <i class="fa-solid fa-warning me-1"></i>
+          Hành động này không thể hoàn tác!
+        </p>
+      </div>
+      <div class="modal-footer border-0">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="bookToDelete = null"
+        >
+          Hủy
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()">
+          <i class="fa-solid fa-trash me-1"></i> Xóa vĩnh viễn
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

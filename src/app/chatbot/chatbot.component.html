@@ -31,12 +31,46 @@
         <div class="message-content">
           <ng-container *ngIf="message.author === 'bot'; else userMessage">
             <markdown [data]="message.text"></markdown>
+
+            <!-- Book Card for interactive responses -->
+            <div class="book-card" *ngIf="message.bookCard">
+              <div class="book-card-image">
+                <img
+                  [src]="
+                    message.bookCard.imageUrl || 'assets/books/default-book.png'
+                  "
+                  [alt]="message.bookCard.title"
+                  onerror="this.src = 'assets/books/default-book.png'"
+                />
+              </div>
+              <div class="book-card-info">
+                <h6 class="book-title">{{ message.bookCard.title }}</h6>
+                <p class="book-author">{{ message.bookCard.author }}</p>
+                <div class="book-card-actions">
+                  <button
+                    class="btn-borrow"
+                    (click)="borrowBook(message.bookCard.id)"
+                    [disabled]="!message.bookCard.available"
+                  >
+                    <i class="fas fa-book"></i>
+                    {{ message.bookCard.available ? "Mượn ngay" : "Hết sách" }}
+                  </button>
+                  <button
+                    class="btn-details"
+                    (click)="viewBookDetails(message.bookCard.id)"
+                  >
+                    <i class="fas fa-info-circle"></i>
+                    Chi tiết
+                  </button>
+                </div>
+              </div>
+            </div>
           </ng-container>
           <ng-template #userMessage>
             <p>{{ message.text }}</p>
           </ng-template>
           <small class="timestamp" *ngIf="message.timestamp">
-            {{ message.timestamp | date : "short" }}
+            {{ message.timestamp | date: "short" }}
           </small>
         </div>
       </div>
@@ -73,6 +107,20 @@
           [disabled]="isLoading"
           autocomplete="off"
         />
+        <button
+          type="button"
+          class="btn-voice"
+          (click)="toggleVoiceInput()"
+          [class.listening]="isListening"
+          [disabled]="isLoading"
+          *ngIf="voiceSupported"
+          title="Nhập bằng giọng nói"
+        >
+          <i
+            class="fas"
+            [ngClass]="isListening ? 'fa-stop-circle' : 'fa-microphone'"
+          ></i>
+        </button>
         <button type="submit" [disabled]="isLoading || !currentMessage.trim()">
           <i class="fas fa-paper-plane"></i>
         </button>

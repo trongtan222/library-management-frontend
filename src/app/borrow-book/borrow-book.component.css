@@ -1,14 +1,30 @@
+/* CSS Variables for Theme */
+:root {
+  --bg-card: #161b22;
+  --bg-modal: #0d1117;
+  --bg-input: #21262d;
+  --border-color: #30363d;
+  --text-primary: #c9d1d9;
+  --text-secondary: #8b949e;
+  --text-link: #58a6ff;
+  --text-link-hover: #79c0ff;
+  --shadow-hover: rgba(0, 0, 0, 0.5);
+  --focus-ring: rgba(88, 166, 255, 0.2);
+}
+
 /* Card sách (Theme Tối) */
 .book-card {
-  background-color: #161b22; /* Nền thẻ tối màu */
-  border: 1px solid #30363d;
-  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .book-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
-  border-color: #58a6ff; /* Viền sáng lên khi hover */
+  box-shadow: 0 10px 30px var(--shadow-hover) !important;
+  border-color: var(--text-link);
 }
 
 /* Ảnh bìa */
@@ -16,50 +32,101 @@
   height: 240px;
   object-fit: cover;
   width: 100%;
-  border-bottom: 1px solid #30363d;
+  border-bottom: 1px solid var(--border-color);
   transition: opacity 0.2s;
 }
 
 .book-cover:hover {
-  opacity: 0.9; /* Hiệu ứng sáng nhẹ khi di chuột vào ảnh */
+  opacity: 0.9;
 }
 
 /* Link Tên sách */
 .hover-underline:hover {
   text-decoration: underline !important;
-  color: #79c0ff !important; /* Đổi màu xanh sáng hơn khi hover */
+  color: var(--text-link-hover) !important;
 }
 
 /* Modal Styles (Dark Mode) */
 .dark-modal-content {
-  background-color: #0d1117; /* Nền modal cực tối */
-  border: 1px solid #30363d;
-  box-shadow: 0 0 50px rgba(0,0,0,0.8);
-  color: #c9d1d9;
+  background-color: var(--bg-modal);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+  color: var(--text-primary);
 }
 
 /* Input trong Modal */
 .dark-input {
-  background-color: #21262d;
-  border: 1px solid #30363d;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
   color: #ffffff !important;
 }
 .dark-input:focus {
-  background-color: #21262d; /* Giữ màu nền khi focus */
-  border-color: #58a6ff;
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+  background-color: var(--bg-input);
+  border-color: var(--text-link);
+  box-shadow: 0 0 0 3px var(--focus-ring);
   color: #ffffff;
 }
 .dark-input::placeholder {
-  color: #8b949e;
+  color: var(--text-secondary);
 }
 .dark-input option {
-  background-color: #161b22;
+  background-color: var(--bg-card);
   color: white;
 }
 
+/* Skeleton Loading Animation */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 0%,
+    #21262d 50%,
+    var(--bg-card) 100%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-cover {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+}
+
+.skeleton-title {
+  height: 20px;
+  width: 100%;
+}
+
+.skeleton-text {
+  height: 14px;
+  width: 60%;
+}
+
+.skeleton-button {
+  height: 36px;
+  width: 100%;
+  border-radius: 4px;
+}
+
 /* Text Utilities Override cho Dark Mode */
-.text-primary { color: #58a6ff !important; } /* Xanh Github */
-.text-info { color: #79c0ff !important; }
-.text-muted { color: #8b949e !important; }
-.bg-dark { background-color: #21262d !important; }
+.text-primary {
+  color: #58a6ff !important;
+} /* Xanh Github */
+.text-info {
+  color: #79c0ff !important;
+}
+.text-muted {
+  color: #8b949e !important;
+}
+.bg-dark {
+  background-color: #21262d !important;
+}

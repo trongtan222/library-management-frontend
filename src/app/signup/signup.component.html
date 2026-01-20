@@ -5,112 +5,343 @@
     <h1>Tạo tài khoản</h1>
     <p class="subtitle">Tạo tài khoản của bạn để bắt đầu mượn sách.</p>
 
-    <form #signupForm="ngForm" (ngSubmit)="signup(signupForm)" autocomplete="off" novalidate>
-      
+    <form
+      [formGroup]="signupForm"
+      (ngSubmit)="signup()"
+      autocomplete="off"
+      novalidate
+    >
       <!-- Họ và tên -->
       <div class="field">
-        <label for="name">Họ và tên</label>
-        <input id="name" name="name" type="text" placeholder="Nguyễn Văn A" 
-               [(ngModel)]="model.name" required #name="ngModel"
-               [class.is-invalid]="(name.invalid && name.touched) || fieldErrors['name']">
-        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="invalid-feedback">
-          <span *ngIf="name.errors?.['required']">Vui lòng nhập họ và tên.</span>
+        <label for="name"> Họ và tên <span class="text-danger">*</span> </label>
+        <input
+          id="name"
+          type="text"
+          class="form-control"
+          formControlName="name"
+          placeholder="Nguyễn Văn A"
+          [class.is-invalid]="hasError('name')"
+        />
+        <div *ngIf="hasError('name')" class="invalid-feedback">
+          <i class="fa-solid fa-circle-exclamation me-1"></i
+          >{{ getErrorMessage("name") }}
         </div>
-        <div *ngIf="fieldErrors['name']" class="invalid-feedback">{{ fieldErrors['name'] }}</div>
       </div>
 
-      <!-- Lớp (Mới) -->
+      <!-- Lớp -->
       <div class="field">
-        <label for="studentClass">Lớp</label>
-        <input id="studentClass" name="studentClass" type="text" placeholder="Ví dụ: 9A" 
-               [(ngModel)]="model.studentClass" required #studentClass="ngModel"
-               [class.is-invalid]="(studentClass.invalid && studentClass.touched) || fieldErrors['studentClass']">
-        <div *ngIf="studentClass.invalid && (studentClass.dirty || studentClass.touched)" class="invalid-feedback">
-          <span *ngIf="studentClass.errors?.['required']">Vui lòng nhập tên lớp.</span>
+        <label for="studentClass">
+          Lớp <span class="text-danger">*</span>
+        </label>
+        <input
+          id="studentClass"
+          type="text"
+          class="form-control"
+          formControlName="studentClass"
+          placeholder="Ví dụ: 9A"
+          [class.is-invalid]="hasError('studentClass')"
+        />
+        <div *ngIf="hasError('studentClass')" class="invalid-feedback">
+          <i class="fa-solid fa-circle-exclamation me-1"></i
+          >{{ getErrorMessage("studentClass") }}
         </div>
-        <div *ngIf="fieldErrors['studentClass']" class="invalid-feedback">{{ fieldErrors['studentClass'] }}</div>
       </div>
 
-      <!-- Số điện thoại (Mới) -->
+      <!-- Số điện thoại -->
       <div class="field">
-        <label for="phoneNumber">Số điện thoại</label>
-        <input id="phoneNumber" name="phoneNumber" type="tel" placeholder="09xxxxxxxx" 
-               [(ngModel)]="model.phoneNumber" required pattern="[0-9]{10,11}" #phoneNumber="ngModel"
-               [class.is-invalid]="(phoneNumber.invalid && phoneNumber.touched) || fieldErrors['phoneNumber']">
-        <div *ngIf="phoneNumber.invalid && (phoneNumber.dirty || phoneNumber.touched)" class="invalid-feedback">
-          <span *ngIf="phoneNumber.errors?.['required']">Số điện thoại là bắt buộc.</span>
-          <span *ngIf="phoneNumber.errors?.['pattern']">Số điện thoại không hợp lệ (10-11 số).</span>
+        <label for="phoneNumber">
+          Số điện thoại <span class="text-danger">*</span>
+        </label>
+        <input
+          id="phoneNumber"
+          type="tel"
+          class="form-control"
+          formControlName="phoneNumber"
+          placeholder="09xxxxxxxx"
+          [class.is-invalid]="hasError('phoneNumber')"
+        />
+        <div *ngIf="hasError('phoneNumber')" class="invalid-feedback">
+          <i class="fa-solid fa-circle-exclamation me-1"></i
+          >{{ getErrorMessage("phoneNumber") }}
         </div>
-        <div *ngIf="fieldErrors['phoneNumber']" class="invalid-feedback">{{ fieldErrors['phoneNumber'] }}</div>
       </div>
 
-      <!-- Email -->
+      <!-- Email with async validation -->
       <div class="field">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" placeholder="your.email@example.com"
-               [(ngModel)]="model.email" required email #email="ngModel"
-               [class.is-invalid]="(email.invalid && email.touched) || fieldErrors['email']">
-        <div *ngIf="email.invalid && (email.dirty || email.touched)" class="invalid-feedback">
-          <span *ngIf="email.errors?.['required']">Email là bắt buộc.</span>
-          <span *ngIf="email.errors?.['email']">Vui lòng nhập một địa chỉ email hợp lệ.</span>
+        <label for="email"> Email <span class="text-danger">*</span> </label>
+        <div class="input-with-icon">
+          <input
+            id="email"
+            type="email"
+            class="form-control"
+            formControlName="email"
+            placeholder="your.email@example.com"
+            [class.is-invalid]="hasError('email')"
+          />
+          <span *ngIf="signupForm.get('email')?.pending" class="input-icon">
+            <i class="fa-solid fa-spinner fa-spin text-muted"></i>
+          </span>
+          <span
+            *ngIf="
+              signupForm.get('email')?.valid && signupForm.get('email')?.value
+            "
+            class="input-icon"
+          >
+            <i class="fa-solid fa-circle-check text-success"></i>
+          </span>
         </div>
-        <div *ngIf="fieldErrors['email']" class="invalid-feedback">{{ fieldErrors['email'] }}</div>
+        <div *ngIf="hasError('email')" class="invalid-feedback">
+          <i class="fa-solid fa-circle-exclamation me-1"></i
+          >{{ getErrorMessage("email") }}
+        </div>
+        <div
+          *ngIf="signupForm.get('email')?.hasError('emailExists')"
+          class="invalid-feedback"
+        >
+          <i class="fa-solid fa-circle-exclamation me-1"></i>Email này đã được
+          sử dụng.
+          <a routerLink="/login" class="ms-1">Đăng nhập?</a>
+        </div>
       </div>
 
       <!-- Tên đăng nhập -->
       <div class="field">
-        <label for="username">Tên đăng nhập</label>
-        <input id="username" name="username" type="text" placeholder="tendangnhap"
-               [(ngModel)]="model.username" required minlength="3" #username="ngModel"
-               [class.is-invalid]="(username.invalid && username.touched) || fieldErrors['username']">
-        <div *ngIf="username.invalid && (username.dirty || username.touched)" class="invalid-feedback">
-          <span *ngIf="username.errors?.['required']">Tên đăng nhập là bắt buộc.</span>
-          <span *ngIf="username.errors?.['minlength']">Tên đăng nhập phải có ít nhất 3 ký tự.</span>
+        <label for="username">
+          Tên đăng nhập <span class="text-danger">*</span>
+        </label>
+        <input
+          id="username"
+          type="text"
+          class="form-control"
+          formControlName="username"
+          placeholder="tendangnhap"
+          [class.is-invalid]="hasError('username')"
+        />
+        <div *ngIf="hasError('username')" class="invalid-feedback">
+          <i class="fa-solid fa-circle-exclamation me-1"></i
+          >{{ getErrorMessage("username") }}
         </div>
-        <div *ngIf="fieldErrors['username']" class="invalid-feedback">{{ fieldErrors['username'] }}</div>
       </div>
 
-      <!-- Mật khẩu -->
+      <!-- Mật khẩu với strength meter -->
       <div class="field password-group">
-        <label for="password">Mật khẩu</label>
-        <input id="password" name="password" [type]="showPassword ? 'text' : 'password'"
-               [(ngModel)]="model.password" required minlength="6" #password="ngModel"
-               [class.is-invalid]="(password.invalid && password.touched) || fieldErrors['password']">
-        <button type="button" class="btn-show-hide" (click)="toggleShowPassword()">
-          <i class="fa" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-        </button>
-        <div *ngIf="password.invalid && (password.dirty || password.touched)" class="invalid-feedback">
-          <span *ngIf="password.errors?.['required']">Mật khẩu là bắt buộc.</span>
-          <span *ngIf="password.errors?.['minlength']">Mật khẩu phải có ít nhất 6 ký tự.</span>
+        <label for="password">
+          Mật khẩu <span class="text-danger">*</span>
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            class="form-control"
+            formControlName="password"
+            placeholder="Nhập mật khẩu"
+            [class.is-invalid]="hasError('password')"
+          />
+          <button
+            type="button"
+            class="btn-show-hide"
+            (click)="toggleShowPassword()"
+            tabindex="-1"
+          >
+            <i
+              class="fa-solid"
+              [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"
+            ></i>
+          </button>
         </div>
-         <div *ngIf="fieldErrors['password']" class="invalid-feedback">{{ fieldErrors['password'] }}</div>
+
+        <!-- Password Strength Meter -->
+        <div
+          *ngIf="signupForm.get('password')?.value"
+          class="password-strength-meter mt-2"
+        >
+          <div class="strength-bar">
+            <div
+              class="strength-fill"
+              [style.width.%]="passwordStrength.value"
+              [ngClass]="'bg-' + passwordStrength.color"
+            ></div>
+          </div>
+          <div class="strength-label">
+            <small [ngClass]="'text-' + passwordStrength.color">
+              <i class="fa-solid fa-shield-halved me-1"></i>
+              Độ mạnh: <strong>{{ passwordStrength.label }}</strong>
+            </small>
+          </div>
+
+          <!-- Password Requirements -->
+          <div class="password-requirements mt-2">
+            <small
+              class="d-block"
+              [class.text-success]="passwordStrength.requirements.minLength"
+              [class.text-muted]="!passwordStrength.requirements.minLength"
+            >
+              <i
+                class="fa-solid"
+                [ngClass]="
+                  passwordStrength.requirements.minLength
+                    ? 'fa-circle-check'
+                    : 'fa-circle'
+                "
+              ></i>
+              Ít nhất 8 ký tự
+            </small>
+            <small
+              class="d-block"
+              [class.text-success]="passwordStrength.requirements.hasUpperCase"
+              [class.text-muted]="!passwordStrength.requirements.hasUpperCase"
+            >
+              <i
+                class="fa-solid"
+                [ngClass]="
+                  passwordStrength.requirements.hasUpperCase
+                    ? 'fa-circle-check'
+                    : 'fa-circle'
+                "
+              ></i>
+              Có chữ hoa (A-Z)
+            </small>
+            <small
+              class="d-block"
+              [class.text-success]="passwordStrength.requirements.hasLowerCase"
+              [class.text-muted]="!passwordStrength.requirements.hasLowerCase"
+            >
+              <i
+                class="fa-solid"
+                [ngClass]="
+                  passwordStrength.requirements.hasLowerCase
+                    ? 'fa-circle-check'
+                    : 'fa-circle'
+                "
+              ></i>
+              Có chữ thường (a-z)
+            </small>
+            <small
+              class="d-block"
+              [class.text-success]="passwordStrength.requirements.hasNumber"
+              [class.text-muted]="!passwordStrength.requirements.hasNumber"
+            >
+              <i
+                class="fa-solid"
+                [ngClass]="
+                  passwordStrength.requirements.hasNumber
+                    ? 'fa-circle-check'
+                    : 'fa-circle'
+                "
+              ></i>
+              Có chữ số (0-9)
+            </small>
+            <small
+              class="d-block"
+              [class.text-success]="passwordStrength.requirements.hasSpecial"
+              [class.text-muted]="!passwordStrength.requirements.hasSpecial"
+            >
+              <i
+                class="fa-solid"
+                [ngClass]="
+                  passwordStrength.requirements.hasSpecial
+                    ? 'fa-circle-check'
+                    : 'fa-circle'
+                "
+              ></i>
+              Có ký tự đặc biệt (!@#$...)
+            </small>
+          </div>
+        </div>
+
+        <div *ngIf="hasError('password')" class="invalid-feedback">
+          <i class="fa-solid fa-circle-exclamation me-1"></i
+          >{{ getErrorMessage("password") }}
+        </div>
       </div>
-      
+
       <!-- Xác nhận mật khẩu -->
       <div class="field password-group">
-        <label for="confirmPassword">Xác nhận mật khẩu</label>
-        <input id="confirmPassword" name="confirmPassword" [type]="showConfirmPassword ? 'text' : 'password'"
-               [(ngModel)]="model.confirmPassword" required #confirmPassword="ngModel"
-               [class.is-invalid]="confirmPassword.touched && (confirmPassword.invalid || model.password !== model.confirmPassword)">
-        <button type="button" class="btn-show-hide" (click)="toggleShowConfirmPassword()">
-          <i class="fa" [ngClass]="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-        </button>
-        <div *ngIf="confirmPassword.touched && model.password !== model.confirmPassword" class="invalid-feedback">
-          Mật khẩu không khớp.
+        <label for="confirmPassword">
+          Xác nhận mật khẩu <span class="text-danger">*</span>
+        </label>
+        <div class="password-input-wrapper">
+          <input
+            id="confirmPassword"
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            class="form-control"
+            formControlName="confirmPassword"
+            placeholder="Nhập lại mật khẩu"
+            [class.is-invalid]="
+              hasError('confirmPassword') ||
+              (signupForm.hasError('passwordMismatch') &&
+                signupForm.get('confirmPassword')?.touched)
+            "
+          />
+          <button
+            type="button"
+            class="btn-show-hide"
+            (click)="toggleShowConfirmPassword()"
+            tabindex="-1"
+          >
+            <i
+              class="fa-solid"
+              [ngClass]="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"
+            ></i>
+          </button>
+        </div>
+        <div
+          *ngIf="
+            hasError('confirmPassword') ||
+            (signupForm.hasError('passwordMismatch') &&
+              signupForm.get('confirmPassword')?.touched)
+          "
+          class="invalid-feedback"
+        >
+          <i class="fa-solid fa-circle-exclamation me-1"></i
+          >{{ getErrorMessage("confirmPassword") }}
         </div>
       </div>
-      
-      <p *ngIf="errorMessage" class="text-danger small">{{ errorMessage }}</p>
 
-      <button class="btn btn-block" type="submit" [disabled]="isLoading || signupForm.invalid">
-        <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
-        {{ isLoading ? 'Đang xử lý...' : 'Đăng ký' }}
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn-submit"
+        [disabled]="isLoading || signupForm.invalid"
+        [class.loading]="isLoading"
+      >
+        <span *ngIf="!isLoading">
+          <i class="fa-solid fa-user-plus me-2"></i>Tạo tài khoản
+        </span>
+        <span *ngIf="isLoading">
+          <i class="fa-solid fa-spinner fa-spin me-2"></i>Đang xử lý...
+        </span>
       </button>
-
-      <p class="small mt-2 text-center">
-        Đã có tài khoản?
-        <a class="link" routerLink="/login">Đăng nhập</a>
-      </p>
     </form>
+
+    <!-- Divider -->
+    <div class="divider">
+      <span>hoặc</span>
+    </div>
+
+    <!-- Social Login Buttons (Future) -->
+    <div class="social-login">
+      <button
+        type="button"
+        class="btn-social google"
+        disabled
+        title="Sắp ra mắt"
+      >
+        <i class="fa-brands fa-google me-2"></i>Đăng ký bằng Google
+      </button>
+      <button
+        type="button"
+        class="btn-social facebook"
+        disabled
+        title="Sắp ra mắt"
+      >
+        <i class="fa-brands fa-facebook me-2"></i>Đăng ký bằng Facebook
+      </button>
+    </div>
+
+    <!-- Footer Link -->
+    <p class="footer-link">
+      Đã có tài khoản? <a routerLink="/login">Đăng nhập ngay</a>
+    </p>
   </section>
 </main>

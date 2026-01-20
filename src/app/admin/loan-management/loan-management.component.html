@@ -1,16 +1,107 @@
-
 <div class="container-fluid">
-  <h1 class="mb-4">Quản Lí Kho Mượn</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">📋 Trung tâm điều hành Phiếu mượn</h1>
+    <button
+      class="btn btn-success"
+      (click)="exportToExcel()"
+      [disabled]="filteredLoans.length === 0"
+    >
+      <i class="fa-solid fa-file-excel me-2"></i> Xuất Excel
+    </button>
+  </div>
 
+  <!-- Status Filter Pills -->
   <div class="nav nav-pills mb-3">
-    <button class="nav-link" [class.active]="currentFilter === 'ALL'" (click)="applyFilter('ALL')">Tất Cả</button>
-    <button class="nav-link" [class.active]="currentFilter === 'ACTIVE'" (click)="applyFilter('ACTIVE')">Đang Mượn</button>
-    <button class="nav-link" [class.active]="currentFilter === 'OVERDUE'" (click)="applyFilter('OVERDUE')">Quá Hạn</button>
-    <button class="nav-link" [class.active]="currentFilter === 'RETURNED'" (click)="applyFilter('RETURNED')">Đã Trả</button>
+    <button
+      class="nav-link"
+      [class.active]="currentFilter === 'ALL'"
+      (click)="applyFilter('ALL')"
+    >
+      Tất Cả <span class="badge bg-secondary ms-1">{{ allLoans.length }}</span>
+    </button>
+    <button
+      class="nav-link"
+      [class.active]="currentFilter === 'ACTIVE'"
+      (click)="applyFilter('ACTIVE')"
+    >
+      Đang Mượn
+    </button>
+    <button
+      class="nav-link"
+      [class.active]="currentFilter === 'OVERDUE'"
+      (click)="applyFilter('OVERDUE')"
+    >
+      Quá Hạn
+    </button>
+    <button
+      class="nav-link"
+      [class.active]="currentFilter === 'RETURNED'"
+      (click)="applyFilter('RETURNED')"
+    >
+      Đã Trả
+    </button>
+  </div>
+
+  <!-- Advanced Filters: Date Range + Search -->
+  <div class="card bg-dark border-secondary mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small text-muted">Từ ngày</label>
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            [(ngModel)]="dateFrom"
+            (change)="onDateRangeChange()"
+          />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-muted">Đến ngày</label>
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            [(ngModel)]="dateTo"
+            (change)="onDateRangeChange()"
+          />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small text-muted"
+            >Tìm kiếm (Tên sách, Người dùng, ID)</label
+          >
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Nhập từ khóa..."
+            [(ngModel)]="searchText"
+            (input)="onSearchChange()"
+          />
+        </div>
+        <div class="col-md-2">
+          <button
+            class="btn btn-sm btn-outline-warning w-100"
+            (click)="
+              dateFrom = ''; dateTo = ''; searchText = ''; applyAllFilters()
+            "
+          >
+            <i class="fa-solid fa-rotate-right me-1"></i> Reset
+          </button>
+        </div>
+      </div>
+      <div
+        class="small text-muted mt-2"
+        *ngIf="filteredLoans.length !== allLoans.length"
+      >
+        Đang hiển thị
+        <strong class="text-warning">{{ filteredLoans.length }}</strong> /
+        {{ allLoans.length }} phiếu
+      </div>
+    </div>
   </div>
 
   <div *ngIf="isLoading" class="text-center my-5">
-    <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
   </div>
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 
@@ -18,40 +109,109 @@
     <table class="table table-hover align-middle">
       <thead>
         <tr>
-          <th>ID Mượn</th>
-          <th>Tên Sách</th>
-          <th>Tên Người Dùng</th>
-          <th>Ngày Mượn</th>
-          <th>Ngày Hết Hạn</th>
+          <th class="sortable" (click)="sortColumn('loanId')">
+            ID Mượn
+            <i class="fa-solid ms-1" [ngClass]="getSortIcon('loanId')"></i>
+          </th>
+          <th class="sortable" (click)="sortColumn('bookName')">
+            Tên Sách
+            <i class="fa-solid ms-1" [ngClass]="getSortIcon('bookName')"></i>
+          </th>
+          <th class="sortable" (click)="sortColumn('userName')">
+            Tên Người Dùng
+            <i class="fa-solid ms-1" [ngClass]="getSortIcon('userName')"></i>
+          </th>
+          <th class="sortable" (click)="sortColumn('loanDate')">
+            Ngày Mượn
+            <i class="fa-solid ms-1" [ngClass]="getSortIcon('loanDate')"></i>
+          </th>
+          <th class="sortable" (click)="sortColumn('dueDate')">
+            Ngày Hết Hạn
+            <i class="fa-solid ms-1" [ngClass]="getSortIcon('dueDate')"></i>
+          </th>
           <th>Ngày Trả</th>
-          <th>Trạng Thái</th>
-          <th>Hành Động</th>
+          <th class="sortable" (click)="sortColumn('status')">
+            Trạng Thái
+            <i class="fa-solid ms-1" [ngClass]="getSortIcon('status')"></i>
+          </th>
+          <th style="min-width: 200px">Hành Động</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngIf="filteredLoans.length === 0">
-          <td colspan="8" class="text-center text-muted py-4">Không tìm thấy khoản vay nào cho bộ lọc này.</td>
+          <td colspan="8" class="text-center text-muted py-4">
+            <i class="fa-solid fa-inbox fa-3x mb-3 opacity-50"></i>
+            <div>Không tìm thấy phiếu mượn nào cho bộ lọc này.</div>
+          </td>
         </tr>
         <tr *ngFor="let loan of filteredLoans">
           <td>{{ loan.loanId }}</td>
-          <td>{{ loan.bookName }}</td>
-          <td>{{ loan.userName }}</td>
-          <td>{{ loan.loanDate | date:'dd/MM/yyyy' }}</td>
-          <td>{{ loan.dueDate | date:'dd/MM/yyyy' }}</td>
-          <td>{{ loan.returnDate ? (loan.returnDate | date:'dd/MM/yyyy') : '-' }}</td>
           <td>
-            <span class="badge" [ngClass]="{
-              'bg-success': loan.status === 'ACTIVE',
-              'bg-danger': loan.status === 'OVERDUE',
-              'bg-secondary': loan.status === 'RETURNED'
-            }">{{ loan.status }}</span>
+            <span class="book-name-hover" [title]="loan.bookName">
+              {{
+                loan.bookName.length > 30
+                  ? (loan.bookName | slice: 0 : 30) + "..."
+                  : loan.bookName
+              }}
+            </span>
           </td>
           <td>
-            <button *ngIf="loan.status === 'ACTIVE' || loan.status === 'OVERDUE'"
-                    class="btn btn-sm btn-outline-primary"
-                    (click)="markAsReturned(loan.loanId)">
-              Đánh Dấu Là Đã Trả
-            </button>
+            <span class="user-name-hover" [title]="loan.userName">
+              {{ loan.userName }}
+            </span>
+          </td>
+          <td>{{ loan.loanDate | date: "dd/MM/yyyy" }}</td>
+          <td>
+            <span [class.text-danger]="loan.status === 'OVERDUE'">
+              {{ loan.dueDate | date: "dd/MM/yyyy" }}
+            </span>
+          </td>
+          <td>
+            {{ loan.returnDate ? (loan.returnDate | date: "dd/MM/yyyy") : "-" }}
+          </td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'bg-success': loan.status === 'ACTIVE',
+                'bg-danger': loan.status === 'OVERDUE',
+                'bg-secondary': loan.status === 'RETURNED',
+              }"
+              >{{ loan.status }}</span
+            >
+          </td>
+          <td>
+            <div class="btn-group btn-group-sm" role="group">
+              <!-- Gửi Nhắc Nhở (OVERDUE only) -->
+              <button
+                *ngIf="loan.status === 'OVERDUE'"
+                class="btn btn-outline-warning"
+                (click)="sendReminder(loan.loanId)"
+                title="Gửi email nhắc trả sách"
+              >
+                <i class="fa-solid fa-bell"></i>
+              </button>
+
+              <!-- Gia hạn (ACTIVE only) -->
+              <button
+                *ngIf="loan.status === 'ACTIVE'"
+                class="btn btn-outline-info"
+                (click)="renewLoan(loan.loanId)"
+                title="Gia hạn thêm 7 ngày"
+              >
+                <i class="fa-solid fa-rotate"></i>
+              </button>
+
+              <!-- Trả sách (ACTIVE or OVERDUE) -->
+              <button
+                *ngIf="loan.status === 'ACTIVE' || loan.status === 'OVERDUE'"
+                class="btn btn-outline-success"
+                (click)="markAsReturned(loan.loanId)"
+                title="Đánh dấu đã trả"
+              >
+                <i class="fa-solid fa-check"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

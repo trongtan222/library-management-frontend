@@ -1,11 +1,13 @@
 /* --- BIẾN MÀU (DỰ PHÒNG) --- */
 :host {
   --radius-lg: 18px;
-  --muted: #9ca3af;
-  --border: rgba(255, 255, 255, 0.1);
+  --muted: #6b7280;
+  --border: #e5e7eb;
   --accent: #6366f1;
   --danger: #ef4444;
-  --danger-light: #fca5a5;
+  --danger-light: #dc2626;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
 }
 
 /* --- BỐ CỤC CHÍNH & NỀN --- */
@@ -25,30 +27,29 @@
   pointer-events: none;
 }
 .auth-bg::before {
-  background: radial-gradient(
+  background:
+    radial-gradient(
       420px 220px at 15% 15%,
-      rgba(167, 139, 250, 0.18),
+      rgba(167, 139, 250, 0.08),
       transparent 70%
     ),
     radial-gradient(
       560px 280px at 80% 5%,
-      rgba(99, 102, 241, 0.18),
+      rgba(99, 102, 241, 0.08),
       transparent 72%
     ),
     radial-gradient(
       500px 250px at 90% 95%,
-      rgba(139, 92, 246, 0.15),
+      rgba(139, 92, 246, 0.06),
       transparent 70%
     );
 }
 .auth-bg::after {
-  background-image: linear-gradient(
-      transparent 97%,
-      rgba(255, 255, 255, 0.07) 97%
-    ),
-    linear-gradient(90deg, transparent 97%, rgba(255, 255, 255, 0.07) 97%);
+  background-image:
+    linear-gradient(transparent 97%, rgba(0, 0, 0, 0.03) 97%),
+    linear-gradient(90deg, transparent 97%, rgba(0, 0, 0, 0.03) 97%);
   background-size: 24px 24px;
-  opacity: 0.2;
+  opacity: 0.3;
   -webkit-mask-image: radial-gradient(
     60% 60% at 50% 40%,
     #000 55%,
@@ -63,10 +64,10 @@
   max-width: 480px; /* Rộng hơn một chút cho form dài */
   padding: 2.25rem;
   border-radius: var(--radius-lg, 18px);
-  background-color: rgba(31, 41, 55, 0.7); /* Thêm độ trong suốt */
+  background-color: rgba(255, 255, 255, 0.95); /* Nền trắng trong suốt */
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
 }
 
 /* --- TYPOGRAPHY --- */
@@ -74,12 +75,13 @@
   margin: 0 0 6px;
   text-align: center;
   font-size: 28px;
-  color: #000000;
+  color: var(--text-primary);
+  font-weight: 700;
 }
 .subtitle {
   margin: 0 0 24px;
   text-align: center;
-  color: var(--muted);
+  color: var(--text-secondary);
 }
 
 /* --- CÁC TRƯỜNG NHẬP LIỆU --- */
@@ -89,19 +91,21 @@
 .field label {
   display: block;
   margin-bottom: 8px;
-  color: var(--muted);
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 0.9rem;
 }
 .field input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background-color: #374151;
-  border: 1px solid #4b5563;
+  background-color: #ffffff;
+  border: 2px solid #e5e7eb;
   border-radius: 0.5rem;
-  color: #f9fafb;
+  color: var(--text-primary);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 .field input:focus {
   border-color: var(--accent);
@@ -130,9 +134,13 @@
   top: 2.3rem;
   background: none;
   border: none;
-  color: var(--muted);
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0.5rem;
+  transition: color 0.2s;
+}
+.btn-show-hide:hover {
+  color: var(--text-primary);
 }
 
 /* --- NÚT BẤM VÀ LIÊN KẾT --- */
@@ -158,19 +166,255 @@
   text-align: center;
 }
 .link {
-  color: #a5b4fc;
+  color: var(--accent);
   font-weight: 500;
   text-decoration: none;
 }
 .link:hover {
   text-decoration: underline;
+  color: #4f46e5;
 }
 .small.mt-2 {
   margin-top: 1rem;
+  color: var(--text-secondary);
 }
 .text-danger.small {
   color: var(--danger-light);
   font-size: 0.875rem;
   text-align: center;
   margin-bottom: 1rem;
+}
+/* --- PASSWORD STRENGTH METER --- */
+.password-strength-meter {
+  margin-top: 0.75rem;
+}
+
+.strength-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.strength-fill {
+  height: 100%;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
+  border-radius: 3px;
+}
+
+.strength-fill.bg-danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.strength-fill.bg-warning {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.strength-fill.bg-info {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.strength-fill.bg-success {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.strength-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.strength-label small {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.text-danger {
+  color: #ef4444 !important;
+}
+.text-warning {
+  color: #f59e0b !important;
+}
+.text-info {
+  color: #3b82f6 !important;
+}
+.text-success {
+  color: #10b981 !important;
+}
+.text-muted {
+  color: #9ca3af !important;
+}
+
+.password-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0;
+}
+
+.password-requirements small {
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.2s;
+}
+
+.password-requirements i {
+  font-size: 0.75rem;
+}
+
+/* --- INPUT WITH ICON (for email validation status) --- */
+.input-with-icon {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* --- PASSWORD INPUT WRAPPER --- */
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper .form-control {
+  padding-right: 45px;
+}
+
+.password-input-wrapper .btn-show-hide {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.password-input-wrapper .btn-show-hide:hover {
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* --- SOCIAL LOGIN BUTTONS --- */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+}
+
+.divider span {
+  padding: 0 1rem;
+}
+
+.social-login {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-social {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-social:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-social:not(:disabled):hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-social.google:not(:disabled):hover {
+  border-color: #4285f4;
+  background: rgba(66, 133, 244, 0.1);
+}
+
+.btn-social.facebook:not(:disabled):hover {
+  border-color: #1877f2;
+  background: rgba(24, 119, 242, 0.1);
+}
+
+/* --- FOOTER LINK --- */
+.footer-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.footer-link a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.footer-link a:hover {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .auth {
+    padding: 24px 12px;
+  }
+
+  .auth-card {
+    padding: 32px 24px;
+  }
+
+  .password-requirements small {
+    font-size: 0.75rem;
+  }
+
+  .social-login {
+    gap: 0.5rem;
+  }
+
+  .btn-social {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
 }

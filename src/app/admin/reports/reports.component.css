@@ -1,13 +1,140 @@
 .card {
-    border: none;
-    border-radius: 0.75rem;
+  border: none;
+  border-radius: 0.75rem;
 }
 .card-header {
-    background-color: #f8f9fc;
-    border-bottom: 1px solid #e3e6f0;
-    font-weight: 700;
+  background-color: #f8f9fc;
+  border-bottom: 1px solid #e3e6f0;
+  font-weight: 700;
 }
 .table th {
-    background-color: #f8f9fc;
-    border-bottom: 2px solid #e3e6f0;
+  background-color: #f8f9fc;
+  border-bottom: 2px solid #e3e6f0;
+}
+
+/* === GROWTH INDICATORS === */
+.text-success {
+  color: #28a745 !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* === CARD ICONS === */
+.card-body i.fa-2x {
+  font-size: 2.5rem;
+}
+
+/* === DEAD STOCK CARD === */
+.border-warning {
+  border-color: #ffc107 !important;
+  border-width: 2px !important;
+}
+
+.bg-warning.bg-opacity-10 {
+  background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+/* === HIGH TURNOVER CARD === */
+.border-success {
+  border-color: #28a745 !important;
+  border-width: 2px !important;
+}
+
+.bg-success.bg-opacity-10 {
+  background-color: rgba(40, 167, 69, 0.1) !important;
+}
+
+/* === LIST GROUPS === */
+.list-group-item {
+  border-left: none;
+  border-right: none;
+}
+
+.list-group-item:first-child {
+  border-top: none;
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
+}
+
+/* === BADGES === */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35em 0.65em;
+}
+
+/* === DRILL-DOWN SECTION === */
+.border-primary {
+  border-color: #007bff !important;
+  border-width: 2px !important;
+}
+
+code {
+  background-color: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.875rem;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .card-body i.fa-2x {
+    font-size: 1.5rem;
+  }
+
+  .h3 {
+    font-size: 1.5rem;
+  }
+}
+
+/* === PRINT STYLES === */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  .card-header {
+    background-color: #f8f9fc !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: #000 !important;
+  }
+
+  .text-muted {
+    color: #6c757d !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badge {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  canvas {
+    max-height: 300px;
+  }
 }

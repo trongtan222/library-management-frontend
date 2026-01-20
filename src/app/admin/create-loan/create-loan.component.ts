@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { Subject, Subscription, lastValueFrom } from 'rxjs';
@@ -22,6 +22,8 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
   selectedUser: User | null = null;
   userSearchTerm = '';
   userSearch$ = new Subject<string>();
+  recentUsers: User[] = []; // Recent users cache
+  showRecentUsers = false;
   userSummary = {
     activeLoans: 0,
     maxLoans: 5,
@@ -44,6 +46,15 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
   loanDays = 14;
   isLoading = false;
 
+  // Bulk import
+  bulkImporting = false;
+  bulkResults: { total: number; success: number; errors: string[] } = {
+    total: 0,
+    success: 0,
+    errors: [],
+  };
+  showBulkModal = false;
+
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -53,17 +64,18 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
     private toastr: ToastrService,
     private router: Router,
     private route: ActivatedRoute,
-    private chatbotService: ChatbotService
+    private chatbotService: ChatbotService,
   ) {}
 
   ngOnInit(): void {
+    this.loadRecentUsers();
     this.subscriptions.push(
       this.userSearch$
         .pipe(debounceTime(250), distinctUntilChanged())
         .subscribe((term) => this.searchUsers(term)),
       this.bookSearch$
         .pipe(debounceTime(200), distinctUntilChanged())
-        .subscribe((term) => this.searchBooks(term))
+        .subscribe((term) => this.searchBooks(term)),
     );
 
     // Nhận bookId từ query params (từ scanner)
@@ -81,6 +93,60 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  // --- KEYBOARD SHORTCUTS ---
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboard(event: KeyboardEvent) {
+    // Ctrl+S = Mở scanner
+    if (event.ctrlKey && event.key === 's') {
+      event.preventDefault();
+      this.openScanner();
+      this.toastr.info('Mở scanner...', '⌨️ Ctrl+S');
+    }
+    // F2 = Xóa giỏ sách
+    if (event.key === 'F2') {
+      event.preventDefault();
+      if (this.cartBooks.length > 0) {
+        this.resetBooksOnly();
+        this.toastr.info('Đã xóa giỏ sách', '⌨️ F2');
+      }
+    }
+    // F3 = Focus vào ô tìm kiếm user
+    if (event.key === 'F3') {
+      event.preventDefault();
+      const userInput = document.querySelector<HTMLInputElement>(
+        'input[placeholder*="tên hoặc username"]',
+      );
+      if (userInput) {
+        userInput.focus();
+        this.toastr.info('Focus vào tìm kiếm User', '⌨️ F3');
+      }
+    }
+    // F4 = Focus vào ô tìm kiếm sách
+    if (event.key === 'F4') {
+      event.preventDefault();
+      const bookInput = document.querySelector<HTMLInputElement>(
+        'input[placeholder*="tên sách hoặc ISBN"]',
+      );
+      if (bookInput) {
+        bookInput.focus();
+        this.toastr.info('Focus vào tìm kiếm Sách', '⌨️ F4');
+      }
+    }
+    // Ctrl+Enter = Submit form (nếu đủ điều kiện)
+    if (event.ctrlKey && event.key === 'Enter') {
+      event.preventDefault();
+      if (
+        this.selectedUser &&
+        this.cartBooks.length > 0 &&
+        !this.userSummary.blocked &&
+        !this.isLoading
+      ) {
+        this.createLoan();
+        this.toastr.info('Xác nhận tạo phiếu mượn', '⌨️ Ctrl+Enter');
+      }
+    }
   }
 
   // --- USER SEARCH ---
@@ -103,7 +169,7 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
           .filter(
             (u) =>
               u.username.toLowerCase().includes(lower) ||
-              u.name.toLowerCase().includes(lower)
+              u.name.toLowerCase().includes(lower),
           )
           .slice(0, 8);
       },
@@ -115,6 +181,8 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
     this.selectedUser = user;
     this.users = []; // Ẩn danh sách gợi ý
     this.userSearchTerm = '';
+    this.showRecentUsers = false;
+    this.saveToRecentUsers(user);
     this.fetchUserLoans(user.userId);
     this.loadAiSuggestion();
   }
@@ -176,7 +244,7 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
     if (this.userSummary.blocked) {
       this.toastr.error(
         this.userSummary.blockReason ||
-          'Không thể tạo phiếu mượn cho người dùng này.'
+          'Không thể tạo phiếu mượn cho người dùng này.',
       );
       return;
     }
@@ -219,7 +287,7 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
 
       if (success > 0) {
         this.toastr.success(
-          `Đã cấp ${success} sách cho ${this.selectedUser?.name}`
+          `Đã cấp ${success} sách cho ${this.selectedUser?.name}`,
         );
       }
       if (errors.length) {
@@ -283,12 +351,12 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
 
   private updateUserSummary(loans: any[]) {
     const active = loans.filter(
-      (l) => l.status === 'ACTIVE' || l.status === 'OVERDUE'
+      (l) => l.status === 'ACTIVE' || l.status === 'OVERDUE',
     );
     const overdue = loans.filter(
       (l) =>
         l.status === 'OVERDUE' ||
-        (!l.returnDate && new Date(l.dueDate) < new Date())
+        (!l.returnDate && new Date(l.dueDate) < new Date()),
     );
     const totalFine = loans.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
 
@@ -296,8 +364,8 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
       overdue.length > 0
         ? 'Có sách quá hạn, cần trả trước khi mượn mới.'
         : active.length >= this.userSummary.maxLoans
-        ? `Đã đạt giới hạn ${this.userSummary.maxLoans} sách đang mượn.`
-        : '';
+          ? `Đã đạt giới hạn ${this.userSummary.maxLoans} sách đang mượn.`
+          : '';
 
     this.userSummary = {
       ...this.userSummary,
@@ -365,5 +433,145 @@ export class CreateLoanComponent implements OnInit, OnDestroy {
         activeLoans: this.userSummary.activeLoans + successCount,
       };
     }
+  }
+
+  // --- RECENT USERS CACHE ---
+  private loadRecentUsers() {
+    try {
+      const stored = localStorage.getItem('recentUsers');
+      if (stored) {
+        this.recentUsers = JSON.parse(stored);
+      }
+    } catch (e) {
+      this.recentUsers = [];
+    }
+  }
+
+  private saveToRecentUsers(user: User) {
+    // Loại bỏ user trùng (nếu có)
+    this.recentUsers = this.recentUsers.filter((u) => u.userId !== user.userId);
+    // Thêm user vào đầu danh sách
+    this.recentUsers.unshift(user);
+    // Giới hạn 10 user
+    this.recentUsers = this.recentUsers.slice(0, 10);
+    // Lưu vào localStorage
+    try {
+      localStorage.setItem('recentUsers', JSON.stringify(this.recentUsers));
+    } catch (e) {
+      console.error('Failed to save recent users:', e);
+    }
+  }
+
+  toggleRecentUsers() {
+    this.showRecentUsers = !this.showRecentUsers;
+    if (this.showRecentUsers) {
+      this.users = []; // Ẩn kết quả tìm kiếm
+    }
+  }
+
+  clearRecentUsers() {
+    this.recentUsers = [];
+    this.showRecentUsers = false;
+    localStorage.removeItem('recentUsers');
+    this.toastr.success('Đã xóa danh sách User gần đây');
+  }
+
+  // --- BULK IMPORT ---
+  onBulkImportFile(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    if (!file.name.endsWith('.csv')) {
+      this.toastr.error('Chỉ chấp nhận file CSV');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      this.processBulkImport(text);
+    };
+    reader.readAsText(file);
+    input.value = ''; // Reset input
+  }
+
+  private async processBulkImport(csvText: string) {
+    const lines = csvText.split('\n').filter((l) => l.trim());
+    if (lines.length === 0) {
+      this.toastr.error('File CSV rỗng');
+      return;
+    }
+
+    // Parse CSV (format: userId,bookId,loanDays)
+    const rows = lines.slice(1).map((line) => {
+      const [userId, bookId, loanDays] = line.split(',').map((s) => s.trim());
+      return {
+        userId: Number(userId),
+        bookId: Number(bookId),
+        loanDays: Number(loanDays) || 14,
+      };
+    });
+
+    if (rows.length === 0) {
+      this.toastr.error('Không tìm thấy dữ liệu hợp lệ trong CSV');
+      return;
+    }
+
+    this.bulkImporting = true;
+    this.bulkResults = { total: rows.length, success: 0, errors: [] };
+    this.showBulkModal = true;
+
+    for (const row of rows) {
+      if (isNaN(row.userId) || isNaN(row.bookId)) {
+        this.bulkResults.errors.push(
+          `Dòng không hợp lệ: userId=${row.userId}, bookId=${row.bookId}`,
+        );
+        continue;
+      }
+
+      try {
+        // Lấy thông tin user
+        const user = await lastValueFrom(
+          this.usersService.getUserById(row.userId),
+        );
+        const payload = {
+          bookId: row.bookId,
+          memberId: row.userId,
+          loanDays: row.loanDays,
+          studentName: user.name,
+          studentClass: (user as any).className || '',
+        };
+        await lastValueFrom(this.circulationService.loan(payload));
+        this.bulkResults.success++;
+      } catch (err: any) {
+        const msg = err?.error?.message || err?.message || 'Lỗi không xác định';
+        this.bulkResults.errors.push(
+          `User ${row.userId} - Book ${row.bookId}: ${msg}`,
+        );
+      }
+    }
+
+    this.bulkImporting = false;
+    this.toastr.success(
+      `Hoàn tất: ${this.bulkResults.success}/${this.bulkResults.total} thành công`,
+    );
+  }
+
+  closeBulkModal() {
+    this.showBulkModal = false;
+    this.bulkResults = { total: 0, success: 0, errors: [] };
+  }
+
+  downloadBulkTemplate() {
+    const template = `userId,bookId,loanDays\n1,101,14\n2,102,7\n3,103,30`;
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bulk_loan_template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    this.toastr.success('Đã tải file mẫu CSV');
   }
 }

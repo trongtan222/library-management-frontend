@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 // SỬA: Import đúng tên và đường dẫn
 import { Book } from '../models/book';
 import { User } from '../models/user';
+import { GroupedSettingsResponse } from '../models/setting';
 
 export interface DashboardStats {
   totalBooks: number;
@@ -17,7 +18,11 @@ export interface DashboardStats {
 
 export interface DashboardDetails {
   stats: DashboardStats;
-  mostLoanedBooks: { bookId: number; loanCount: number }[];
+  mostLoanedBooks: {
+    bookName: string;
+    bookId: number;
+    loanCount: number;
+  }[];
   topBorrowers: { memberId: number; loanCount: number }[];
   recentActivities: any[];
   overdueLoans: any[];
@@ -40,16 +45,54 @@ export interface FineDetails {
   loanId: number;
   bookName: string;
   userName: string;
+  userId?: number;
   dueDate: string;
   returnDate: string;
   fineAmount: number;
   overdueDays?: number;
+  // Payment tracking
+  isPaid?: boolean;
+  paymentMethod?: 'CASH' | 'TRANSFER' | 'WAIVED' | 'OTHER';
+  paymentNote?: string;
+  paymentDate?: string;
+  paidBy?: string; // Admin username
 }
 
 export interface ReportSummary {
   loansByMonth: { month: string; count: number }[];
   mostLoanedBooks: { bookName: string; loanCount: number }[];
   finesByMonth: { month: string; totalFines: number }[];
+
+  // NEW: Deep Analytics
+  totalLoansCurrentPeriod?: number;
+  totalLoansPreviousPeriod?: number;
+  loansGrowthPercent?: number; // % change vs previous period
+
+  totalFinesCurrentPeriod?: number;
+  totalFinesPreviousPeriod?: number;
+  finesGrowthPercent?: number;
+
+  // Dead stock (books with 0 loans)
+  deadStockBooks?: {
+    bookId: number;
+    bookName: string;
+    lastLoanDate: string | null;
+  }[];
+
+  // Category distribution
+  loansByCategory?: {
+    categoryName: string;
+    loanCount: number;
+    percentage: number;
+  }[];
+
+  // Turnover rate (high-performing books)
+  highTurnoverBooks?: {
+    bookName: string;
+    copyCount: number;
+    loanCount: number;
+    turnoverRate: number;
+  }[];
 }
 
 export interface RenewalRequestDto {
@@ -61,6 +104,17 @@ export interface RenewalRequestDto {
   createdAt: string;
   decidedAt?: string;
   adminNote?: string;
+
+  // NEW: Context Enhancement
+  memberName?: string; // User full name
+  memberClass?: string; // Class/Department
+  lateReturnCount?: number; // How many times user returned books late
+
+  bookTitle?: string; // Book name
+  bookCoverUrl?: string; // Thumbnail
+  bookWaitlistCount?: number; // Number of users waiting for this book
+
+  reason?: string; // User's reason for renewal request
 }
 
 @Injectable({
@@ -84,13 +138,62 @@ export class AdminService {
     return this.http.get<FineDetails[]>(`${this.API_URL}/fines`);
   }
 
-  public markFineAsPaid(loanId: number): Observable<any> {
-    return this.http.post(`${this.API_URL}/fines/${loanId}/pay`, {});
+  public markFineAsPaid(
+    loanId: number,
+    paymentMethod: string,
+    note?: string,
+  ): Observable<any> {
+    return this.http.post(`${this.API_URL}/fines/${loanId}/pay`, {
+      paymentMethod,
+      note,
+    });
+  }
+
+  // Get paid fines (transaction history)
+  public getPaidFines(
+    startDate?: string,
+    endDate?: string,
+  ): Observable<FineDetails[]> {
+    let params: any = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    return this.http.get<FineDetails[]>(`${this.API_URL}/fines/paid`, {
+      params,
+    });
+  }
+
+  // Waive fine (forgive debt)
+  public waiveFine(loanId: number, reason: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/fines/${loanId}/waive`, { reason });
+  }
+
+  // Bulk payment for multiple fines
+  public bulkPayFines(
+    loanIds: number[],
+    paymentMethod: string,
+    note?: string,
+  ): Observable<any> {
+    return this.http.post(`${this.API_URL}/fines/bulk-pay`, {
+      loanIds,
+      paymentMethod,
+      note,
+    });
+  }
+
+  // Get daily payment summary
+  public getDailySummary(date: string): Observable<{
+    totalAmount: number;
+    totalCount: number;
+    byMethod: { method: string; amount: number; count: number }[];
+  }> {
+    return this.http.get<any>(`${this.API_URL}/fines/daily-summary`, {
+      params: { date },
+    });
   }
 
   public getReportSummary(
     start: string,
-    end: string
+    end: string,
   ): Observable<ReportSummary> {
     const params = { start, end };
     return this.http.get<ReportSummary>(`${this.API_URL}/reports/summary`, {
@@ -100,7 +203,7 @@ export class AdminService {
 
   public exportLoansExcel(
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Observable<Blob> {
     const params = { startDate, endDate };
     return this.http.get(`${this.API_URL}/reports/export/loans/excel`, {
@@ -126,23 +229,23 @@ export class AdminService {
     Array<{ id: number; key: string; value: string }>
   > {
     return this.http.get<Array<{ id: number; key: string; value: string }>>(
-      `${this.API_URL}/settings`
+      `${this.API_URL}/settings`,
     );
   }
 
   public updateSetting(
     key: string,
-    value: string
+    value: string,
   ): Observable<{ id: number; key: string; value: string }> {
     return this.http.put<{ id: number; key: string; value: string }>(
       `${this.API_URL}/settings/${encodeURIComponent(key)}`,
-      { value }
+      { value },
     );
   }
 
   // ---------- RENEWALS ----------
   public listRenewals(
-    status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED',
   ): Observable<RenewalRequestDto[]> {
     const url = status
       ? `${environment.apiBaseUrl}/admin/renewals?status=${status}`
@@ -152,21 +255,53 @@ export class AdminService {
 
   public approveRenewal(
     id: number,
-    note?: string
+    note?: string,
   ): Observable<RenewalRequestDto> {
     return this.http.post<RenewalRequestDto>(
       `${environment.apiBaseUrl}/admin/renewals/${id}/approve`,
-      { note }
+      { note },
     );
   }
 
   public rejectRenewal(
     id: number,
-    note?: string
+    note?: string,
   ): Observable<RenewalRequestDto> {
     return this.http.post<RenewalRequestDto>(
       `${environment.apiBaseUrl}/admin/renewals/${id}/reject`,
-      { note }
+      { note },
+    );
+  }
+
+  // NEW: Bulk Actions for Renewals
+  public bulkApproveRenewals(renewalIds: number[]): Observable<void> {
+    return this.http.post<void>(
+      `${environment.apiBaseUrl}/admin/renewals/bulk-approve`,
+      { renewalIds },
+    );
+  }
+
+  public bulkRejectRenewals(renewalIds: number[]): Observable<void> {
+    return this.http.post<void>(
+      `${environment.apiBaseUrl}/admin/renewals/bulk-reject`,
+      { renewalIds },
+    );
+  }
+
+  public getGroupedSettings(): Observable<GroupedSettingsResponse> {
+    return this.http.get<GroupedSettingsResponse>(
+      `${this.API_URL}/settings/grouped`,
+    );
+  }
+
+  public resetSettingToDefault(key: string): Observable<any> {
+    return this.http.post(`${this.API_URL}/settings/${key}/reset`, {});
+  }
+
+  public resetCategoryToDefaults(category: string): Observable<any> {
+    return this.http.post(
+      `${this.API_URL}/settings/reset-category/${category}`,
+      {},
     );
   }
 }

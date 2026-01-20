@@ -1,0 +1,98 @@
+/* === STAR RATING === */
+.star-rating .fa-star {
+  font-size: 16px;
+  margin-right: 2px;
+}
+
+.star-rating .fa-star.text-warning {
+  color: #ffc107 !important;
+}
+
+.star-rating .fa-star.text-muted {
+  color: #dee2e6 !important;
+}
+
+/* === THUMBNAIL === */
+.book-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* === COMMENT WRAPPER === */
+.comment-wrapper {
+  max-width: 400px;
+}
+
+.comment-wrapper p {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* === ADMIN REPLY === */
+.admin-reply {
+  background-color: #e7f3ff;
+  border-left: 3px solid #0d6efd;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.admin-reply i {
+  margin-right: 4px;
+}
+
+/* === INLINE REPLY FORM === */
+.reply-form {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.reply-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* === SELECTION HIGHLIGHT === */
+tr.table-info {
+  background-color: #cfe2ff !important;
+  border-left: 3px solid #0d6efd;
+}
+
+/* === BULK ACTION BANNER === */
+.alert-info {
+  border-left: 4px solid #0dcaf0;
+}
+
+/* === ACTION BUTTONS === */
+.btn-group-vertical {
+  width: 100%;
+}
+
+.btn-group-vertical .btn {
+  font-size: 0.85rem;
+  padding: 0.375rem 0.5rem;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .comment-wrapper {
+    max-width: 250px;
+  }
+
+  .book-thumbnail {
+    width: 40px;
+    height: 40px;
+  }
+
+  .star-rating .fa-star {
+    font-size: 14px;
+  }
+}

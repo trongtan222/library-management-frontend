@@ -13,6 +13,9 @@ import {
 import { WishlistService } from '../services/wishlist.service'; // <--- MỚI
 import { CirculationService } from '../services/circulation.service';
 import { SocialSharingService } from '../services/social-sharing.service';
+import { GamificationService } from '../services/gamification.service';
+import { UsersService } from '../services/users.service';
+import { EbookService, Ebook } from '../services/ebook.service';
 import { ToastrService } from 'ngx-toastr';
 import { ApiService } from '../services/api.service';
 import { finalize, takeUntil } from 'rxjs/operators';
@@ -28,6 +31,8 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
   book: Book | null = null;
   isLoading = true;
   isUser = false;
+  relatedBooks: Book[] = [];
+  isLoadingRelated = false;
   reviewsSummary: BookReviewsSummary | null = null;
   userCanReview = false;
   isCheckingPermission = true;
@@ -41,12 +46,19 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
   // Borrow modal
   showBorrowModal = false;
   borrowData = {
-    studentName: '',
-    studentClass: '',
-    quantity: 1,
     loanDays: 14,
   };
   borrowLoading = false;
+  userFullProfile: any = null; // Full user profile from API
+
+  // Reservation modal
+  showReserveModal = false;
+  reserveLoading = false;
+
+  // E-book integration
+  availableEbooks: Ebook[] = [];
+  hasEbook = false;
+  isCheckingEbook = false;
 
   private destroy$ = new Subject<void>();
   errorMessage: any;
@@ -55,14 +67,17 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private booksService: BooksService,
     private userAuthService: UserAuthService,
-    private wishlistService: WishlistService, // <--- Inject Service
+    private wishlistService: WishlistService,
     private circulationService: CirculationService,
     private router: Router,
     private http: HttpClient,
     private reviewService: ReviewService,
     private toastr: ToastrService,
     private apiService: ApiService,
-    private socialSharingService: SocialSharingService
+    private socialSharingService: SocialSharingService,
+    private gamificationService: GamificationService,
+    private usersService: UsersService,
+    private ebookService: EbookService,
   ) {}
 
   ngOnInit(): void {
@@ -93,7 +108,7 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
       .getBookById(id)
       .pipe(
         finalize(() => (this.isLoading = false)),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       )
       .subscribe({
         next: (data: Book) => {
@@ -104,6 +119,18 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
           if (this.isUser && this.book) {
             this.checkWishlistStatus(this.book.id);
           }
+          // Load related books based on category
+          if (
+            this.book &&
+            this.book.categories &&
+            this.book.categories.length > 0
+          ) {
+            this.loadRelatedBooks(this.book.categories[0].name, this.book.id);
+          }
+          // Check for ebook availability
+          if (this.book) {
+            this.checkEbookAvailability(this.book.id);
+          }
         },
         error: (err) => {
           this.errorMessage =
@@ -112,6 +139,95 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
           this.book = null;
         },
       });
+  }
+
+  private loadRelatedBooks(category: string, currentBookId: number): void {
+    this.isLoadingRelated = true;
+    this.booksService
+      .getPublicBooks(true, '', category, 0, 6) // Load 6 to ensure 5 after filtering
+      .pipe(
+        finalize(() => (this.isLoadingRelated = false)),
+        takeUntil(this.destroy$),
+      )
+      .subscribe({
+        next: (response: any) => {
+          const books = response.content || response;
+          // Filter out current book and limit to 5
+          this.relatedBooks = books
+            .filter((b: Book) => b.id !== currentBookId)
+            .slice(0, 5);
+        },
+        error: () => {
+          this.relatedBooks = [];
+        },
+      });
+  }
+
+  private checkEbookAvailability(bookId: number): void {
+    this.isCheckingEbook = true;
+    // Search for ebooks with book title to find related ebooks
+    // Since backend doesn't have direct /public/ebooks/by-book/{bookId} endpoint,
+    // we'll use search with book name
+    if (this.book?.name) {
+      this.ebookService
+        .searchEbooks(this.book.name, undefined, 0, 5)
+        .pipe(
+          finalize(() => (this.isCheckingEbook = false)),
+          takeUntil(this.destroy$),
+        )
+        .subscribe({
+          next: (response) => {
+            this.availableEbooks = response.content || [];
+            this.hasEbook = this.availableEbooks.length > 0;
+          },
+          error: () => {
+            this.hasEbook = false;
+            this.availableEbooks = [];
+          },
+        });
+    } else {
+      this.isCheckingEbook = false;
+    }
+  }
+
+  openEbook(ebook: Ebook): void {
+    if (!ebook.id) return;
+
+    // Navigate to ebook viewer or download
+    // For now, we'll download the ebook
+    if (this.isUser) {
+      this.ebookService.canDownload(ebook.id).subscribe({
+        next: (result) => {
+          if (result.canDownload) {
+            this.downloadEbook(ebook.id!);
+          } else {
+            this.toastr.warning('Bạn đã đạt giới hạn tải xuống cho ebook này.');
+          }
+        },
+        error: () => {
+          this.toastr.error('Lỗi kiểm tra quyền tải xuống');
+        },
+      });
+    } else {
+      this.toastr.info('Vui lòng đăng nhập để đọc ebook');
+    }
+  }
+
+  private downloadEbook(ebookId: number): void {
+    this.ebookService.downloadEbook(ebookId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `ebook_${ebookId}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.toastr.success('Tải ebook thành công!');
+      },
+      error: () => {
+        this.toastr.error('Lỗi khi tải ebook');
+      },
+    });
   }
 
   // <--- MỚI: Kiểm tra trạng thái Wishlist
@@ -198,9 +314,15 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.toastr.success(
-            'Cảm ơn bạn đã đánh giá! Đánh giá sẽ hiển thị sau khi duyệt.'
+            'Cảm ơn bạn đã đánh giá! Đánh giá sẽ hiển thị sau khi duyệt.',
           );
           this.userCanReview = false;
+
+          // Track review quest
+          this.gamificationService.updateQuestProgress('review').subscribe({
+            next: () => console.log('Review quest tracked'),
+            error: (err) => console.error('Failed to track review quest:', err),
+          });
         },
         error: (err) =>
           this.toastr.error(err.error?.message || 'Gửi đánh giá thất bại.'),
@@ -254,27 +376,126 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
 
   navigateToBorrow(): void {
     if (!this.book) return;
-    const userName = this.userAuthService.getName();
-    if (userName) {
-      this.borrowData.studentName = userName;
+
+    const userId = this.userAuthService.getUserId();
+    if (!userId) {
+      this.toastr.error('Vui lòng đăng nhập để mượn sách');
+      return;
     }
-    this.borrowData.quantity = 1;
-    this.borrowData.loanDays = 14;
-    this.borrowData.studentClass = '';
-    this.showBorrowModal = true;
+
+    // Load full user profile from API for read-only display
+    this.borrowLoading = true;
+    this.usersService
+      .getUserById(userId)
+      .pipe(
+        finalize(() => (this.borrowLoading = false)),
+        takeUntil(this.destroy$),
+      )
+      .subscribe({
+        next: (profile) => {
+          this.userFullProfile = profile;
+          this.borrowData.loanDays = 14;
+          this.showBorrowModal = true;
+        },
+        error: () => {
+          // Fallback to localStorage data if API fails
+          this.userFullProfile = {
+            name: this.userAuthService.getName() || 'Người dùng',
+            studentClass: 'Chưa cập nhật',
+            username: '---',
+          };
+          this.borrowData.loanDays = 14;
+          this.showBorrowModal = true;
+        },
+      });
   }
 
   closeBorrowModal(): void {
     this.showBorrowModal = false;
   }
 
+  // --- RESERVATION METHODS ---
+  navigateToReserve(): void {
+    if (!this.book) return;
+
+    const userId = this.userAuthService.getUserId();
+    if (!userId) {
+      this.toastr.error('Vui lòng đăng nhập để đặt trước');
+      return;
+    }
+
+    // Load full user profile from API for read-only display
+    this.reserveLoading = true;
+    this.usersService
+      .getUserById(userId)
+      .pipe(
+        finalize(() => (this.reserveLoading = false)),
+        takeUntil(this.destroy$),
+      )
+      .subscribe({
+        next: (profile) => {
+          this.userFullProfile = profile;
+          this.showReserveModal = true;
+        },
+        error: () => {
+          // Fallback to localStorage data if API fails
+          this.userFullProfile = {
+            name: this.userAuthService.getName() || 'Người dùng',
+            studentClass: 'Chưa cập nhật',
+            username: '---',
+          };
+          this.showReserveModal = true;
+        },
+      });
+  }
+
+  closeReserveModal(): void {
+    this.showReserveModal = false;
+  }
+
+  confirmReserve(): void {
+    if (!this.book) {
+      this.toastr.warning('Không tìm thấy thông tin sách!');
+      return;
+    }
+
+    const userId = this.userAuthService.getUserId();
+    if (!userId) {
+      this.toastr.error('Vui lòng đăng nhập để đặt trước');
+      return;
+    }
+
+    this.reserveLoading = true;
+    const payload = {
+      bookId: this.book.id,
+      memberId: userId,
+    };
+
+    this.circulationService
+      .reserve(payload)
+      .pipe(
+        finalize(() => (this.reserveLoading = false)),
+        takeUntil(this.destroy$),
+      )
+      .subscribe({
+        next: () => {
+          this.toastr.success(
+            `Đã đặt trước sách "${this.book?.name}". Bạn sẽ nhận được thông báo khi sách có sẵn.`,
+            'Thành công',
+            { timeOut: 5000 },
+          );
+          this.closeReserveModal();
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.message || 'Lỗi khi đặt trước sách.';
+          this.toastr.error(errorMsg);
+        },
+      });
+  }
+
   confirmBorrow(): void {
-    if (
-      !this.book ||
-      !this.borrowData.studentName ||
-      !this.borrowData.studentClass
-    ) {
-      this.toastr.warning('Vui lòng điền đầy đủ Họ tên và Lớp!');
+    if (!this.book) {
+      this.toastr.warning('Không tìm thấy thông tin sách!');
       return;
     }
 
@@ -295,7 +516,7 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
       .loan(payload)
       .pipe(
         finalize(() => (this.borrowLoading = false)),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       )
       .subscribe({
         next: () => {
@@ -385,7 +606,7 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
 
           // Update comment count in review
           const review = this.reviewsSummary?.reviews.find(
-            (r) => r.id === reviewId
+            (r) => r.id === reviewId,
           );
           if (review && review.commentsCount !== undefined) {
             review.commentsCount++;
@@ -425,12 +646,12 @@ export class BookDetailsComponent implements OnInit, OnDestroy {
       const imageDataUrl = await this.socialSharingService.generateShareImage(
         this.book.name,
         coverUrl,
-        quote
+        quote,
       );
 
       this.socialSharingService.downloadImage(
         imageDataUrl,
-        `${this.book.name}-share.png`
+        `${this.book.name}-share.png`,
       );
       this.toastr.success('Đã tải ảnh thành công!');
     } catch (error) {

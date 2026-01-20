@@ -1,49 +1,222 @@
 <div class="container-fluid mt-4">
   <h1 class="mb-4">Quản Lý Đánh Giá Sách</h1>
-  <div *ngIf="isLoading" class="text-center">Đang tải...</div>
+
+  <!-- BULK ACTION BANNER -->
+  <div
+    *ngIf="canBulkAction()"
+    class="alert alert-info d-flex align-items-center justify-content-between mb-3"
+  >
+    <span>
+      <i class="fa-solid fa-check-double"></i>
+      <strong>Đã chọn {{ getSelectedCount() }} đánh giá</strong>
+    </span>
+    <div class="btn-group">
+      <button class="btn btn-success btn-sm" (click)="bulkApprove()">
+        <i class="fa-solid fa-check"></i> Duyệt tất cả
+      </button>
+      <button class="btn btn-danger btn-sm" (click)="bulkDelete()">
+        <i class="fa-solid fa-trash"></i> Xóa tất cả
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2">Đang tải...</p>
+  </div>
+
   <div *ngIf="!isLoading">
+    <!-- FILTERS -->
     <div class="d-flex align-items-center gap-2 mb-3">
-      <input class="form-control" style="max-width: 280px" [(ngModel)]="search" placeholder="Tìm theo sách/người dùng/nội dung" />
-      <select class="form-select" style="max-width: 200px" [(ngModel)]="statusFilter">
+      <input
+        class="form-control"
+        style="max-width: 300px"
+        [(ngModel)]="search"
+        placeholder="🔍 Tìm sách/người dùng/nội dung"
+      />
+      <select
+        class="form-select"
+        style="max-width: 180px"
+        [(ngModel)]="statusFilter"
+      >
         <option value="ALL">Tất cả</option>
         <option value="PENDING">Chờ duyệt</option>
         <option value="APPROVED">Đã duyệt</option>
       </select>
     </div>
+
+    <!-- TABLE -->
     <div class="table-responsive">
-    <table class="table table-hover align-middle">
-      <thead>
-        <tr>
-          <th>Sách</th>
-          <th>Người Đánh Giá</th>
-          <th>Điểm</th>
-          <th>Bình Luận</th>
-          <th>Trạng Thái</th>
-          <th>Hành Động</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let review of filtered()">
-          <td>{{ review.bookName }}</td>
-          <td>{{ review.userName }}</td>
-          <td>{{ review.rating }} ★</td>
-          <td>{{ review.comment || '-' }}</td>
-          <td>
-            <span class="badge" [ngClass]="review.approved ? 'bg-success' : 'bg-warning'">
-              {{ review.approved ? 'Đã Phê Duyệt' : 'Chờ Duyệt' }}
-            </span>
-          </td>
-          <td>
-            <button *ngIf="!review.approved" class="btn btn-sm btn-primary" (click)="approve(review)">
-              Phê Duyệt
-            </button>
-            <button class="btn btn-sm btn-outline-danger ms-2" (click)="delete(review)">
-              Xóa
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th style="width: 40px">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                [checked]="
+                  getSelectedCount() === filtered().length &&
+                  filtered().length > 0
+                "
+                (change)="selectAll()"
+              />
+            </th>
+            <th style="width: 60px"></th>
+            <th>Sách</th>
+            <th>Người Đánh Giá</th>
+            <th style="width: 140px">Điểm</th>
+            <th style="width: 35%">Bình Luận</th>
+            <th style="width: 110px">Trạng Thái</th>
+            <th style="width: 150px">Hành Động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let review of filtered()"
+            [class.table-info]="isSelected(review.id)"
+          >
+            <!-- CHECKBOX -->
+            <td>
+              <input
+                type="checkbox"
+                class="form-check-input"
+                [checked]="isSelected(review.id)"
+                (change)="toggleSelection(review.id)"
+              />
+            </td>
+
+            <!-- THUMBNAIL -->
+            <td>
+              <img
+                [src]="review.bookCoverUrl || 'assets/books/placeholder.png'"
+                alt="Cover"
+                class="book-thumbnail"
+                onerror="this.src = 'assets/books/placeholder.png'"
+              />
+            </td>
+
+            <!-- BOOK NAME -->
+            <td>
+              <strong>{{ review.bookName }}</strong>
+            </td>
+
+            <!-- USER -->
+            <td>{{ review.userName }}</td>
+
+            <!-- STAR RATING -->
+            <td>
+              <span class="star-rating">
+                <i
+                  *ngFor="let filled of getStarArray(review.rating)"
+                  class="fa-solid fa-star"
+                  [class.text-warning]="filled"
+                  [class.text-muted]="!filled"
+                ></i>
+              </span>
+              <span class="text-muted ms-1">({{ review.rating }})</span>
+            </td>
+
+            <!-- COMMENT (TRUNCATED) -->
+            <td>
+              <div class="comment-wrapper">
+                <p class="mb-1">{{ getTruncatedComment(review) }}</p>
+                <button
+                  *ngIf="isCommentLong(review.comment)"
+                  class="btn btn-link btn-sm p-0 text-decoration-none"
+                  (click)="toggleCommentExpansion(review.id)"
+                >
+                  {{ isCommentExpanded(review.id) ? "Thu gọn" : "Xem thêm" }}
+                </button>
+
+                <!-- ADMIN REPLY DISPLAY -->
+                <div
+                  *ngIf="review.adminReply && !replyingToReview"
+                  class="admin-reply mt-2"
+                >
+                  <i class="fa-solid fa-shield-halved text-primary"></i>
+                  <strong>Admin:</strong> {{ review.adminReply }}
+                  <small class="text-muted d-block mt-1">
+                    {{ review.adminReplyDate | date: "dd/MM/yyyy HH:mm" }}
+                  </small>
+                </div>
+
+                <!-- INLINE REPLY FORM -->
+                <div
+                  *ngIf="replyingToReview?.id === review.id"
+                  class="reply-form mt-2"
+                >
+                  <textarea
+                    class="form-control form-control-sm mb-2"
+                    rows="3"
+                    [(ngModel)]="replyText"
+                    placeholder="Nhập trả lời của admin..."
+                    maxlength="500"
+                  ></textarea>
+                  <div class="d-flex gap-2">
+                    <button
+                      class="btn btn-primary btn-sm"
+                      (click)="saveReply()"
+                    >
+                      <i class="fa-solid fa-paper-plane"></i> Gửi
+                    </button>
+                    <button
+                      class="btn btn-outline-secondary btn-sm"
+                      (click)="cancelReply()"
+                    >
+                      Hủy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- STATUS -->
+            <td>
+              <span
+                class="badge"
+                [ngClass]="
+                  review.approved ? 'bg-success' : 'bg-warning text-dark'
+                "
+              >
+                {{ review.approved ? "Đã Duyệt" : "Chờ Duyệt" }}
+              </span>
+            </td>
+
+            <!-- ACTIONS -->
+            <td>
+              <div class="btn-group-vertical btn-group-sm" role="group">
+                <button
+                  *ngIf="!review.approved"
+                  class="btn btn-outline-success"
+                  (click)="approve(review)"
+                  title="Phê duyệt"
+                >
+                  <i class="fa-solid fa-check"></i> Duyệt
+                </button>
+                <button
+                  class="btn btn-outline-primary"
+                  (click)="openReplyForm(review)"
+                  title="Trả lời"
+                >
+                  <i class="fa-solid fa-reply"></i> Trả lời
+                </button>
+                <button
+                  class="btn btn-outline-danger"
+                  (click)="delete(review)"
+                  title="Xóa"
+                >
+                  <i class="fa-solid fa-trash"></i> Xóa
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="filtered().length === 0" class="text-center text-muted py-5">
+      <i class="fa-solid fa-inbox fa-3x mb-3"></i>
+      <p>Không có đánh giá nào phù hợp</p>
     </div>
   </div>
 </div>

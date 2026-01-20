@@ -1,2 +1,98 @@
-table td, table th { vertical-align: middle; }
-.input-group-text { width: 42px; justify-content: center; }
+table td,
+table th {
+  vertical-align: middle;
+}
+.input-group-text {
+  width: 42px;
+  justify-content: center;
+}
+
+/* Portrait Container */
+.portrait-container {
+  width: 60px;
+  height: 60px;
+  position: relative;
+}
+
+.portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 2px solid #dee2e6;
+}
+
+.portrait-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  font-size: 24px;
+}
+
+.portrait-upload-btn {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+/* Book Count Badge */
+.book-count-badge {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.5em 0.75em;
+  font-size: 0.9rem;
+}
+
+.book-count-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+  background-color: #0b5ed7 !important;
+}
+
+/* Merge Checkbox */
+.merge-checkbox {
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+}
+
+.merge-checkbox:hover {
+  transform: scale(1.1);
+}
+
+/* Table Row Selection */
+.table-info {
+  background-color: #cfe2ff !important;
+  border-left: 4px solid #0d6efd;
+}
+
+/* External Links Buttons */
+.btn-outline-secondary:hover {
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+}
+
+/* Empty State */
+.fa-inbox {
+  display: block;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .portrait-container {
+    width: 50px;
+    height: 50px;
+  }
+
+  .book-count-badge {
+    font-size: 0.75rem;
+  }
+}

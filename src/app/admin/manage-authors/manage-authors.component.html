@@ -1,12 +1,44 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Quản lý Tác giả</h2>
-    <a class="btn btn-outline-secondary" routerLink="/books"><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách sách</a>
+    <h2 class="mb-0">📚 Từ điển Tác giả (Author Wiki)</h2>
+    <a class="btn btn-outline-secondary" routerLink="/books"
+      ><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách sách</a
+    >
+  </div>
+
+  <!-- Merge Mode Banner -->
+  <div
+    *ngIf="selectedForMerge.size > 0"
+    class="alert alert-info d-flex justify-content-between align-items-center"
+  >
+    <div>
+      <i class="fa-solid fa-code-merge me-2"></i>
+      <strong>Chế độ Gộp:</strong> Đã chọn {{ selectedForMerge.size }}/2 tác giả
+      <span *ngIf="selectedForMerge.size === 2" class="text-success ms-2"
+        >✓ Sẵn sàng gộp</span
+      >
+    </div>
+    <div>
+      <button
+        class="btn btn-sm btn-success me-2"
+        (click)="mergeSelected()"
+        [disabled]="!canMerge() || isMerging"
+      >
+        <i class="fa-solid fa-check me-1"></i> Gộp tác giả
+      </button>
+      <button class="btn btn-sm btn-secondary" (click)="cancelMerge()">
+        <i class="fa-solid fa-xmark me-1"></i> Hủy
+      </button>
+    </div>
   </div>
 
   <div class="input-group mb-3">
     <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-    <input class="form-control" [(ngModel)]="search" placeholder="Tìm theo tên..." />
+    <input
+      class="form-control"
+      [(ngModel)]="search"
+      placeholder="Tìm theo tên..."
+    />
   </div>
 
   <div class="card mb-4">
@@ -14,10 +46,16 @@
       <div class="row g-3 align-items-end">
         <div class="col-md-6">
           <label class="form-label">Thêm tác giả mới</label>
-          <input class="form-control" [(ngModel)]="newName" placeholder="Tên tác giả" />
+          <input
+            class="form-control"
+            [(ngModel)]="newName"
+            placeholder="Tên tác giả"
+          />
         </div>
         <div class="col-md-3">
-          <button class="btn btn-success" (click)="create()">Tạo</button>
+          <button class="btn btn-success" (click)="create()">
+            <i class="fa-solid fa-plus me-1"></i> Tạo
+          </button>
         </div>
       </div>
     </div>
@@ -25,33 +63,192 @@
 
   <div *ngIf="isLoading" class="text-muted">Đang tải...</div>
 
-  <table class="table" *ngIf="!isLoading">
+  <table class="table table-hover" *ngIf="!isLoading">
     <thead>
       <tr>
-        <th style="width:80px">ID</th>
+        <th style="width: 50px" *ngIf="selectedForMerge.size === 0"></th>
+        <th style="width: 50px" *ngIf="selectedForMerge.size > 0">
+          <i class="fa-solid fa-code-merge text-info"></i>
+        </th>
+        <th style="width: 80px">Ảnh</th>
+        <th style="width: 80px">ID</th>
         <th>Tên</th>
-        <th style="width:220px">Hành động</th>
+        <th style="width: 100px">Số sách</th>
+        <th>External Links</th>
+        <th style="width: 250px">Hành động</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let a of filtered()">
+      <tr *ngIf="filtered().length === 0">
+        <td
+          [attr.colspan]="selectedForMerge.size > 0 ? 8 : 7"
+          class="text-center text-muted py-4"
+        >
+          <i class="fa-solid fa-inbox fa-3x mb-3 opacity-50"></i>
+          <div>Không tìm thấy tác giả nào</div>
+        </td>
+      </tr>
+      <tr
+        *ngFor="let a of filtered()"
+        [class.table-info]="isSelectedForMerge(a.id)"
+      >
+        <!-- Merge Checkbox -->
+        <td>
+          <input
+            type="checkbox"
+            class="form-check-input merge-checkbox"
+            [checked]="isSelectedForMerge(a.id)"
+            (change)="toggleSelectForMerge(a.id)"
+            [disabled]="editing?.id === a.id"
+          />
+        </td>
+
+        <!-- Portrait -->
+        <td>
+          <div class="portrait-container position-relative">
+            <img
+              *ngIf="a.portraitUrl; else noPortrait"
+              [src]="a.portraitUrl"
+              class="portrait-img rounded"
+              [alt]="a.name"
+            />
+            <ng-template #noPortrait>
+              <div
+                class="portrait-placeholder rounded d-flex align-items-center justify-content-center"
+              >
+                <i class="fa-solid fa-user text-muted"></i>
+              </div>
+            </ng-template>
+            <input
+              type="file"
+              #portraitInput
+              accept="image/*"
+              class="d-none"
+              (change)="onPortraitSelected($event, a.id)"
+            />
+            <button
+              *ngIf="editing?.id !== a.id"
+              class="btn btn-sm btn-outline-secondary portrait-upload-btn"
+              (click)="portraitInput.click()"
+              [disabled]="uploadingPortrait === a.id"
+              title="Tải ảnh chân dung"
+            >
+              <i
+                class="fa-solid fa-camera"
+                *ngIf="uploadingPortrait !== a.id"
+              ></i>
+              <span
+                class="spinner-border spinner-border-sm"
+                *ngIf="uploadingPortrait === a.id"
+              ></span>
+            </button>
+          </div>
+        </td>
+
         <td>{{ a.id }}</td>
+
+        <!-- Name -->
         <td>
           <ng-container *ngIf="!editing || editing.id !== a.id; else editTpl">
-            {{ a.name }}
+            <strong>{{ a.name }}</strong>
           </ng-container>
           <ng-template #editTpl>
-            <input class="form-control" [(ngModel)]="editing!.name" />
+            <input
+              class="form-control form-control-sm"
+              [(ngModel)]="editing!.name"
+            />
           </ng-template>
         </td>
+
+        <!-- Book Count -->
+        <td class="text-center">
+          <span
+            class="badge bg-primary book-count-badge"
+            (click)="navigateToBooks(a.id)"
+            [title]="'Click để xem ' + (a.bookCount || 0) + ' sách'"
+          >
+            {{ a.bookCount || 0 }} <i class="fa-solid fa-book ms-1"></i>
+          </span>
+        </td>
+
+        <!-- External Links -->
         <td>
-          <ng-container *ngIf="!editing || editing.id !== a.id; else editingBtns">
-            <button class="btn btn-sm btn-primary me-2" (click)="startEdit(a)"><i class="fa-solid fa-pen"></i> Sửa</button>
-            <button class="btn btn-sm btn-danger" (click)="remove(a.id)"><i class="fa-solid fa-trash"></i> Xóa</button>
+          <ng-container
+            *ngIf="!editing || editing.id !== a.id; else editLinksTpl"
+          >
+            <div class="d-flex gap-2">
+              <a
+                *ngIf="a.wikipediaUrl"
+                [href]="a.wikipediaUrl"
+                target="_blank"
+                class="btn btn-sm btn-outline-secondary"
+                title="Wikipedia"
+              >
+                <i class="fa-brands fa-wikipedia-w"></i>
+              </a>
+              <a
+                *ngIf="a.websiteUrl"
+                [href]="a.websiteUrl"
+                target="_blank"
+                class="btn btn-sm btn-outline-secondary"
+                title="Website"
+              >
+                <i class="fa-solid fa-globe"></i>
+              </a>
+              <span
+                *ngIf="!a.wikipediaUrl && !a.websiteUrl"
+                class="text-muted small"
+                >-</span
+              >
+            </div>
+          </ng-container>
+          <ng-template #editLinksTpl>
+            <div class="d-flex flex-column gap-1">
+              <input
+                class="form-control form-control-sm"
+                [(ngModel)]="editing!.wikipediaUrl"
+                placeholder="Wikipedia URL"
+              />
+              <input
+                class="form-control form-control-sm"
+                [(ngModel)]="editing!.websiteUrl"
+                placeholder="Website URL"
+              />
+            </div>
+          </ng-template>
+        </td>
+
+        <!-- Actions -->
+        <td>
+          <ng-container
+            *ngIf="!editing || editing.id !== a.id; else editingBtns"
+          >
+            <div class="btn-group btn-group-sm">
+              <button
+                class="btn btn-primary"
+                (click)="startEdit(a)"
+                [disabled]="selectedForMerge.size > 0"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button
+                class="btn btn-danger"
+                (click)="remove(a.id)"
+                [disabled]="selectedForMerge.size > 0"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
           </ng-container>
           <ng-template #editingBtns>
-            <button class="btn btn-sm btn-success me-2" (click)="saveEdit()"><i class="fa-solid fa-check"></i> Lưu</button>
-            <button class="btn btn-sm btn-secondary" (click)="cancelEdit()"><i class="fa-solid fa-xmark"></i> Huỷ</button>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-success" (click)="saveEdit()">
+                <i class="fa-solid fa-check me-1"></i> Lưu
+              </button>
+              <button class="btn btn-secondary" (click)="cancelEdit()">
+                <i class="fa-solid fa-xmark me-1"></i> Huỷ
+              </button>
+            </div>
           </ng-template>
         </td>
       </tr>

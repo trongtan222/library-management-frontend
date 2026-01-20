@@ -1,0 +1,58 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Danh Sách Sách Đã Mượn</h2>
+
+  <div *ngIf="successMessage" class="alert alert-success mt-3" role="alert">
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger mt-3" role="alert">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="borrows.length === 0 && !errorMessage" class="alert alert-info mt-3">
+    Bạn chưa mượn cuốn sách nào.
+  </div>
+
+  <table *ngIf="borrows.length > 0" class="table table-hover mt-3">
+    <thead>
+      <tr>
+        <th>Tên Sách</th>
+        <th>Ngày Mượn</th>
+        <th>Ngày Đến Hạn</th>
+        <th>Hành Động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let b of borrows">
+        <td>{{ b.bookName }}</td>
+        <td>{{ b.loanDate | date: 'dd/MM/yyyy' }}</td>
+        <td>{{ b.dueDate | date: 'dd/MM/yyyy' }}</td>
+        <td>
+          <button (click)="openConfirmModal(b)" class="btn btn-danger btn-sm" [disabled]="loading.has(b.loanId!)">
+            <span *ngIf="loading.has(b.loanId!)" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <i *ngIf="!loading.has(b.loanId!)" class="fa-solid fa-undo me-1"></i>
+            <span *ngIf="!loading.has(b.loanId!)">Trả Sách</span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="modal fade show" tabindex="-1" [ngStyle]="{display: showConfirmModal ? 'block' : 'none'}" *ngIf="showConfirmModal">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content dark-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">Xác Nhận Trả Sách</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeConfirmModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p *ngIf="borrowToReturn">Bạn có chắc chắn muốn trả cuốn sách "<strong>{{ borrowToReturn.bookName }}</strong>" không?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeConfirmModal()">Không, hủy</button>
+        <button class="btn btn-danger" (click)="confirmReturn()">Có, trả sách</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="showConfirmModal"></div>

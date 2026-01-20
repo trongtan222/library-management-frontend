@@ -25,7 +25,7 @@
         <select
           class="form-select bg-dark text-light border-secondary"
           [(ngModel)]="selectedGenre"
-          (change)="onFilterChange()"
+          (change)="onGenreChange()"
         >
           <option value="">-- Tất cả thể loại --</option>
           <option *ngFor="let genre of genres" [value]="genre">
@@ -38,22 +38,43 @@
           <i class="fa-solid fa-rotate-right"></i> Đặt lại
         </button>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-1">
         <button
           class="btn btn-info w-100 text-dark fw-bold"
           (click)="toggleScanner()"
         >
-          <i class="fa-solid fa-qrcode"></i> Quét QR
+          <i class="fa-solid fa-qrcode"></i>
+        </button>
+      </div>
+      <div class="col-md-1">
+        <button
+          class="btn btn-warning position-relative w-100 text-dark fw-bold"
+          (click)="toggleCartModal()"
+        >
+          <i class="fa-solid fa-shopping-cart"></i>
+          <span
+            *ngIf="cartCount > 0"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+          >
+            {{ cartCount }}
+          </span>
         </button>
       </div>
     </div>
   </div>
 
-  <div *ngIf="isLoadingPage" class="text-center py-5">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <!-- Skeleton Loading -->
+  <div *ngIf="isLoadingPage" class="row g-4">
+    <div class="col-md-3 col-sm-6" *ngFor="let item of skeletonArray">
+      <div class="card h-100 book-card border-secondary bg-dark">
+        <div class="skeleton skeleton-cover" style="height: 300px"></div>
+        <div class="card-body">
+          <div class="skeleton skeleton-title mb-2"></div>
+          <div class="skeleton skeleton-text mb-3" style="width: 70%"></div>
+          <div class="skeleton skeleton-button"></div>
+        </div>
+      </div>
     </div>
-    <p class="mt-2 text-muted">Đang tải dữ liệu sách...</p>
   </div>
 
   <div class="row g-4" *ngIf="!isLoadingPage">
@@ -117,11 +138,28 @@
 
           <div class="mt-auto d-flex gap-2">
             <button
-              class="btn btn-primary flex-grow-1 btn-sm"
-              [disabled]="book.numberOfCopiesAvailable <= 0"
-              (click)="openBorrowForm(book)"
+              class="btn btn-primary grow btn-sm"
+              [disabled]="
+                book.numberOfCopiesAvailable <= 0 || isInCart(book.id)
+              "
+              (click)="addToCart(book)"
             >
-              <i class="fa-solid fa-cart-plus me-1"></i> Mượn
+              <i
+                [ngClass]="
+                  isInCart(book.id)
+                    ? 'fa-solid fa-check'
+                    : 'fa-solid fa-cart-plus'
+                "
+                class="me-1"
+              ></i>
+              {{ isInCart(book.id) ? "Đã thêm" : "Thêm vào giỏ" }}
+            </button>
+            <button
+              class="btn btn-outline-info btn-sm"
+              (click)="openBorrowForm(book)"
+              title="Mượn ngay"
+            >
+              <i class="fa-solid fa-bolt"></i>
             </button>
             <button
               class="btn btn-outline-warning btn-sm"
@@ -245,8 +283,150 @@
           class="text-white mt-2 position-absolute bottom-0 w-100 pb-3"
           style="z-index: 1070"
         >
-          Di chuyển mã QR vào khung hình
+          <i class="fa-solid fa-qrcode me-2"></i>Quét liên tục - Đã thêm:
+          <span class="badge bg-warning text-dark">{{ cartCount }}</span>
         </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cart Modal -->
+<div
+  class="modal-backdrop fade show"
+  *ngIf="showCartModal"
+  style="z-index: 1055"
+></div>
+<div
+  class="modal fade show d-block"
+  *ngIf="showCartModal"
+  tabindex="-1"
+  style="z-index: 1065"
+>
+  <div
+    class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable"
+  >
+    <div class="modal-content bg-dark text-light border-secondary">
+      <div class="modal-header border-secondary bg-warning">
+        <h5 class="modal-title text-dark fw-bold">
+          <i class="fa-solid fa-shopping-cart me-2"></i>Giỏ Sách ({{
+            cartCount
+          }})
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="toggleCartModal()"
+        ></button>
+      </div>
+
+      <div class="modal-body p-4" style="max-height: 500px; overflow-y: auto">
+        <div *ngIf="cartItems.length === 0" class="text-center py-5 text-muted">
+          <i class="fa-solid fa-cart-shopping fa-3x mb-3 opacity-50"></i>
+          <p>Giỏ sách trống. Thêm sách để mượn hàng loạt!</p>
+        </div>
+
+        <div class="list-group" *ngIf="cartItems.length > 0">
+          <div
+            *ngFor="let item of cartItems; let i = index"
+            class="list-group-item bg-secondary bg-opacity-10 border-secondary mb-2 rounded"
+          >
+            <div class="d-flex align-items-start">
+              <span class="badge bg-primary me-3 mt-1">{{ i + 1 }}</span>
+              <img
+                [src]="item.book.coverUrl || 'assets/images/placeholder.png'"
+                style="width: 50px; height: 75px; object-fit: cover"
+                class="me-3 rounded"
+              />
+              <div class="grow">
+                <h6 class="mb-1 fw-bold text-info">{{ item.book.name }}</h6>
+                <div class="small text-muted">
+                  <span
+                    *ngIf="item.book.authors && item.book.authors.length > 0"
+                  >
+                    {{ item.book.authors[0].name }}
+                  </span>
+                  <span class="mx-2">·</span>
+                  <span class="badge bg-success"
+                    >Còn {{ item.book.numberOfCopiesAvailable }}</span
+                  >
+                </div>
+              </div>
+              <button
+                class="btn btn-sm btn-outline-danger"
+                (click)="removeFromCart(item.book.id)"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="mt-4 p-3 bg-secondary bg-opacity-25 rounded"
+          *ngIf="cartItems.length > 0"
+        >
+          <h6 class="mb-3">Thông tin người mượn:</h6>
+          <div class="mb-3">
+            <label class="form-label"
+              >Họ tên <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control bg-dark text-light border-secondary"
+              [(ngModel)]="borrowData.studentName"
+              placeholder="Nhập họ tên..."
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label"
+              >Lớp / Chi Đội <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control bg-dark text-light border-secondary"
+              [(ngModel)]="borrowData.studentClass"
+              placeholder="Ví dụ: 9A1"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Thời hạn</label>
+            <select
+              class="form-select bg-dark text-light border-secondary"
+              [(ngModel)]="borrowData.loanDays"
+            >
+              <option [ngValue]="7">7 ngày</option>
+              <option [ngValue]="14">14 ngày</option>
+              <option [ngValue]="30">30 ngày</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer border-secondary">
+        <button
+          type="button"
+          class="btn btn-outline-danger"
+          (click)="clearCart()"
+          *ngIf="cartItems.length > 0"
+        >
+          <i class="fa-solid fa-trash me-1"></i> Xóa tất cả
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="toggleCartModal()"
+        >
+          Đóng
+        </button>
+        <button
+          type="button"
+          class="btn btn-warning text-dark fw-bold px-4"
+          (click)="borrowAllFromCart()"
+          [disabled]="cartItems.length === 0"
+        >
+          <i class="fa-solid fa-check me-1"></i> Mượn tất cả ({{ cartCount }})
+        </button>
       </div>
     </div>
   </div>

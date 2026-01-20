@@ -1,61 +1,402 @@
 <div class="container-fluid mt-4">
-  <h1 class="mb-4">Quản Lý Phí Trễ Hạn</h1>
-  <div *ngIf="isLoading" class="text-center">Loading...</div>
-  <table *ngIf="!isLoading" class="table table-hover">
-    <thead>
-      <tr>
-        <th>ID Mượn</th>
-        <th>Tên Người Dùng</th>
-        <th>Tên Sách</th>
-        <th>Số Ngày Quá Hạn</th>
-        <th>Số Tiền Phạt</th>
-        <th>Hành Động</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let fine of fines">
-        <td>{{ fine.loanId }}</td>
-        <td>{{ fine.userName }}</td>
-        <td>{{ fine.bookName }}</td>
-        <td>{{ fine.overdueDays }}</td>
-        <td>{{ fine.fineAmount | currency:'VND' }}</td>
-        <td>
-          <button class="btn btn-success btn-sm" (click)="openPaymentModal(fine)">Đã thu</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">💰 Quản Lý Tài Chính Phạt</h1>
+  </div>
+
+  <!-- Daily Summary Banner -->
+  <div *ngIf="dailySummary && activeTab === 'unpaid'" class="alert alert-info">
+    <div class="row">
+      <div class="col-md-6">
+        <h5>
+          <i class="fa-solid fa-calendar-day me-2"></i>Tổng kết hôm nay ({{
+            selectedDate | date: "dd/MM/yyyy"
+          }})
+        </h5>
+      </div>
+      <div class="col-md-6 text-end">
+        <strong>{{ dailySummary.totalAmount | currency: "VND" }}</strong>
+        <span class="text-muted"
+          >({{ dailySummary.totalCount }} giao dịch)</span
+        >
+      </div>
+    </div>
+    <div
+      *ngIf="dailySummary.byMethod && dailySummary.byMethod.length > 0"
+      class="mt-2"
+    >
+      <span
+        *ngFor="let m of dailySummary.byMethod"
+        class="badge bg-secondary me-2"
+      >
+        {{ getPaymentMethodLabel(m.method) }}:
+        {{ m.amount | currency: "VND" }} ({{ m.count }})
+      </span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a
+        class="nav-link"
+        [class.active]="activeTab === 'unpaid'"
+        (click)="switchTab('unpaid')"
+        style="cursor: pointer"
+      >
+        <i class="fa-solid fa-exclamation-circle me-1"></i>
+        Chưa thu ({{ unpaidFines.length }})
+      </a>
+    </li>
+    <li class="nav-item">
+      <a
+        class="nav-link"
+        [class.active]="activeTab === 'paid'"
+        (click)="switchTab('paid')"
+        style="cursor: pointer"
+      >
+        <i class="fa-solid fa-check-circle me-1"></i>
+        Lịch sử đã thu
+      </a>
+    </li>
+  </ul>
+
+  <!-- Bulk Payment Button (only on unpaid tab) -->
+  <div
+    *ngIf="activeTab === 'unpaid' && selectedFineIds.size > 0"
+    class="alert alert-success d-flex justify-content-between align-items-center"
+  >
+    <div>
+      <i class="fa-solid fa-check-double me-2"></i>
+      <strong>Đã chọn {{ selectedFineIds.size }} khoản</strong> - Tổng:
+      <strong>{{ getTotalSelected() | currency: "VND" }}</strong>
+    </div>
+    <div>
+      <button class="btn btn-success me-2" (click)="openBulkPaymentModal()">
+        <i class="fa-solid fa-money-bill-wave me-1"></i> Thanh toán tất cả
+      </button>
+      <button class="btn btn-secondary" (click)="selectedFineIds.clear()">
+        <i class="fa-solid fa-xmark me-1"></i> Bỏ chọn
+      </button>
+    </div>
+  </div>
+  <!-- Unpaid Fines Table -->
+  <div *ngIf="activeTab === 'unpaid'">
+    <div *ngIf="isLoading" class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <table *ngIf="!isLoading" class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width: 50px">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [checked]="
+                selectedFineIds.size === unpaidFines.length &&
+                unpaidFines.length > 0
+              "
+              (change)="toggleAllSelection()"
+            />
+          </th>
+          <th>ID Mượn</th>
+          <th>Tên Người Dùng</th>
+          <th>Tên Sách</th>
+          <th>Số Ngày Quá Hạn</th>
+          <th>Số Tiền Phạt</th>
+          <th style="width: 250px">Hành Động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let fine of unpaidFines"
+          [class.table-info]="isSelected(fine.loanId)"
+        >
+          <td>
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [checked]="isSelected(fine.loanId)"
+              (change)="toggleSelection(fine.loanId)"
+            />
+          </td>
+          <td>{{ fine.loanId }}</td>
+          <td>{{ fine.userName }}</td>
+          <td>{{ fine.bookName }}</td>
+          <td>{{ fine.overdueDays }}</td>
+          <td>
+            <strong>{{ fine.fineAmount | currency: "VND" }}</strong>
+          </td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-success" (click)="openPaymentModal(fine)">
+                <i class="fa-solid fa-money-bill"></i> Đã thu
+              </button>
+              <button
+                class="btn btn-info"
+                (click)="isWaiving = true; openPaymentModal(fine)"
+              >
+                <i class="fa-solid fa-hand-holding-heart"></i> Miễn giảm
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div
+      *ngIf="!isLoading && unpaidFines.length === 0"
+      class="text-center text-muted py-5"
+    >
+      <i class="fa-solid fa-inbox fa-3x mb-3"></i>
+      <p>Không có phí phạt chưa thu nào</p>
+    </div>
+  </div>
+
+  <!-- Paid Fines Table (Transaction History) -->
+  <div *ngIf="activeTab === 'paid'">
+    <!-- Filters -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">
+          <i class="fa-solid fa-filter me-2"></i>Bộ lọc
+        </h5>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Từ ngày</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="filterStartDate"
+            />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Đến ngày</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="filterEndDate"
+            />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Tìm người dùng</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="filterUser"
+              placeholder="Tên người dùng"
+            />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Phương thức</label>
+            <select class="form-select" [(ngModel)]="filterMethod">
+              <option value="">Tất cả</option>
+              <option value="CASH">Tiền mặt</option>
+              <option value="TRANSFER">Chuyển khoản</option>
+              <option value="WAIVED">Miễn giảm</option>
+              <option value="OTHER">Khác</option>
+            </select>
+          </div>
+          <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-primary me-2" (click)="applyFilters()">
+              <i class="fa-solid fa-search"></i>
+            </button>
+            <button class="btn btn-secondary" (click)="clearFilters()">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <table *ngIf="!isLoading" class="table table-hover">
+      <thead>
+        <tr>
+          <th>ID Mượn</th>
+          <th>Người nộp</th>
+          <th>Tên Sách</th>
+          <th>Số tiền</th>
+          <th>Phương thức</th>
+          <th>Ngày thu</th>
+          <th>Người thu</th>
+          <th>Ghi chú</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fine of getFilteredPaidFines()">
+          <td>{{ fine.loanId }}</td>
+          <td>{{ fine.userName }}</td>
+          <td>{{ fine.bookName }}</td>
+          <td>
+            <strong>{{ fine.fineAmount | currency: "VND" }}</strong>
+          </td>
+          <td>
+            <span
+              class="badge"
+              [class.bg-success]="fine.paymentMethod === 'CASH'"
+              [class.bg-primary]="fine.paymentMethod === 'TRANSFER'"
+              [class.bg-warning]="fine.paymentMethod === 'WAIVED'"
+              [class.bg-secondary]="fine.paymentMethod === 'OTHER'"
+            >
+              {{ getPaymentMethodLabel(fine.paymentMethod || "") }}
+            </span>
+          </td>
+          <td>{{ fine.paymentDate | date: "dd/MM/yyyy HH:mm" }}</td>
+          <td>{{ fine.paidBy || "-" }}</td>
+          <td>
+            <small>{{ fine.paymentNote || "-" }}</small>
+          </td>
+          <td>
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              (click)="printReceipt(fine)"
+            >
+              <i class="fa-solid fa-print"></i> In biên lai
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div
+      *ngIf="!isLoading && getFilteredPaidFines().length === 0"
+      class="text-center text-muted py-5"
+    >
+      <i class="fa-solid fa-inbox fa-3x mb-3"></i>
+      <p>Không có lịch sử giao dịch nào</p>
+    </div>
+  </div>
 
   <!-- Payment Method Modal -->
   <div class="modal-backdrop-custom" *ngIf="isPaymentModalOpen">
     <div class="modal-dialog-custom">
       <div class="modal-content-custom">
         <div class="modal-header-custom">
-          <h5 class="modal-title">Xác nhận đã thu tiền phạt</h5>
+          <h5 class="modal-title">
+            <ng-container *ngIf="!isWaiving"
+              >Xác nhận đã thu tiền phạt</ng-container
+            >
+            <ng-container *ngIf="isWaiving">Miễn giảm phí phạt</ng-container>
+          </h5>
         </div>
         <div class="modal-body-custom">
-          <div class="form-group mb-3">
+          <div *ngIf="selectedFine" class="mb-3">
+            <div class="alert alert-info">
+              <strong>{{ selectedFine.userName }}</strong> -
+              {{ selectedFine.bookName }}<br />
+              <strong
+                >Số tiền:
+                {{ selectedFine.fineAmount | currency: "VND" }}</strong
+              >
+            </div>
+          </div>
+          <div class="form-group mb-3" *ngIf="!isWaiving">
             <label for="paymentMethod">Phương thức thanh toán</label>
-            <select id="paymentMethod" class="form-control" [(ngModel)]="selectedPaymentMethod">
+            <select
+              id="paymentMethod"
+              class="form-control"
+              [(ngModel)]="selectedPaymentMethod"
+            >
               <option value="CASH">Tiền mặt</option>
               <option value="TRANSFER">Chuyển khoản</option>
               <option value="OTHER">Khác</option>
             </select>
           </div>
           <div class="form-group mb-3">
-            <label for="paymentNote">Ghi chú (tùy chọn)</label>
+            <label for="paymentNote">{{
+              isWaiving ? "Lý do miễn giảm (bắt buộc)" : "Ghi chú (tùy chọn)"
+            }}</label>
             <textarea
               id="paymentNote"
               class="form-control"
               rows="3"
               [(ngModel)]="paymentNote"
-              placeholder="VD: Mã giao dịch, số biên lai, ghi chú thêm..."
+              [placeholder]="
+                isWaiving
+                  ? 'VD: Học sinh ốm nặng có giấy xác nhận...'
+                  : 'VD: Mã giao dịch, số biên lai...'
+              "
             ></textarea>
           </div>
         </div>
         <div class="modal-footer-custom">
-          <button class="btn btn-secondary" (click)="closePaymentModal()">Hủy</button>
-          <button class="btn btn-primary" (click)="confirmPayment()">Xác nhận đã thu</button>
+          <button
+            class="btn btn-secondary"
+            (click)="closePaymentModal(); isWaiving = false"
+          >
+            Hủy
+          </button>
+          <button
+            class="btn"
+            [class.btn-primary]="!isWaiving"
+            [class.btn-warning]="isWaiving"
+            (click)="confirmPayment()"
+          >
+            <ng-container *ngIf="!isWaiving">
+              <i class="fa-solid fa-check me-1"></i> Xác nhận đã thu
+            </ng-container>
+            <ng-container *ngIf="isWaiving">
+              <i class="fa-solid fa-hand-holding-heart me-1"></i> Xác nhận miễn
+              giảm
+            </ng-container>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Payment Modal -->
+  <div class="modal-backdrop-custom" *ngIf="isBulkPaymentModalOpen">
+    <div class="modal-dialog-custom">
+      <div class="modal-content-custom">
+        <div class="modal-header-custom">
+          <h5 class="modal-title">
+            Thanh toán gộp {{ selectedFineIds.size }} khoản
+          </h5>
+        </div>
+        <div class="modal-body-custom">
+          <div class="alert alert-success mb-3">
+            <strong
+              >Tổng tiền: {{ getTotalSelected() | currency: "VND" }}</strong
+            ><br />
+            Số khoản: {{ selectedFineIds.size }}
+          </div>
+          <div class="form-group mb-3">
+            <label for="bulkPaymentMethod">Phương thức thanh toán</label>
+            <select
+              id="bulkPaymentMethod"
+              class="form-control"
+              [(ngModel)]="bulkPaymentMethod"
+            >
+              <option value="CASH">Tiền mặt</option>
+              <option value="TRANSFER">Chuyển khoản</option>
+              <option value="OTHER">Khác</option>
+            </select>
+          </div>
+          <div class="form-group mb-3">
+            <label for="bulkPaymentNote">Ghi chú chung (tùy chọn)</label>
+            <textarea
+              id="bulkPaymentNote"
+              class="form-control"
+              rows="3"
+              [(ngModel)]="bulkPaymentNote"
+              placeholder="VD: Thu gộp cuối tháng, mã giao dịch..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer-custom">
+          <button class="btn btn-secondary" (click)="closeBulkPaymentModal()">
+            Hủy
+          </button>
+          <button class="btn btn-success" (click)="confirmBulkPayment()">
+            <i class="fa-solid fa-check-double me-1"></i> Xác nhận thanh toán
+            tất cả
+          </button>
         </div>
       </div>
     </div>

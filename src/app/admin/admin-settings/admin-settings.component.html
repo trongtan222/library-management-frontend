@@ -1,76 +1,273 @@
-<div class="container py-4">
-  <h2 class="mb-3">Cấu hình hệ thống</h2>
-  <p class="">Chỉnh sửa tham số mượn sách và tiền phạt.</p>
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h2 class="mb-2">⚙️ Trung tâm Cấu hình Động</h2>
+      <p class="text-muted">
+        Quản lý toàn bộ cấu hình hệ thống. Thay đổi được áp dụng ngay lập tức.
+      </p>
+    </div>
+    <div class="col-md-4 text-end">
+      <button
+        class="btn btn-outline-warning"
+        (click)="openResetCategoryModal()"
+        [disabled]="loading || !getActiveGroup()"
+      >
+        <i class="fa-solid fa-rotate-left me-2"></i>
+        Khôi phục danh mục hiện tại
+      </button>
+    </div>
+  </div>
 
-  <div *ngIf="loading" class="text-muted">Đang tải...</div>
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Đang tải...</span>
+    </div>
+    <p class="text-muted mt-3">Đang tải cấu hình...</p>
+  </div>
 
-  <div class="card bg-dark border-secondary text-light" *ngIf="!loading">
-    <div class="card-body">
-      <div class="row g-3 align-items-end">
-        <div class="col-md-6">
-          <label class="form-label">Số ngày mượn tối đa (LOAN_MAX_DAYS)</label>
-          <input
-            class="form-control bg-dark text-light border-secondary"
-            type="number"
-            [(ngModel)]="settings['LOAN_MAX_DAYS']"
-          />
+  <div *ngIf="!loading && groupedSettings" class="row">
+    <!-- Category Tabs Sidebar -->
+    <div class="col-md-3">
+      <div class="card bg-dark border-secondary">
+        <div class="card-header bg-gradient text-white">
+          <h5 class="mb-0">📂 Danh mục</h5>
         </div>
-        <div class="col-md-3">
+        <div class="list-group list-group-flush">
           <button
-            class="btn btn-primary mt-3 mt-md-0"
-            (click)="saveKey('LOAN_MAX_DAYS')"
-            [disabled]="isSavingDays || isSavingAll"
+            *ngFor="let category of categories"
+            class="list-group-item list-group-item-action bg-dark text-light border-secondary"
+            [class.active]="activeTab === category"
+            (click)="activeTab = category"
           >
-            <span
-              *ngIf="isSavingDays"
-              class="spinner-border spinner-border-sm me-2"
-            ></span>
-            Lưu
+            <span class="me-2">{{ getCategoryIcon(category) }}</span>
+            {{ getCategoryDisplayName(category) }}
           </button>
         </div>
       </div>
+    </div>
 
-      <hr class="border-secondary my-4" />
-
-      <div class="row g-3 align-items-end">
-        <div class="col-md-6">
-          <label class="form-label"
-            >Tiền phạt mỗi ngày (FINE_PER_DAY) - VND</label
-          >
-          <input
-            class="form-control bg-dark text-light border-secondary"
-            type="number"
-            [(ngModel)]="settings['FINE_PER_DAY']"
-          />
+    <!-- Settings Content -->
+    <div class="col-md-9">
+      <div
+        *ngIf="getActiveGroup() as group"
+        class="card bg-dark border-secondary text-light"
+      >
+        <div class="card-header bg-gradient">
+          <h4 class="mb-0">
+            <span class="me-2">{{ group.icon }}</span>
+            {{ group.displayName }}
+          </h4>
         </div>
-        <div class="col-md-3">
-          <button
-            class="btn btn-primary mt-3 mt-md-0"
-            (click)="saveKey('FINE_PER_DAY')"
-            [disabled]="isSavingFine || isSavingAll"
+        <div class="card-body">
+          <div
+            *ngIf="group.settings.length === 0"
+            class="text-center text-muted py-5"
           >
-            <span
-              *ngIf="isSavingFine"
-              class="spinner-border spinner-border-sm me-2"
-            ></span>
-            Lưu
-          </button>
+            Chưa có cấu hình nào trong danh mục này
+          </div>
+
+          <!-- Dynamic Form Renderer -->
+          <div
+            *ngFor="let setting of group.settings; let i = index"
+            class="mb-4"
+          >
+            <div class="setting-item p-3 rounded border border-secondary">
+              <!-- Setting Header -->
+              <div
+                class="d-flex justify-content-between align-items-start mb-2"
+              >
+                <div class="grow">
+                  <label class="form-label fw-bold mb-1">
+                    {{ setting.description || setting.key }}
+                  </label>
+                  <div class="text-muted small">
+                    <code class="bg-secondary px-2 py-1 rounded">{{
+                      setting.key
+                    }}</code>
+                  </div>
+                </div>
+                <button
+                  *ngIf="setting.defaultValue"
+                  class="btn btn-sm btn-outline-warning ms-2"
+                  [disabled]="isResetting(setting.key)"
+                  (click)="openResetModal(setting)"
+                  title="Khôi phục về: {{ setting.defaultValue }}"
+                >
+                  <i class="fa-solid fa-rotate-left"></i>
+                </button>
+              </div>
+
+              <!-- Dynamic Input Based on DataType -->
+              <div class="row g-2 align-items-center">
+                <div class="col-md-8">
+                  <!-- NUMBER Input -->
+                  <input
+                    *ngIf="setting.dataType === SettingDataType.NUMBER"
+                    type="number"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="setting.value"
+                    min="0"
+                  />
+
+                  <!-- TEXT Input -->
+                  <input
+                    *ngIf="setting.dataType === SettingDataType.TEXT"
+                    type="text"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="setting.value"
+                  />
+
+                  <!-- TIME Input -->
+                  <input
+                    *ngIf="setting.dataType === SettingDataType.TIME"
+                    type="time"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="setting.value"
+                  />
+
+                  <!-- TEXTAREA Input -->
+                  <textarea
+                    *ngIf="setting.dataType === SettingDataType.TEXTAREA"
+                    class="form-control bg-dark text-light border-secondary"
+                    [(ngModel)]="setting.value"
+                    rows="4"
+                  ></textarea>
+
+                  <!-- BOOLEAN Toggle Switch -->
+                  <div
+                    *ngIf="setting.dataType === SettingDataType.BOOLEAN"
+                    class="form-check form-switch"
+                  >
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      [id]="'switch-' + setting.key"
+                      [checked]="setting.value === 'true'"
+                      (change)="
+                        setting.value = $any($event.target).checked
+                          ? 'true'
+                          : 'false'
+                      "
+                    />
+                    <label
+                      class="form-check-label ms-2"
+                      [for]="'switch-' + setting.key"
+                    >
+                      <span
+                        class="badge"
+                        [class.bg-success]="setting.value === 'true'"
+                        [class.bg-secondary]="setting.value !== 'true'"
+                      >
+                        {{ setting.value === "true" ? "BẬT" : "TẮT" }}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <button
+                    class="btn btn-primary w-100"
+                    (click)="saveSetting(setting)"
+                    [disabled]="isSaving(setting.key)"
+                  >
+                    <span
+                      *ngIf="isSaving(setting.key)"
+                      class="spinner-border spinner-border-sm me-2"
+                    ></span>
+                    <i
+                      *ngIf="!isSaving(setting.key)"
+                      class="fa-solid fa-save me-2"
+                    ></i>
+                    Lưu
+                  </button>
+                </div>
+              </div>
+
+              <!-- Audit Trail -->
+              <div
+                *ngIf="setting.updatedAt || setting.updatedBy"
+                class="mt-2 pt-2 border-top border-secondary"
+              >
+                <small class="text-muted">
+                  <i class="fa-solid fa-clock-rotate-left me-1"></i>
+                  Cập nhật lần cuối
+                  <span *ngIf="setting.updatedBy" class="fw-bold"
+                    >bởi {{ setting.updatedBy }}</span
+                  >
+                  <span *ngIf="setting.updatedAt"
+                    >lúc {{ formatDateTime(setting.updatedAt) }}</span
+                  >
+                </small>
+                <span *ngIf="setting.defaultValue" class="ms-3 small text-info">
+                  <i class="fa-solid fa-info-circle me-1"></i>
+                  Mặc định:
+                  <code class="bg-secondary px-1">{{
+                    setting.defaultValue
+                  }}</code>
+                </span>
+              </div>
+            </div>
+
+            <hr
+              *ngIf="i < group.settings.length - 1"
+              class="border-secondary my-3"
+            />
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
 
-      <hr class="border-secondary my-4" />
-
-      <div class="d-flex justify-content-end">
+<!-- Reset Confirmation Modal -->
+<div
+  class="modal fade show d-block"
+  *ngIf="showResetModal"
+  tabindex="-1"
+  style="background-color: rgba(0, 0, 0, 0.5)"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border-warning">
+      <div class="modal-header border-warning">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i>
+          Xác nhận khôi phục
+        </h5>
         <button
-          class="btn btn-success"
-          (click)="saveAll()"
-          [disabled]="isSavingAll"
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="closeResetModal()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Bạn có chắc muốn khôi phục <strong>{{ resetModalTitle }}</strong> về
+          giá trị mặc định không?
+        </p>
+        <div
+          *ngIf="!isResettingCategory && resetModalDefaultValue"
+          class="alert alert-info"
         >
-          <span
-            *ngIf="isSavingAll"
-            class="spinner-border spinner-border-sm me-2"
-          ></span>
-          Lưu thay đổi
+          <strong>Giá trị mặc định:</strong>
+          <code>{{ resetModalDefaultValue }}</code>
+        </div>
+        <p class="text-warning small mb-0">
+          <i class="fa-solid fa-exclamation-triangle me-1"></i>
+          Hành động này không thể hoàn tác!
+        </p>
+      </div>
+      <div class="modal-footer border-warning">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeResetModal()"
+        >
+          Hủy
+        </button>
+        <button type="button" class="btn btn-warning" (click)="confirmReset()">
+          <i class="fa-solid fa-rotate-left me-2"></i>
+          Khôi phục
         </button>
       </div>
     </div>

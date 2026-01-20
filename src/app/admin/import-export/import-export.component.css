@@ -17,3 +17,85 @@
 .alert ul {
   margin-bottom: 0;
 }
+
+/* Drag & Drop Zone */
+.drop-zone {
+  border: 3px dashed #ccc;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.drop-zone:hover {
+  border-color: #0d6efd;
+  background-color: #e7f1ff;
+}
+
+.drop-zone.dragging {
+  border-color: #198754;
+  background-color: #d1f4e0;
+  transform: scale(1.02);
+}
+
+.drop-zone i {
+  transition: transform 0.3s ease;
+}
+
+.drop-zone:hover i {
+  transform: translateY(-5px);
+}
+
+/* Fade-in animation */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Preview table styling */
+.table-responsive {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+}
+
+.table-sm {
+  font-size: 0.875rem;
+}
+
+.table-sm thead th {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
+  font-weight: 600;
+}
+
+/* Column mapping styling */
+.form-select-sm {
+  font-size: 0.875rem;
+}
+
+/* Success alert with file name */
+.alert-success {
+  border-left: 4px solid #198754;
+}
+
+/* Error report button */
+.btn-outline-danger:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}

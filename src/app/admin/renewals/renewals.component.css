@@ -1,1 +1,101 @@
-table td, table th { vertical-align: middle; }
+table td,
+table th {
+  vertical-align: middle;
+}
+
+/* === BOOK THUMBNAIL === */
+.book-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #495057;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* === USER & BOOK INFO === */
+.user-info,
+.book-info {
+  line-height: 1.4;
+}
+
+.user-info strong,
+.book-info strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* === REASON BOX === */
+.reason-box {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 8px 10px;
+  border-radius: 4px;
+  border-left: 3px solid #6c757d;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: #adb5bd;
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+.reason-box i {
+  margin-right: 6px;
+  opacity: 0.5;
+}
+
+/* === SELECTION HIGHLIGHT === */
+tr.table-info {
+  background-color: rgba(13, 110, 253, 0.2) !important;
+  border-left: 3px solid #0d6efd;
+}
+
+/* === BULK ACTION BANNER === */
+.alert-info {
+  border-left: 4px solid #0dcaf0;
+  background-color: rgba(13, 202, 240, 0.1);
+}
+
+/* === ACTION BUTTONS === */
+.btn-group-vertical {
+  width: 100%;
+}
+
+.btn-group-vertical .btn {
+  font-size: 0.85rem;
+  padding: 0.375rem 0.5rem;
+}
+
+/* === BADGES === */
+.badge {
+  font-size: 0.8rem;
+  padding: 0.35em 0.65em;
+}
+
+/* === LOADING SPINNER === */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* === EMPTY STATE === */
+.fa-inbox {
+  opacity: 0.3;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .book-thumbnail {
+    width: 40px;
+    height: 40px;
+  }
+
+  .reason-box {
+    max-width: 200px;
+    font-size: 0.85rem;
+  }
+
+  .btn-group-vertical .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.4rem;
+  }
+}

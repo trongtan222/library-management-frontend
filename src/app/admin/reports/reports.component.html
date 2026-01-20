@@ -1,7 +1,7 @@
 <div class="container-fluid mt-4">
   <h1 class="mb-4">Reports & Analytics</h1>
 
-  <div class="card shadow-sm mb-4">
+  <div class="card shadow-sm mb-4 no-print">
     <div class="card-body d-flex align-items-center flex-wrap gap-3">
       <div>
         <label for="startDate" class="form-label">Từ ngày</label>
@@ -45,6 +45,19 @@
         </button>
       </div>
       <div class="ms-auto d-flex gap-2 align-self-end">
+        <button
+          class="btn btn-danger"
+          (click)="exportPdf()"
+          [disabled]="exportingPdf || isLoading || !reportData"
+          title="In báo cáo / Xuất PDF"
+        >
+          <i class="fa-solid fa-file-pdf"></i>
+          <span
+            *ngIf="exportingPdf"
+            class="spinner-border spinner-border-sm ms-1"
+          ></span>
+          {{ exportingPdf ? "Đang chuẩn bị..." : "Xuất PDF" }}
+        </button>
         <button
           class="btn btn-success"
           (click)="exportLoansExcel()"
@@ -103,29 +116,86 @@
   <div *ngIf="!isLoading && reportData" class="row">
     <div class="col-12 mb-4">
       <div class="row g-3">
-        <div class="col-md-4">
+        <!-- Total Loans Card with Growth -->
+        <div class="col-md-3">
           <div class="card shadow-sm h-100">
             <div class="card-body">
-              <div class="text-muted small">Tổng lượt mượn</div>
-              <div class="h3 mb-0">{{ totalLoans }}</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card shadow-sm h-100">
-            <div class="card-body">
-              <div class="text-muted small">Top sách</div>
-              <div class="h3 mb-0">
-                {{ reportData?.mostLoanedBooks?.length || 0 }}
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="text-muted small">Tổng lượt mượn</div>
+                  <div class="h3 mb-0">{{ totalLoans }}</div>
+                  <div
+                    *ngIf="getLoansGrowthIndicator() as indicator"
+                    [class]="'small mt-1 ' + indicator.color"
+                  >
+                    <strong>{{ indicator.icon }} {{ indicator.text }}</strong>
+                    vs kỳ trước
+                  </div>
+                </div>
+                <i
+                  class="fa-solid fa-book-open fa-2x text-primary opacity-50"
+                ></i>
               </div>
             </div>
           </div>
         </div>
-        <div class="col-md-4">
+
+        <!-- Top Books Card -->
+        <div class="col-md-3">
           <div class="card shadow-sm h-100">
             <div class="card-body">
-              <div class="text-muted small">Tổng tiền phạt (ước tính)</div>
-              <div class="h3 mb-0">{{ totalFines | currency : "VND" }}</div>
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="text-muted small">Sách phổ biến</div>
+                  <div class="h3 mb-0">
+                    {{ reportData?.mostLoanedBooks?.length || 0 }}
+                  </div>
+                  <div class="small text-muted mt-1">Top sách được mượn</div>
+                </div>
+                <i class="fa-solid fa-star fa-2x text-warning opacity-50"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Fines Card with Growth -->
+        <div class="col-md-3">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="text-muted small">Tổng tiền phạt</div>
+                  <div class="h3 mb-0">{{ totalFines | currency: "VND" }}</div>
+                  <div
+                    *ngIf="getFinesGrowthIndicator() as indicator"
+                    [class]="'small mt-1 ' + indicator.color"
+                  >
+                    <strong>{{ indicator.icon }} {{ indicator.text }}</strong>
+                    vs kỳ trước
+                  </div>
+                </div>
+                <i class="fa-solid fa-coins fa-2x text-danger opacity-50"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories Card -->
+        <div class="col-md-3">
+          <div class="card shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="text-muted small">Danh mục</div>
+                  <div class="h3 mb-0">
+                    {{ reportData?.loansByCategory?.length || 0 }}
+                  </div>
+                  <div class="small text-muted mt-1">Phân bổ thể loại</div>
+                </div>
+                <i
+                  class="fa-solid fa-layer-group fa-2x text-info opacity-50"
+                ></i>
+              </div>
             </div>
           </div>
         </div>
@@ -182,5 +252,171 @@
         </div>
       </div>
     </div>
+
+    <!-- CATEGORY DISTRIBUTION CHART -->
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow h-100">
+        <div class="card-header">
+          <h6 class="m-0 font-weight-bold">
+            <i class="fa-solid fa-chart-pie me-2"></i>
+            Phân bổ theo Danh mục
+          </h6>
+        </div>
+        <div class="card-body">
+          <canvas #categoryChart></canvas>
+          <div
+            *ngIf="!reportData?.loansByCategory?.length"
+            class="text-muted small mt-2 text-center"
+          >
+            Chưa có dữ liệu phân loại.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEAD STOCK ANALYSIS -->
+    <div *ngIf="hasDeadStock()" class="col-lg-4 mb-4">
+      <div class="card shadow h-100 border-warning">
+        <div class="card-header bg-warning bg-opacity-10">
+          <h6 class="m-0 font-weight-bold text-warning">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            Sách Chết (Dead Stock)
+          </h6>
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-3">
+            Các cuốn sách không được mượn trong thời gian dài. Cân nhắc thanh
+            lý.
+          </p>
+          <div class="list-group list-group-flush">
+            <div
+              *ngFor="let book of reportData?.deadStockBooks?.slice(0, 5)"
+              class="list-group-item px-0 py-2"
+            >
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="grow">
+                  <div class="fw-bold small">{{ book.bookName }}</div>
+                  <small class="text-muted">
+                    <i class="fa-solid fa-clock me-1"></i>
+                    {{
+                      book.lastLoanDate
+                        ? "Lần cuối: " +
+                          (book.lastLoanDate | date: "dd/MM/yyyy")
+                        : "Chưa từng mượn"
+                    }}
+                  </small>
+                </div>
+                <span class="badge bg-warning text-dark">Dead</span>
+              </div>
+            </div>
+          </div>
+          <div
+            *ngIf="(reportData?.deadStockBooks?.length ?? 0) > 5"
+            class="text-center mt-2"
+          >
+            <small class="text-muted">
+              +{{ (reportData?.deadStockBooks?.length ?? 0) - 5 }} cuốn khác
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIGH TURNOVER ANALYSIS -->
+    <div *ngIf="hasHighTurnover()" class="col-lg-4 mb-4">
+      <div class="card shadow h-100 border-success">
+        <div class="card-header bg-success bg-opacity-10">
+          <h6 class="m-0 font-weight-bold text-success">
+            <i class="fa-solid fa-fire me-2"></i>
+            Sách Hot (High Turnover)
+          </h6>
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-3">
+            Sách có tỷ lệ mượn cao so với số bản. Cân nhắc nhập thêm.
+          </p>
+          <div class="list-group list-group-flush">
+            <div
+              *ngFor="let book of reportData?.highTurnoverBooks?.slice(0, 5)"
+              class="list-group-item px-0 py-2"
+            >
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="grow">
+                  <div class="fw-bold small">{{ book.bookName }}</div>
+                  <small class="text-muted">
+                    <i class="fa-solid fa-copy me-1"></i>
+                    {{ book.copyCount }} bản
+                    <i class="fa-solid fa-arrow-right mx-1"></i>
+                    {{ book.loanCount }} lượt mượn
+                  </small>
+                </div>
+                <span class="badge bg-success"
+                  >{{ book.turnoverRate.toFixed(1) }}x</span
+                >
+              </div>
+            </div>
+          </div>
+          <div
+            *ngIf="(reportData?.highTurnoverBooks?.length ?? 0) > 5"
+            class="text-center mt-2"
+          >
+            <small class="text-muted">
+              +{{ (reportData?.highTurnoverBooks?.length ?? 0) - 5 }} cuốn khác
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRILL-DOWN MODAL -->
+    <div *ngIf="selectedMonthDetails" class="col-12 mb-4">
+      <div class="card shadow border-primary">
+        <div
+          class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
+        >
+          <h6 class="m-0">
+            <i class="fa-solid fa-magnifying-glass-chart me-2"></i>
+            Chi tiết lượt mượn: {{ selectedMonthDetails.month }}
+          </h6>
+          <button class="btn btn-sm btn-light" (click)="closeDrillDown()">
+            <i class="fa-solid fa-times"></i>
+          </button>
+        </div>
+        <div class="card-body">
+          <div *ngIf="isLoadingDetails" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">Đang tải chi tiết...</p>
+          </div>
+          <div *ngIf="!isLoadingDetails">
+            <p class="text-muted">
+              <i class="fa-solid fa-info-circle me-2"></i>
+              Tính năng drill-down chi tiết sẽ hiển thị danh sách các lượt mượn
+              trong tháng này. Backend cần implement endpoint:
+              <code>GET /admin/reports/loans-detail?month=2024-10</code>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- PRINT-ONLY STYLES -->
+<style media="print">
+  @page {
+    margin: 2cm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1 {
+    color: #000 !important;
+  }
+</style>

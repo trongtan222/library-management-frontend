@@ -9,6 +9,7 @@ export class UserAuthService {
   }
   private ROLES_KEY = 'roles';
   private TOKEN_KEY = 'jwtToken';
+  private REFRESH_TOKEN_KEY = 'refreshToken';
   private USER_ID_KEY = 'userId';
   private NAME_KEY = 'name';
 
@@ -17,13 +18,17 @@ export class UserAuthService {
   // --- LƯU TRỮ THÔNG TIN ---
   public setRoles(roles: Array<string | { roleName?: string }>) {
     const normalized = (roles ?? [])
-      .map(r => (typeof r === 'string' ? r : r?.roleName))
+      .map((r) => (typeof r === 'string' ? r : r?.roleName))
       .filter((v): v is string => !!v);
     localStorage.setItem(this.ROLES_KEY, JSON.stringify(normalized));
   }
 
   public setToken(jwtToken: string) {
     localStorage.setItem(this.TOKEN_KEY, jwtToken);
+  }
+
+  public setRefreshToken(refreshToken: string) {
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
   }
 
   public setUserId(userId: number) {
@@ -50,6 +55,10 @@ export class UserAuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
+  public getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
   public getUserId(): number | null {
     const s = localStorage.getItem(this.USER_ID_KEY);
     return s != null ? Number(s) : null;
@@ -58,11 +67,12 @@ export class UserAuthService {
   public getName(): string | null {
     return localStorage.getItem(this.NAME_KEY);
   }
-  
+
   // --- CÁC HÀM TIỆN ÍCH ---
   public clear() {
     localStorage.removeItem(this.ROLES_KEY);
     localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_ID_KEY);
     localStorage.removeItem(this.NAME_KEY);
   }
@@ -90,7 +100,7 @@ export class UserAuthService {
       return up.startsWith('ROLE_') ? up : `ROLE_${up}`;
     });
 
-    const userRoles = this.getRoles().map(r => r.toUpperCase());
+    const userRoles = this.getRoles().map((r) => r.toUpperCase());
     if (userRoles.length === 0) return false;
 
     return userRoles.some((userRole) => normalizedAllowed.includes(userRole));

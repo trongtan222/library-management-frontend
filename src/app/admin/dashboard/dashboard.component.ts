@@ -49,6 +49,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private readonly TEXT_COLOR = '#c9d1d9'; // Màu chữ sáng
   private readonly GRID_COLOR = '#30363d'; // Màu lưới tối mờ
 
+  // Date Range Filter
+  dateRange: 'today' | 'week' | 'month' | 'year' = 'month';
+  dateRangeOptions = [
+    { value: 'today', label: 'Hôm nay' },
+    { value: 'week', label: 'Tuần này' },
+    { value: 'month', label: 'Tháng này' },
+    { value: 'year', label: 'Năm nay' },
+  ];
+
   // --- MỚI: State cho việc hiển thị danh sách chi tiết ---
   selectedSection:
     | 'BOOKS'
@@ -74,10 +83,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private adminService: AdminService,
     private booksService: BooksService, // Inject thêm
-    private usersService: UsersService // Inject thêm
+    private usersService: UsersService, // Inject thêm
   ) {}
 
   ngOnInit(): void {
+    this.loadAllData();
+  }
+
+  onDateRangeChange(range: 'today' | 'week' | 'month' | 'year') {
+    this.dateRange = range;
     this.loadAllData();
   }
 
@@ -101,6 +115,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         setTimeout(() => {
           this.renderLoansChart(result.chartData.monthlyLoans);
           this.renderStatusChart(result.chartData.statusDistribution);
+          this.renderTopBooksChart();
         }, 0);
       },
       error: (err: any) => {
@@ -119,7 +134,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       | 'LOANS_ACTIVE'
       | 'LOANS_OVERDUE'
       | 'FINES_ALL'
-      | 'FINES_UNPAID'
+      | 'FINES_UNPAID',
   ) {
     // Nếu bấm lại vào thẻ đang chọn thì ẩn đi (toggle)
     if (this.selectedSection === section) {
@@ -362,5 +377,100 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
     });
     this.charts.push(chart);
+  }
+
+  // 3. Vẽ biểu đồ cột Top 5 Sách Hot
+  renderTopBooksChart() {
+    const ctx = document.getElementById('topBooksChart') as HTMLCanvasElement;
+    if (!ctx) return;
+
+    const topBooks = this.details.mostLoanedBooks.slice(0, 5);
+    const labels = topBooks.map((b) => b.bookName.substring(0, 20) + '...');
+    const data = topBooks.map((b) => b.loanCount);
+
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Lượt mượn',
+            data: data,
+            backgroundColor: [
+              '#ffc107',
+              '#28a745',
+              '#17a2b8',
+              '#6610f2',
+              '#fd7e14',
+            ],
+            borderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y', // Horizontal bar
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: this.GRID_COLOR },
+            ticks: { color: this.TEXT_COLOR },
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: this.TEXT_COLOR },
+          },
+        },
+      },
+    });
+    this.charts.push(chart);
+  }
+
+  // Quick Actions
+  quickCreateLoan() {
+    window.location.href = '/admin/create-loan';
+  }
+
+  quickScanReturn() {
+    window.location.href = '/admin/scanner';
+  }
+
+  quickAddUser() {
+    window.location.href = '/create-user';
+  }
+
+  // Utility: Format relative time
+  getRelativeTime(date: string): string {
+    const now = new Date().getTime();
+    const then = new Date(date).getTime();
+    const diffMs = now - then;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    return `${diffDays} ngày trước`;
+  }
+
+  // Utility: Get activity icon
+  getActivityIcon(activity: any): string {
+    if (activity.type?.includes('LOAN')) return 'fa-hand-holding';
+    if (activity.type?.includes('RETURN')) return 'fa-check-circle';
+    if (activity.type?.includes('FINE')) return 'fa-coins';
+    return 'fa-circle';
+  }
+
+  // Utility: Get activity color
+  getActivityColor(activity: any): string {
+    if (activity.type?.includes('LOAN')) return 'text-info';
+    if (activity.type?.includes('RETURN')) return 'text-success';
+    if (activity.type?.includes('FINE')) return 'text-danger';
+    return 'text-secondary';
   }
 }

@@ -1,58 +1,436 @@
-<div class="container mt-4">
-  <h2 class="mb-4">Danh Sách Sách Đã Mượn</h2>
-
-  <div *ngIf="successMessage" class="alert alert-success mt-3" role="alert">
-    {{ successMessage }}
-  </div>
-  <div *ngIf="errorMessage" class="alert alert-danger mt-3" role="alert">
-    {{ errorMessage }}
-  </div>
-
-  <div *ngIf="borrows.length === 0 && !errorMessage" class="alert alert-info mt-3">
-    Bạn chưa mượn cuốn sách nào.
+<div class="container py-5">
+  <!-- Header -->
+  <div class="page-header mb-5">
+    <h1 class="display-5 fw-bold">
+      <i class="fa-solid fa-hand-holding-heart me-3 text-primary"></i>
+      Trả Sách
+    </h1>
+    <p class="lead text-muted">
+      Quản lý trả sách và tính toán phí phạt tự động
+    </p>
   </div>
 
-  <table *ngIf="borrows.length > 0" class="table table-hover mt-3">
-    <thead>
-      <tr>
-        <th>Tên Sách</th>
-        <th>Ngày Mượn</th>
-        <th>Ngày Đến Hạn</th>
-        <th>Hành Động</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let b of borrows">
-        <td>{{ b.bookName }}</td>
-        <td>{{ b.loanDate | date: 'dd/MM/yyyy' }}</td>
-        <td>{{ b.dueDate | date: 'dd/MM/yyyy' }}</td>
-        <td>
-          <button (click)="openConfirmModal(b)" class="btn btn-danger btn-sm" [disabled]="loading.has(b.loanId!)">
-            <span *ngIf="loading.has(b.loanId!)" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <i *ngIf="!loading.has(b.loanId!)" class="fa-solid fa-undo me-1"></i>
-            <span *ngIf="!loading.has(b.loanId!)">Trả Sách</span>
+  <!-- Search Section -->
+  <div class="row mb-4">
+    <div class="col-lg-10 mx-auto">
+      <div class="card shadow-sm search-card">
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <!-- Search Mode Toggle -->
+            <div class="col-12">
+              <div class="btn-group w-100" role="group">
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="searchMode"
+                  id="searchLoan"
+                  [(ngModel)]="searchMode"
+                  value="loan"
+                  autocomplete="off"
+                  checked
+                />
+                <label class="btn btn-outline-primary" for="searchLoan">
+                  <i class="fa-solid fa-barcode me-2"></i>Tìm theo ID Phiếu Mượn
+                </label>
+
+                <input
+                  type="radio"
+                  class="btn-check"
+                  name="searchMode"
+                  id="searchUser"
+                  [(ngModel)]="searchMode"
+                  value="user"
+                  autocomplete="off"
+                />
+                <label class="btn btn-outline-info" for="searchUser">
+                  <i class="fa-solid fa-user me-2"></i>Tìm theo Người Dùng
+                </label>
+              </div>
+            </div>
+
+            <!-- Search Input -->
+            <div class="col-md-9">
+              <input
+                type="text"
+                class="form-control form-control-lg"
+                [(ngModel)]="searchQuery"
+                (keyup.enter)="searchLoan()"
+                [placeholder]="
+                  searchMode === 'loan'
+                    ? 'Nhập ID phiếu mượn (VD: 123)'
+                    : 'Nhập tên người dùng (VD: Nguyễn Văn A)'
+                "
+              />
+            </div>
+
+            <!-- Search Button -->
+            <div class="col-md-3">
+              <button
+                class="btn btn-primary btn-lg w-100"
+                (click)="searchLoan()"
+                [disabled]="isSearching"
+              >
+                <span *ngIf="!isSearching">
+                  <i class="fa-solid fa-magnifying-glass me-2"></i>Tìm kiếm
+                </span>
+                <span *ngIf="isSearching">
+                  <i class="fa-solid fa-spinner fa-spin me-2"></i>Đang tìm...
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Results (for User Search) -->
+  <div
+    *ngIf="searchMode === 'user' && searchResults.length > 0"
+    class="row mb-4"
+  >
+    <div class="col-lg-10 mx-auto">
+      <div class="card shadow-sm">
+        <div
+          class="card-header bg-info text-white d-flex justify-content-between align-items-center"
+        >
+          <h5 class="mb-0">
+            <i class="fa-solid fa-list-check me-2"></i>
+            Danh Sách Sách Đang Mượn ({{ searchResults.length }})
+          </h5>
+          <div>
+            <button class="btn btn-sm btn-light me-2" (click)="selectAll()">
+              <i class="fa-solid fa-check-double me-1"></i>Chọn tất cả
+            </button>
+            <button
+              class="btn btn-sm btn-outline-light"
+              (click)="deselectAll()"
+            >
+              <i class="fa-solid fa-xmark me-1"></i>Bỏ chọn
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th width="50">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      (change)="
+                        $event.target.checked ? selectAll() : deselectAll()
+                      "
+                    />
+                  </th>
+                  <th>Tên Sách</th>
+                  <th>Người Mượn</th>
+                  <th>Ngày Mượn</th>
+                  <th>Hạn Trả</th>
+                  <th>Trạng Thái</th>
+                  <th width="150">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let loan of searchResults"
+                  [class.table-danger]="loan.status === 'OVERDUE'"
+                >
+                  <td>
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      [checked]="selectedLoans.has(loan.loanId!)"
+                      (change)="toggleLoanSelection(loan.loanId!)"
+                    />
+                  </td>
+                  <td>
+                    <strong>{{ loan.bookName }}</strong>
+                  </td>
+                  <td>{{ loan.borrowerName || loan.borrowerUsername }}</td>
+                  <td>{{ loan.loanDate | date: "dd/MM/yyyy" }}</td>
+                  <td>{{ loan.returnDate | date: "dd/MM/yyyy" }}</td>
+                  <td>
+                    <span
+                      class="badge"
+                      [ngClass]="
+                        loan.status === 'OVERDUE' ? 'bg-danger' : 'bg-success'
+                      "
+                    >
+                      {{ loan.status === "OVERDUE" ? "Quá hạn" : "Đang mượn" }}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-primary"
+                      (click)="openPreviewModal(loan)"
+                    >
+                      <i class="fa-solid fa-eye me-1"></i>Xem trước
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-light">
+          <button
+            class="btn btn-success btn-lg w-100"
+            (click)="returnMultiple()"
+            [disabled]="selectedLoans.size === 0"
+          >
+            <i class="fa-solid fa-hand-holding-heart me-2"></i>
+            Trả {{ selectedLoans.size }} Cuốn Đã Chọn
           </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div class="modal fade show" tabindex="-1" [ngStyle]="{display: showConfirmModal ? 'block' : 'none'}" *ngIf="showConfirmModal">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content dark-modal">
-      <div class="modal-header">
-        <h5 class="modal-title">Xác Nhận Trả Sách</h5>
-        <button type="button" class="btn-close btn-close-white" (click)="closeConfirmModal()"></button>
-      </div>
-      <div class="modal-body">
-        <p *ngIf="borrowToReturn">Bạn có chắc chắn muốn trả cuốn sách "<strong>{{ borrowToReturn.bookName }}</strong>" không?</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeConfirmModal()">Không, hủy</button>
-        <button class="btn btn-danger" (click)="confirmReturn()">Có, trả sách</button>
+  <!-- Empty State -->
+  <div
+    *ngIf="searchMode === 'user' && searchResults.length === 0 && searchQuery"
+    class="row"
+  >
+    <div class="col-lg-10 mx-auto">
+      <div class="alert alert-info text-center">
+        <i class="fa-solid fa-circle-info fa-2x mb-3"></i>
+        <p class="mb-0">Không tìm thấy sách nào đang mượn</p>
       </div>
     </div>
   </div>
 </div>
-<div class="modal-backdrop fade show" *ngIf="showConfirmModal"></div>
+
+<!-- Preview Modal -->
+<div
+  class="modal fade show"
+  tabindex="-1"
+  [ngStyle]="{ display: showPreviewModal ? 'block' : 'none' }"
+  *ngIf="showPreviewModal"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-file-invoice me-2"></i>
+          Xác Nhận Trả Sách
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="closePreviewModal()"
+        ></button>
+      </div>
+
+      <div class="modal-body" *ngIf="returnPreview">
+        <!-- Book Info -->
+        <div class="row mb-4">
+          <div class="col-md-4 text-center">
+            <div class="book-cover-preview">
+              <img
+                [src]="
+                  returnPreview.bookCoverUrl ||
+                  'assets/books/default-book-cover.jpg'
+                "
+                alt="Book Cover"
+                class="img-fluid rounded shadow"
+                (error)="
+                  $event.target.src = 'assets/books/default-book-cover.jpg'
+                "
+              />
+            </div>
+          </div>
+          <div class="col-md-8">
+            <h4 class="text-primary mb-3">{{ returnPreview.bookName }}</h4>
+
+            <div class="info-group">
+              <div class="info-item">
+                <i class="fa-solid fa-user text-muted me-2"></i>
+                <strong>Người mượn:</strong>
+                {{
+                  returnPreview.borrowerName || returnPreview.borrowerUsername
+                }}
+              </div>
+              <div class="info-item">
+                <i class="fa-solid fa-calendar-day text-muted me-2"></i>
+                <strong>Ngày mượn:</strong>
+                {{ returnPreview.loanDate | date: "dd/MM/yyyy" }}
+              </div>
+              <div class="info-item">
+                <i class="fa-solid fa-calendar-check text-muted me-2"></i>
+                <strong>Hạn trả:</strong>
+                {{ returnPreview.returnDate | date: "dd/MM/yyyy" }}
+              </div>
+            </div>
+
+            <!-- Overdue Warning -->
+            <div
+              *ngIf="returnPreview.isOverdue"
+              class="alert alert-danger mt-3 mb-0"
+            >
+              <div class="d-flex align-items-center">
+                <i class="fa-solid fa-triangle-exclamation fa-2x me-3"></i>
+                <div>
+                  <strong>CẢNH BÁO: Sách quá hạn!</strong><br />
+                  <span>Quá hạn {{ returnPreview.daysOverdue }} ngày</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+
+        <!-- Book Condition Selector -->
+        <div class="mb-4">
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-clipboard-check me-2 text-primary"></i>
+            Tình Trạng Sách Khi Trả
+          </label>
+          <div class="row g-2">
+            <div *ngFor="let condition of bookConditions" class="col-md-6">
+              <div
+                class="condition-card"
+                [class.selected]="selectedCondition === condition.value"
+                (click)="
+                  selectedCondition = condition.value; onConditionChange()
+                "
+              >
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="condition"
+                    [value]="condition.value"
+                    [(ngModel)]="selectedCondition"
+                    (change)="onConditionChange()"
+                    [id]="'condition-' + condition.value"
+                  />
+                  <label
+                    class="form-check-label w-100"
+                    [for]="'condition-' + condition.value"
+                  >
+                    <div
+                      class="d-flex justify-content-between align-items-start"
+                    >
+                      <div>
+                        <strong>{{ condition.label }}</strong>
+                        <small class="d-block text-muted">{{
+                          condition.description
+                        }}</small>
+                      </div>
+                      <span
+                        class="badge"
+                        [ngClass]="getConditionBadgeClass(condition.value)"
+                      >
+                        {{
+                          condition.damageFee === 0
+                            ? "Miễn phí"
+                            : formatCurrency(condition.damageFee)
+                        }}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fine Calculation -->
+        <div class="fine-calculation-card">
+          <h5 class="mb-3">
+            <i class="fa-solid fa-calculator me-2 text-warning"></i>
+            Tính Toán Phí Phạt
+          </h5>
+
+          <div class="fine-breakdown">
+            <div class="fine-item">
+              <span
+                >Phạt quá hạn ({{ returnPreview.daysOverdue }} ngày ×
+                {{ formatCurrency(finePerDay) }}/ngày):</span
+              >
+              <strong class="text-danger">{{
+                formatCurrency(returnPreview.overdueFine)
+              }}</strong>
+            </div>
+            <div class="fine-item">
+              <span
+                >Phí đền bù ({{ getConditionLabel(selectedCondition) }}):</span
+              >
+              <strong class="text-danger">{{
+                formatCurrency(returnPreview.damageFee)
+              }}</strong>
+            </div>
+            <hr class="my-2" />
+            <div class="fine-item fine-total">
+              <span><strong>TỔNG CỘNG:</strong></span>
+              <strong class="text-danger fs-4">{{
+                formatCurrency(returnPreview.totalFine)
+              }}</strong>
+            </div>
+          </div>
+
+          <!-- Payment Method (if fine > 0) -->
+          <div *ngIf="returnPreview.totalFine > 0" class="mt-3">
+            <label class="form-label fw-bold">Phương Thức Thanh Toán</label>
+            <div class="btn-group w-100" role="group">
+              <input
+                type="radio"
+                class="btn-check"
+                name="payment"
+                id="cash"
+                [(ngModel)]="finePaymentMethod"
+                value="CASH"
+                autocomplete="off"
+                checked
+              />
+              <label class="btn btn-outline-success" for="cash">
+                <i class="fa-solid fa-money-bill-wave me-2"></i>Đã Thu Tiền Mặt
+              </label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="payment"
+                id="debt"
+                [(ngModel)]="finePaymentMethod"
+                value="DEBT"
+                autocomplete="off"
+              />
+              <label class="btn btn-outline-warning" for="debt">
+                <i class="fa-solid fa-file-invoice-dollar me-2"></i>Ghi Nợ Tài
+                Khoản
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closePreviewModal()"
+        >
+          <i class="fa-solid fa-xmark me-2"></i>Hủy
+        </button>
+        <button
+          type="button"
+          class="btn btn-success btn-lg"
+          (click)="confirmReturn()"
+        >
+          <i class="fa-solid fa-check-circle me-2"></i>Xác Nhận Trả Sách
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div
+  class="modal-backdrop fade show"
+  *ngIf="showPreviewModal"
+  (click)="closePreviewModal()"
+></div>

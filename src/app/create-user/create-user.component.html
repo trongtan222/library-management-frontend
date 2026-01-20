@@ -1,43 +1,235 @@
-<div class="container col-md-6 offset-md-3 mt-5">
-  <h3 class="text-center">Tạo Người Dùng Mới</h3>
+<div class="container col-md-8 offset-md-2 mt-5">
+  <div class="header-section">
+    <h3 class="text-center">Tạo Người Dùng Mới</h3>
+    <button class="btn btn-outline-info btn-sm" (click)="goToBulkImport()">
+      <i class="fas fa-file-excel"></i> Import hàng loạt từ Excel
+    </button>
+  </div>
+
   <form (ngSubmit)="onSubmit()" #userForm="ngForm">
-    <div class="form-group mb-3">
-      <label class="form-label">Tên</label>
-      <input type="text" class="form-control" [(ngModel)]="user.name" name="name" required>
+    <!-- Avatar Upload -->
+    <div class="avatar-section mb-4">
+      <label class="form-label">Ảnh đại diện (không bắt buộc)</label>
+      <div class="avatar-upload-container">
+        <div class="avatar-preview" *ngIf="avatarPreview; else noAvatar">
+          <img [src]="avatarPreview" alt="Avatar preview" />
+          <button
+            type="button"
+            class="btn-remove-avatar"
+            (click)="removeAvatar()"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <ng-template #noAvatar>
+          <div class="avatar-placeholder">
+            <i class="fas fa-user fa-3x"></i>
+            <p>Chọn ảnh</p>
+          </div>
+        </ng-template>
+        <input
+          type="file"
+          id="avatarInput"
+          accept="image/*"
+          (change)="onAvatarSelected($event)"
+          hidden
+        />
+        <label for="avatarInput" class="btn btn-secondary btn-sm mt-2">
+          <i class="fas fa-upload"></i> Chọn ảnh (Max 2MB)
+        </label>
+      </div>
     </div>
 
-    <div class="form-group mb-3">
-      <label class="form-label">Email</label>
-      <input type="email" class="form-control" [(ngModel)]="user.email" name="email" required email #email="ngModel"
-             [class.is-invalid]="email.invalid && email.touched">
-      <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
-        <span *ngIf="email.errors?.['required']">Vui lòng nhập email.</span>
-        <span *ngIf="email.errors?.['email']">Vui lòng nhập một địa chỉ email hợp lệ.</span>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label class="form-label">Tên <span class="required">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="user.name"
+            name="name"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label class="form-label"
+            >Email <span class="required">*</span></label
+          >
+          <div class="input-with-icon">
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="user.email"
+              name="email"
+              required
+              email
+              #email="ngModel"
+              (ngModelChange)="onEmailChange($event)"
+              [class.is-invalid]="
+                (email.invalid && email.touched) || emailExists
+              "
+              [class.is-valid]="emailValid && !emailExists && !emailChecking"
+            />
+            <i class="fas fa-spinner fa-spin" *ngIf="emailChecking"></i>
+            <i
+              class="fas fa-check-circle text-success"
+              *ngIf="emailValid && !emailExists && !emailChecking"
+            ></i>
+          </div>
+          <div *ngIf="email.invalid && email.touched" class="invalid-feedback">
+            <span *ngIf="email.errors?.['required']">Vui lòng nhập email.</span>
+            <span *ngIf="email.errors?.['email']"
+              >Vui lòng nhập một địa chỉ email hợp lệ.</span
+            >
+          </div>
+          <div *ngIf="emailExists" class="invalid-feedback">
+            Email này đã được sử dụng trong hệ thống.
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="form-group mb-3">
-      <label class="form-label">Tên Đăng Nhập</label>
-      <input type="text" class="form-control" [(ngModel)]="user.username" name="username" required>
+      <label class="form-label"
+        >Tên Đăng Nhập <span class="required">*</span></label
+      >
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="user.username"
+        name="username"
+        required
+      />
     </div>
-    <div class="form-group mb-3">
-      <label class="form-label">Mật Khẩu</label>
-      <input type="password" class="form-control" [(ngModel)]="user.password" name="password" required>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label class="form-label">
+            Mật Khẩu <span class="required">*</span>
+            <button
+              type="button"
+              class="btn-generate"
+              (click)="generatePassword()"
+              title="Tạo mật khẩu mạnh"
+            >
+              🎲 Tạo tự động
+            </button>
+          </label>
+          <div class="password-input-group">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-control"
+              [(ngModel)]="user.password"
+              name="password"
+              required
+              (ngModelChange)="checkPasswordStrength($event)"
+            />
+            <button
+              type="button"
+              class="btn-toggle-password"
+              (click)="togglePasswordVisibility()"
+            >
+              <i
+                class="fas"
+                [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"
+              ></i>
+            </button>
+          </div>
+          <div class="password-strength" *ngIf="passwordStrength">
+            <div class="strength-bar" [ngClass]="passwordStrength">
+              <div class="strength-fill"></div>
+            </div>
+            <small class="strength-text" [ngClass]="passwordStrength">
+              <span *ngIf="passwordStrength === 'weak'">⚠️ Yếu</span>
+              <span *ngIf="passwordStrength === 'medium'">✓ Trung bình</span>
+              <span *ngIf="passwordStrength === 'strong'">✓✓ Mạnh</span>
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="form-group mb-3">
+          <label class="form-label"
+            >Xác Nhận Mật Khẩu <span class="required">*</span></label
+          >
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            class="form-control"
+            [(ngModel)]="confirmPassword"
+            name="confirmPassword"
+            required
+            [class.is-invalid]="
+              confirmPassword && user.password !== confirmPassword
+            "
+            [class.is-valid]="
+              confirmPassword && user.password === confirmPassword
+            "
+          />
+          <div
+            *ngIf="confirmPassword && user.password !== confirmPassword"
+            class="invalid-feedback"
+          >
+            Mật khẩu không khớp
+          </div>
+        </div>
+      </div>
     </div>
+
     <div class="form-group mb-3">
-      <label class="form-label">Xác Nhận Mật Khẩu</label>
-      <input type="password" class="form-control" [(ngModel)]="confirmPassword" name="confirmPassword" required>
-    </div>
-    <div class="form-group mb-3">
-      <label class="form-label">Vai Trò</label>
-      <select class="form-select" [(ngModel)]="selectedRole" name="role" required>
-        <option *ngFor="let role of rolesOptions" [ngValue]="role">{{ role }}</option>
+      <label class="form-label">Vai Trò <span class="required">*</span></label>
+      <select
+        class="form-select"
+        [(ngModel)]="selectedRole"
+        name="role"
+        required
+      >
+        <option *ngFor="let role of rolesOptions" [ngValue]="role">
+          {{ role === "ROLE_USER" ? "👤 Người dùng" : "👑 Quản trị viên" }}
+        </option>
       </select>
-      <div class="form-text">Chọn một vai trò cho người dùng.</div>
     </div>
-    <button class="btn btn-success" type="submit" [disabled]="isLoading || userForm.invalid">
-      <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
-      {{ isLoading ? 'Đang Tạo...' : 'Tạo Người Dùng' }}
-    </button>
+
+    <div class="form-check mb-4">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        [(ngModel)]="sendInvitation"
+        name="sendInvitation"
+        id="sendInvitation"
+      />
+      <label class="form-check-label" for="sendInvitation">
+        📧 Gửi email mời với thông tin đăng nhập cho người dùng
+      </label>
+      <div class="form-text">
+        Người dùng sẽ nhận được email chào mừng kèm username và mật khẩu.
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button
+        class="btn btn-success"
+        type="submit"
+        [disabled]="
+          isLoading || userForm.invalid || emailExists || emailChecking
+        "
+      >
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm"></span>
+        <i class="fas fa-user-plus" *ngIf="!isLoading"></i>
+        {{ isLoading ? "Đang Tạo..." : "Tạo Người Dùng" }}
+      </button>
+      <button
+        class="btn btn-outline-secondary"
+        type="button"
+        routerLink="/users"
+      >
+        <i class="fas fa-times"></i> Hủy
+      </button>
+    </div>
   </form>
 </div>

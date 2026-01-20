@@ -19,7 +19,8 @@
   pointer-events: none;
 }
 .auth-bg::before {
-  background: radial-gradient(
+  background:
+    radial-gradient(
       420px 220px at 15% 15%,
       rgba(167, 139, 250, 0.18),
       transparent 70%

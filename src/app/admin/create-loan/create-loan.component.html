@@ -1,9 +1,35 @@
 <div class="container mt-4">
   <div class="card shadow-lg border-0 bg-dark text-white">
-    <div class="card-header bg-primary text-white">
-      <h3 class="mb-0">
-        <i class="fa-solid fa-file-signature me-2"></i>Tạo Phiếu Mượn (Admin)
-      </h3>
+    <div
+      class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
+    >
+      <div>
+        <h3 class="mb-0">
+          <i class="fa-solid fa-file-signature me-2"></i>Tạo Phiếu Mượn (Admin)
+        </h3>
+        <small class="text-white-50"
+          >⌨️ Phím tắt: Ctrl+S (Scanner) | F2 (Xóa giỏ) | F3 (User) | F4 (Sách)
+          | Ctrl+Enter (Submit)</small
+        >
+      </div>
+      <div class="d-flex gap-2">
+        <button
+          class="btn btn-outline-light btn-sm"
+          type="button"
+          (click)="downloadBulkTemplate()"
+        >
+          <i class="fa-solid fa-download me-1"></i>Tải file mẫu CSV
+        </button>
+        <label class="btn btn-warning btn-sm mb-0">
+          <i class="fa-solid fa-file-import me-1"></i>Import CSV
+          <input
+            type="file"
+            accept=".csv"
+            (change)="onBulkImportFile($event)"
+            style="display: none"
+          />
+        </label>
+      </div>
     </div>
     <div class="card-body p-4">
       <div class="row g-4">
@@ -15,8 +41,54 @@
             <span
               ><i class="fa-solid fa-user me-2"></i>Bước 1: Chọn Độc Giả</span
             >
-            <span class="badge bg-secondary">Auto-complete + thẻ tóm tắt</span>
+            <div class="d-flex gap-2">
+              <button
+                class="btn btn-sm btn-outline-info"
+                type="button"
+                (click)="toggleRecentUsers()"
+                *ngIf="recentUsers.length > 0"
+              >
+                <i class="fa-solid fa-clock-rotate-left me-1"></i>
+                {{ showRecentUsers ? "Ẩn" : "Hiện" }} gần đây ({{
+                  recentUsers.length
+                }})
+              </button>
+              <button
+                class="btn btn-sm btn-outline-danger"
+                type="button"
+                (click)="clearRecentUsers()"
+                *ngIf="recentUsers.length > 0"
+              >
+                <i class="fa-solid fa-trash me-1"></i>Xóa lịch sử
+              </button>
+            </div>
           </h5>
+
+          <!-- Recent Users List -->
+          <div
+            class="list-group mb-3 shadow"
+            *ngIf="showRecentUsers && recentUsers.length > 0"
+          >
+            <div class="list-group-item bg-secondary text-white small fw-bold">
+              📌 Người dùng gần đây ({{ recentUsers.length }})
+            </div>
+            <button
+              type="button"
+              class="list-group-item list-group-item-action bg-dark border-secondary d-flex justify-content-between align-items-center"
+              *ngFor="let u of recentUsers"
+              (click)="selectUser(u)"
+            >
+              <div>
+                <strong>{{ u.name }}</strong>
+                <div class="small text-muted">
+                  Username: {{ u.username }} • ID: {{ u.userId }}
+                </div>
+              </div>
+              <span class="badge bg-info text-dark">{{
+                u.role || u.roles[0] || "User"
+              }}</span>
+            </button>
+          </div>
 
           <!-- Input Tìm kiếm -->
           <div class="position-relative mb-3" *ngIf="!selectedUser">
@@ -136,7 +208,7 @@
                           : 'bg-secondary'
                       "
                     >
-                      Phí phạt: {{ userSummary.totalFine | number : "1.0-0" }} đ
+                      Phí phạt: {{ userSummary.totalFine | number: "1.0-0" }} đ
                     </span>
                   </div>
                   <div
@@ -154,7 +226,7 @@
                       >
                         <span class="fw-bold">{{ l.bookName }}</span>
                         <span class="text-info"
-                          >({{ l.loanDate | date : "dd/MM/yyyy" }})</span
+                          >({{ l.loanDate | date: "dd/MM/yyyy" }})</span
                         >
                       </li>
                     </ul>
@@ -427,6 +499,86 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Import Progress Modal -->
+<div
+  class="modal fade show d-block"
+  *ngIf="showBulkModal"
+  tabindex="-1"
+  style="background-color: rgba(0, 0, 0, 0.7)"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border-warning">
+      <div class="modal-header border-warning">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-file-import text-warning me-2"></i>
+          Nhập phiếu mượn hàng loạt
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          (click)="closeBulkModal()"
+          [disabled]="bulkImporting"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="bulkImporting" class="text-center py-4">
+          <div
+            class="spinner-border text-warning mb-3"
+            style="width: 3rem; height: 3rem"
+          ></div>
+          <p class="h5">
+            Đang xử lý... {{ bulkResults.success }}/{{ bulkResults.total }}
+          </p>
+        </div>
+
+        <div *ngIf="!bulkImporting && bulkResults.total > 0">
+          <div class="alert alert-success">
+            <h6 class="mb-2">
+              <i class="fa-solid fa-check-circle me-2"></i>
+              Hoàn tất: {{ bulkResults.success }}/{{ bulkResults.total }} thành
+              công
+            </h6>
+            <div class="progress" style="height: 25px">
+              <div
+                class="progress-bar bg-success"
+                [style.width.%]="
+                  (bulkResults.success / bulkResults.total) * 100
+                "
+              >
+                {{
+                  ((bulkResults.success / bulkResults.total) * 100).toFixed(1)
+                }}%
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="bulkResults.errors.length > 0" class="alert alert-danger">
+            <h6 class="mb-2">
+              <i class="fa-solid fa-exclamation-triangle me-2"></i>
+              Lỗi ({{ bulkResults.errors.length }})
+            </h6>
+            <div class="overflow-auto" style="max-height: 250px">
+              <ul class="mb-0 small">
+                <li *ngFor="let err of bulkResults.errors">{{ err }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-warning">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeBulkModal()"
+          [disabled]="bulkImporting"
+        >
+          {{ bulkImporting ? "Đang xử lý..." : "Đóng" }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

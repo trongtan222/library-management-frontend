@@ -1,0 +1,115 @@
+<div class="pagination-container" *ngIf="totalPages > 0">
+  <div class="pagination-info">
+    <span class="text-muted">
+      Hiển thị {{ startElement }} - {{ endElement }} trong tổng số
+      {{ totalElements }} kết quả
+    </span>
+  </div>
+
+  <div class="pagination-controls">
+    <!-- Page size selector -->
+    <div class="page-size-selector" *ngIf="showPageSizeSelector">
+      <label for="pageSize" class="me-2">Số dòng:</label>
+      <select
+        id="pageSize"
+        class="form-select form-select-sm"
+        [value]="pageSize"
+        (change)="onPageSizeSelected($event)"
+      >
+        <option *ngFor="let size of pageSizeOptions" [value]="size">
+          {{ size }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Pagination buttons -->
+    <nav aria-label="Pagination">
+      <ul class="pagination pagination-sm mb-0">
+        <!-- First page -->
+        <li class="page-item" [class.disabled]="!hasPrevious">
+          <button
+            class="page-link"
+            (click)="goToFirstPage()"
+            [disabled]="!hasPrevious"
+            aria-label="First"
+          >
+            <i class="bi bi-chevron-double-left"></i>
+          </button>
+        </li>
+
+        <!-- Previous page -->
+        <li class="page-item" [class.disabled]="!hasPrevious">
+          <button
+            class="page-link"
+            (click)="goToPreviousPage()"
+            [disabled]="!hasPrevious"
+            aria-label="Previous"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+        </li>
+
+        <!-- First page if not in range -->
+        <li class="page-item" *ngIf="showFirstEllipsis">
+          <button class="page-link" (click)="goToPage(0)">1</button>
+        </li>
+
+        <!-- Ellipsis before -->
+        <li class="page-item disabled" *ngIf="showFirstEllipsis">
+          <span class="page-link">...</span>
+        </li>
+
+        <!-- Page numbers -->
+        <li
+          class="page-item"
+          *ngFor="let page of pages"
+          [class.active]="page === currentPage"
+        >
+          <button
+            class="page-link"
+            (click)="goToPage(page)"
+            [attr.aria-current]="page === currentPage ? 'page' : null"
+          >
+            {{ page + 1 }}
+          </button>
+        </li>
+
+        <!-- Ellipsis after -->
+        <li class="page-item disabled" *ngIf="showLastEllipsis">
+          <span class="page-link">...</span>
+        </li>
+
+        <!-- Last page if not in range -->
+        <li class="page-item" *ngIf="showLastEllipsis">
+          <button class="page-link" (click)="goToPage(totalPages - 1)">
+            {{ totalPages }}
+          </button>
+        </li>
+
+        <!-- Next page -->
+        <li class="page-item" [class.disabled]="!hasNext">
+          <button
+            class="page-link"
+            (click)="goToNextPage()"
+            [disabled]="!hasNext"
+            aria-label="Next"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </li>
+
+        <!-- Last page -->
+        <li class="page-item" [class.disabled]="!hasNext">
+          <button
+            class="page-link"
+            (click)="goToLastPage()"
+            [disabled]="!hasNext"
+            aria-label="Last"
+          >
+            <i class="bi bi-chevron-double-right"></i>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>

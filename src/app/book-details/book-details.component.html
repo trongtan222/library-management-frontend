@@ -129,15 +129,40 @@
             </p>
           </div>
 
-          <div class="d-flex gap-3">
+          <div class="d-flex gap-3 flex-wrap">
             <button
-              *ngIf="isUser"
+              *ngIf="isUser && book.numberOfCopiesAvailable > 0"
               class="btn btn-primary px-4"
               (click)="navigateToBorrow()"
-              [disabled]="book.numberOfCopiesAvailable === 0"
             >
               <i class="fa-solid fa-cart-plus me-2"></i> Mượn Sách Này
             </button>
+            <button
+              *ngIf="isUser && book.numberOfCopiesAvailable === 0"
+              class="btn btn-warning px-4"
+              (click)="navigateToReserve()"
+            >
+              <i class="fa-solid fa-clock me-2"></i> Đặt Trước
+            </button>
+
+            <!-- E-book Read Button -->
+            <button
+              *ngIf="hasEbook && availableEbooks.length > 0"
+              class="btn btn-success px-4"
+              (click)="openEbook(availableEbooks[0])"
+              [disabled]="isCheckingEbook"
+            >
+              <span
+                *ngIf="isCheckingEbook"
+                class="spinner-border spinner-border-sm me-2"
+              ></span>
+              <i
+                *ngIf="!isCheckingEbook"
+                class="fa-solid fa-book-open me-2"
+              ></i>
+              {{ isCheckingEbook ? "Đang kiểm tra..." : "Đọc Online" }}
+            </button>
+
             <button
               *ngIf="isUser"
               class="btn btn-outline-danger px-4"
@@ -169,7 +194,7 @@
     >
       <ng-container *ngIf="reviewsSummary.averageRating > 0; else noReviews">
         <span class="h5 text-warning me-2"
-          >{{ reviewsSummary.averageRating | number : "1.1-1" }}
+          >{{ reviewsSummary.averageRating | number: "1.1-1" }}
           <i class="fa-solid fa-star"></i
         ></span>
         <span class="text-muted"
@@ -238,7 +263,7 @@
           <div class="d-flex justify-content-between mb-2">
             <strong class="text-info">{{ review.userName }}</strong>
             <small class="text-muted">{{
-              review.createdAt | date : "dd/MM/yyyy"
+              review.createdAt | date: "dd/MM/yyyy"
             }}</small>
           </div>
           <div class="mb-2 text-warning">
@@ -298,7 +323,7 @@
                 <div class="d-flex justify-content-between">
                   <strong class="text-light">{{ comment.userName }}</strong>
                   <small class="text-muted">{{
-                    comment.createdAt | date : "dd/MM/yyyy HH:mm"
+                    comment.createdAt | date: "dd/MM/yyyy HH:mm"
                   }}</small>
                 </div>
                 <p class="text-light mb-0">{{ comment.content }}</p>
@@ -323,6 +348,63 @@
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Books Section -->
+  <div
+    *ngIf="book && !isLoading && relatedBooks.length > 0"
+    class="related-books-section mt-5"
+  >
+    <h4 class="mb-4 text-light border-bottom border-secondary pb-2">
+      <i class="fa-solid fa-book-open me-2"></i>Có thể bạn cũng thích
+    </h4>
+
+    <div *ngIf="isLoadingRelated" class="text-center py-3">
+      <div class="spinner-border text-primary spinner-border-sm" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+      </div>
+    </div>
+
+    <div class="row g-3" *ngIf="!isLoadingRelated">
+      <div
+        *ngFor="let relatedBook of relatedBooks"
+        class="col-md-2 col-sm-4 col-6"
+      >
+        <div class="card related-book-card border-secondary h-100">
+          <a [routerLink]="['/book-details', relatedBook.id]">
+            <img
+              [src]="relatedBook.coverUrl || 'assets/images/placeholder.png'"
+              class="card-img-top related-book-cover"
+              [alt]="relatedBook.name"
+            />
+          </a>
+          <div class="card-body p-2 bg-dark text-light">
+            <h6 class="card-title text-truncate mb-1">
+              <a
+                [routerLink]="['/book-details', relatedBook.id]"
+                class="text-decoration-none text-light"
+                >{{ relatedBook.name }}</a
+              >
+            </h6>
+            <p class="card-text text-muted small text-truncate mb-1">
+              <span *ngFor="let a of relatedBook.authors; let last = last"
+                >{{ a.name }}{{ !last ? ", " : "" }}</span
+              >
+            </p>
+            <span
+              *ngIf="relatedBook.numberOfCopiesAvailable > 0"
+              class="badge bg-success small"
+              >Còn {{ relatedBook.numberOfCopiesAvailable }} cuốn</span
+            >
+            <span
+              *ngIf="relatedBook.numberOfCopiesAvailable === 0"
+              class="badge bg-danger small"
+              >Hết sách</span
+            >
           </div>
         </div>
       </div>
@@ -362,25 +444,32 @@
         </div>
 
         <form>
+          <div class="alert alert-info border-info">
+            <i class="fa-solid fa-info-circle me-2"></i>
+            <strong>Thông tin người mượn:</strong> Thông tin này được lấy từ tài
+            khoản của bạn và không thể chỉnh sửa.
+          </div>
+
           <div class="mb-3">
             <label class="form-label">Họ và tên</label>
             <input
               type="text"
-              class="form-control bg-dark text-light border-secondary"
-              [(ngModel)]="borrowData.studentName"
-              name="studentName"
-              required
+              class="form-control bg-secondary text-light border-secondary"
+              [value]="userFullProfile?.name || '---'"
+              readonly
             />
           </div>
           <div class="mb-3">
             <label class="form-label">Lớp</label>
             <input
               type="text"
-              class="form-control bg-dark text-light border-secondary"
-              [(ngModel)]="borrowData.studentClass"
-              name="studentClass"
-              placeholder="Ví dụ: 8A1"
-              required
+              class="form-control bg-secondary text-light border-secondary"
+              [value]="
+                userFullProfile?.className ||
+                userFullProfile?.studentClass ||
+                'Chưa cập nhật'
+              "
+              readonly
             />
           </div>
           <div class="mb-3">
@@ -428,4 +517,104 @@
   [class.show]="showBorrowModal"
   *ngIf="showBorrowModal"
   (click)="closeBorrowModal()"
+></div>
+
+<!-- Reservation Modal -->
+<div
+  class="modal fade"
+  [class.show]="showReserveModal"
+  [style.display]="showReserveModal ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header border-secondary bg-warning text-dark">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-clock me-2"></i>Đặt trước sách
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closeReserveModal()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="book" class="mb-3">
+          <div class="alert alert-warning border-warning">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <strong>Sách hiện đang hết!</strong> Bạn có thể đặt trước để được ưu
+            tiên mượn khi có người trả sách.
+          </div>
+          <p class="text-muted mb-2">
+            <strong>Tên sách:</strong> {{ book.name }}
+          </p>
+        </div>
+
+        <div class="alert alert-info border-info mb-3">
+          <i class="fa-solid fa-info-circle me-2"></i>
+          <strong>Thông tin người đặt trước:</strong>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Họ và tên</label>
+          <input
+            type="text"
+            class="form-control bg-secondary text-light border-secondary"
+            [value]="userFullProfile?.name || '---'"
+            readonly
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Lớp</label>
+          <input
+            type="text"
+            class="form-control bg-secondary text-light border-secondary"
+            [value]="
+              userFullProfile?.className ||
+              userFullProfile?.studentClass ||
+              'Chưa cập nhật'
+            "
+            readonly
+          />
+        </div>
+
+        <div class="alert alert-success border-success">
+          <i class="fa-solid fa-bell me-2"></i>
+          <small
+            >Bạn sẽ nhận được <strong>Email/Thông báo</strong> khi sách có sẵn
+            (thời gian giữ: 24 giờ).</small
+          >
+        </div>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="closeReserveModal()"
+          [disabled]="reserveLoading"
+        >
+          Hủy
+        </button>
+        <button
+          type="button"
+          class="btn btn-warning"
+          (click)="confirmReserve()"
+          [disabled]="reserveLoading"
+        >
+          <span
+            *ngIf="reserveLoading"
+            class="spinner-border spinner-border-sm me-2"
+          ></span>
+          {{ reserveLoading ? "Đang xử lý..." : "Xác nhận đặt trước" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div
+  class="modal-backdrop fade"
+  [class.show]="showReserveModal"
+  *ngIf="showReserveModal"
+  (click)="closeReserveModal()"
 ></div>

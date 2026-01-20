@@ -1,61 +1,269 @@
-<div class="rules-page-container">
-  <div class="rules-header">
-    <div class="section-wrap">
-      <h1>Nội Quy Thư Viện</h1>
-      <p>Trường THCS Phương Tú</p>
+<div class="container py-5">
+  <!-- Header Section -->
+  <div class="rules-header text-center mb-5">
+    <h1 class="display-4 fw-bold mb-3">
+      <i class="fa-solid fa-book-open-reader me-3 text-primary"></i>
+      Nội Quy Thư Viện
+    </h1>
+    <p class="lead text-muted">Trường THCS Phương Tú</p>
+    <p class="text-secondary">Cập nhật lần cuối: Tháng 01/2026</p>
+  </div>
+
+  <!-- Search & Actions Bar -->
+  <div class="row mb-4">
+    <div class="col-lg-8 mx-auto">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="input-group input-group-lg">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="fa-solid fa-magnifying-glass text-muted"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control border-start-0 ps-0"
+              placeholder="Tìm kiếm quy định... (VD: mất sách, phạt, giờ mở cửa)"
+              [(ngModel)]="searchQuery"
+              (input)="filterRules()"
+            />
+          </div>
+
+          <div class="d-flex gap-2 mt-3 flex-wrap">
+            <button
+              class="btn btn-sm btn-outline-primary"
+              (click)="expandAll()"
+            >
+              <i class="fa-solid fa-angles-down me-2"></i>Mở tất cả
+            </button>
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              (click)="collapseAll()"
+            >
+              <i class="fa-solid fa-angles-up me-2"></i>Thu gọn
+            </button>
+            <button class="btn btn-sm btn-outline-info" (click)="printRules()">
+              <i class="fa-solid fa-print me-2"></i>In quy định
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="section-wrap rules-content">
-    
-    <section class="rule-section">
-      <h2><i class="fa-solid fa-clock"></i> 1. Thời Gian Phục Vụ</h2>
-      <p>Thư viện mở cửa phục vụ bạn đọc vào các ngày trong tuần (từ thứ Hai đến thứ Sáu).</p>
-      <ul>
-        <li><strong>Sáng:</strong> 7h30 - 11h30</li>
-        <li><strong>Chiều:</strong> 13h30 - 17h00</li>
-        <li><em>Nghỉ thứ Bảy, Chủ Nhật và các ngày Lễ, Tết theo quy định.</em></li>
-      </ul>
-    </section>
+  <!-- Rules Accordion -->
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div
+        *ngIf="filteredRules.length === 0"
+        class="alert alert-warning text-center"
+      >
+        <i class="fa-solid fa-circle-info me-2"></i>
+        Không tìm thấy quy định nào phù hợp với "<strong>{{
+          searchQuery
+        }}</strong
+        >".
+      </div>
 
-    <section class="rule-section">
-      <h2><i class="fa-solid fa-id-card"></i> 2. Đối Tượng & Thẻ Thư Viện</h2>
-      <ul>
-        <li>Tất cả cán bộ, giáo viên, nhân viên và học sinh toàn trường đều có quyền sử dụng thư viện.</li>
-        <li>Bạn đọc phải xuất trình <strong>Thẻ học sinh</strong> hoặc <strong>Thẻ thư viện</strong> khi vào phòng đọc và khi làm thủ tục mượn sách.</li>
-        <li>Không được cho người khác mượn thẻ hoặc dùng thẻ của người khác.</li>
-      </ul>
-    </section>
+      <div class="accordion" id="rulesAccordion">
+        <div
+          *ngFor="let rule of filteredRules; let i = index"
+          class="card mb-3 shadow-sm rule-card"
+          [class.expanded]="rule.expanded"
+        >
+          <!-- Rule Header -->
+          <div
+            class="card-header rule-header"
+            [class.bg-primary]="rule.color === 'primary'"
+            [class.bg-danger]="rule.color === 'danger'"
+            [class.bg-info]="rule.color === 'info'"
+            [class.bg-warning]="rule.color === 'warning'"
+            [class.bg-success]="rule.color === 'success'"
+            (click)="toggleRule(rule)"
+            [attr.data-bs-toggle]="'collapse'"
+            [attr.data-bs-target]="'#rule' + rule.id"
+          >
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <div class="rule-icon">
+                  <i class="fa-solid" [ngClass]="rule.icon"></i>
+                </div>
+                <h5 class="mb-0 ms-3">{{ rule.category }}</h5>
+              </div>
+              <i
+                class="fa-solid fa-chevron-down toggle-icon"
+                [class.rotated]="rule.expanded"
+              ></i>
+            </div>
+          </div>
 
-    <section class="rule-section">
-      <h2><i class="fa-solid fa-book"></i> 3. Quy Định Mượn - Trả Sách</h2>
-      <ul>
-        <li><strong>Số lượng:</strong> Mỗi lần mượn tối đa <strong>02 cuốn</strong>.</li>
-        <li><strong>Thời hạn:</strong> Thời gian mượn tối đa là <strong>07 ngày</strong>. Nếu muốn mượn tiếp, bạn đọc phải mang sách đến thư viện để gia hạn.</li>
-        <li>Kiểm tra kỹ tình trạng sách trước khi mượn. Nếu phát hiện rách, bẩn, mất trang cần báo ngay cho thủ thư.</li>
-        <li>Trả sách đúng hạn quy định.</li>
-      </ul>
-    </section>
-
-    <section class="rule-section">
-      <h2><i class="fa-solid fa-triangle-exclamation"></i> 4. Ý Thức Bảo Quản & Kỷ Luật</h2>
-      <ul>
-        <li>Giữ gìn trật tự, không gây ồn ào, không mang đồ ăn, thức uống vào phòng đọc.</li>
-        <li>Tuyệt đối không viết, vẽ bậy, xé trang, gấp trang sách.</li>
-        <li><strong>Xử lý vi phạm:</strong>
-          <ul>
-            <li>Làm mất sách: Phải đền sách mới cùng tên hoặc đền tiền gấp 02 lần giá trị bìa.</li>
-            <li>Làm rách, hư hỏng sách: Tùy mức độ sẽ có hình thức bồi thường phù hợp.</li>
-            <li>Mượn quá hạn: Nhắc nhở trước toàn trường hoặc khóa thẻ thư viện tạm thời.</li>
-          </ul>
-        </li>
-      </ul>
-    </section>
-
-    <div class="signature">
-      <p><strong>HIỆU TRƯỞNG</strong></p>
-      <p>(Đã ký)</p>
+          <!-- Rule Body -->
+          <div
+            [id]="'rule' + rule.id"
+            class="collapse"
+            [class.show]="rule.expanded"
+            [attr.data-bs-parent]="'#rulesAccordion'"
+          >
+            <div class="card-body">
+              <div
+                *ngFor="let item of rule.items; let last = last"
+                class="rule-item"
+                [class.mb-4]="!last"
+                [class.important]="item.important"
+              >
+                <h6 class="rule-item-title">
+                  <i class="fa-solid fa-circle-check text-success me-2"></i>
+                  {{ item.title }}
+                  <span *ngIf="item.important" class="badge bg-danger ms-2"
+                    >Quan trọng</span
+                  >
+                </h6>
+                <p class="rule-item-description">{{ item.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
+  <!-- FAQ Section -->
+  <div class="row mt-5">
+    <div class="col-lg-8 mx-auto">
+      <div class="faq-header text-center mb-4">
+        <h2 class="fw-bold">
+          <i class="fa-solid fa-circle-question me-2 text-info"></i>
+          Câu Hỏi Thường Gặp (FAQ)
+        </h2>
+        <p class="text-muted">Những câu hỏi phổ biến nhất từ bạn đọc</p>
+      </div>
+
+      <div class="accordion" id="faqAccordion">
+        <div
+          *ngFor="let faq of faqs; let i = index"
+          class="card mb-3 shadow-sm faq-card"
+        >
+          <div class="card-header faq-header" (click)="toggleFAQ(faq)">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="d-flex align-items-start grow">
+                <i class="fa-solid fa-q me-3 text-info mt-1"></i>
+                <h6 class="mb-0">{{ faq.question }}</h6>
+              </div>
+              <i
+                class="fa-solid fa-chevron-down toggle-icon ms-3"
+                [class.rotated]="faq.expanded"
+              ></i>
+            </div>
+          </div>
+
+          <div class="collapse" [class.show]="faq.expanded">
+            <div class="card-body bg-light">
+              <div class="d-flex align-items-start">
+                <i class="fa-solid fa-a me-3 text-success mt-1"></i>
+                <p class="mb-0">{{ faq.answer }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Form -->
+  <div class="row mt-5">
+    <div class="col-lg-8 mx-auto">
+      <div class="card shadow contact-card">
+        <div class="card-body p-4">
+          <h3 class="card-title text-center mb-4">
+            <i class="fa-solid fa-envelope me-2 text-primary"></i>
+            Bạn Có Thắc Mắc?
+          </h3>
+          <p class="text-center text-muted mb-4">
+            Gửi câu hỏi của bạn và chúng tôi sẽ phản hồi qua email trong 24 giờ
+          </p>
+
+          <form (ngSubmit)="submitQuestion()">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="contactName" class="form-label"
+                  >Họ và tên <span class="text-danger">*</span></label
+                >
+                <input
+                  type="text"
+                  id="contactName"
+                  class="form-control"
+                  [(ngModel)]="contactForm.name"
+                  name="name"
+                  required
+                  placeholder="Nguyễn Văn A"
+                />
+              </div>
+
+              <div class="col-md-6">
+                <label for="contactEmail" class="form-label"
+                  >Email <span class="text-danger">*</span></label
+                >
+                <input
+                  type="email"
+                  id="contactEmail"
+                  class="form-control"
+                  [(ngModel)]="contactForm.email"
+                  name="email"
+                  required
+                  placeholder="email@example.com"
+                />
+              </div>
+
+              <div class="col-12">
+                <label for="contactQuestion" class="form-label"
+                  >Câu hỏi của bạn <span class="text-danger">*</span></label
+                >
+                <textarea
+                  id="contactQuestion"
+                  class="form-control"
+                  rows="4"
+                  [(ngModel)]="contactForm.question"
+                  name="question"
+                  required
+                  placeholder="Ví dụ: Tôi muốn hỏi về quy định gia hạn sách..."
+                ></textarea>
+              </div>
+
+              <div class="col-12 text-center">
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-lg px-5"
+                  [disabled]="isSubmittingContact"
+                >
+                  <span *ngIf="!isSubmittingContact">
+                    <i class="fa-solid fa-paper-plane me-2"></i>Gửi Câu Hỏi
+                  </span>
+                  <span *ngIf="isSubmittingContact">
+                    <i class="fa-solid fa-spinner fa-spin me-2"></i>Đang gửi...
+                  </span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Info -->
+  <div class="row mt-5">
+    <div class="col-lg-8 mx-auto">
+      <div class="alert alert-info">
+        <div class="d-flex align-items-start">
+          <i class="fa-solid fa-lightbulb fa-2x me-3 text-warning"></i>
+          <div>
+            <h5 class="alert-heading">Lưu ý quan trọng</h5>
+            <p class="mb-0">
+              Quy định này có thể được cập nhật theo từng thời kỳ. Mọi thay đổi
+              sẽ được thông báo qua website và bảng tin thư viện. Bạn đọc có
+              trách nhiệm cập nhật và tuân thủ các quy định mới nhất.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

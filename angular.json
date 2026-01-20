@@ -21,6 +21,8 @@
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/ngx-toastr/toastr.css",
+              "node_modules/quill/dist/quill.core.css",
+              "node_modules/quill/dist/quill.snow.css",
               "src/styles.css"
             ],
             "scripts": [
@@ -35,8 +37,8 @@
               },
               {
                 "type": "anyComponentStyle",
-                "maximumWarning": "13kb",
-                "maximumError": "20kb"
+                "maximumWarning": "20kb",
+                "maximumError": "30kb"
               }
             ]
           },
@@ -60,8 +62,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "12kb",
-                  "maximumError": "20kb"
+                  "maximumWarning": "20kb",
+                  "maximumError": "30kb"
                 }
               ],
               "fileReplacements": [

@@ -1,242 +1,563 @@
 <nav class="navbar navbar-expand-lg navbar-dark site-header">
   <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center" routerLink="/">
+    <!-- Logo -->
+    <a
+      class="navbar-brand d-flex align-items-center"
+      routerLink="/"
+      (click)="closeMobileMenu()"
+    >
       <img
         src="assets/school-logo.png"
         alt="Logo THCS Phương Tú"
         class="me-2"
         style="height: 32px; width: auto; object-fit: contain"
       />
-      <span>
+      <span class="d-none d-md-inline">
         <i class="fa-solid fa-book-atlas"></i>
         THCS Phương Tú
       </span>
     </a>
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarSupportedContent"
+
+    <!-- Navigation Menu (Desktop) -->
+    <div
+      class="navbar-nav-menu d-none d-lg-flex align-items-center me-auto ms-3"
     >
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item" *ngIf="isAdmin()">
-          <a
-            class="nav-link"
-            routerLink="/admin/dashboard"
-            routerLinkActive="active"
-          >
-            <i class="fa-solid fa-chart-pie"></i> Bảng Điều Khiển
+      <!-- Admin Menu -->
+      <div class="nav-item dropdown" *ngIf="isAdmin()">
+        <a
+          class="nav-link dropdown-toggle"
+          href="#"
+          id="adminDropdown"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <i class="fa-solid fa-cogs"></i> Quản Lý
+        </a>
+        <ul
+          class="dropdown-menu dropdown-menu-dark"
+          aria-labelledby="adminDropdown"
+        >
+          <li>
+            <a class="dropdown-item" routerLink="/admin/dashboard">
+              <i class="fa-solid fa-chart-pie"></i> Bảng Điều Khiển
+            </a>
+          </li>
+          <li><hr class="dropdown-divider" /></li>
+          <li>
+            <a class="dropdown-item" routerLink="/users">
+              <i class="fa-solid fa-users-cog"></i> Người Dùng
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/books">
+              <i class="fa-solid fa-book-medical"></i> Sách
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/loans">
+              <i class="fa-solid fa-exchange-alt"></i> Mượn/Trả
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/fines">
+              <i class="fa-solid fa-file-invoice-dollar"></i> Phí Phạt
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/reviews">
+              <i class="fa-solid fa-star-half-alt"></i> Đánh Giá
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/scanner">
+              <i class="fa-solid fa-qrcode"></i> Quét Mã
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/settings">
+              <i class="fa-solid fa-sliders"></i> Cấu Hình
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/categories">
+              <i class="fa-solid fa-tags"></i> Quản Lý Thể Loại
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/authors">
+              <i class="fa-solid fa-user"></i> Quản Lý Tác Giả
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/import-export">
+              <i class="fa-solid fa-file-import"></i> Nhập/Xuất
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/news">
+              <i class="fa-solid fa-newspaper"></i> Tin Tức
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/renewals">
+              <i class="fa-solid fa-rotate-right"></i> Gia Hạn
+            </a>
+          </li>
+          <li><hr class="dropdown-divider" /></li>
+          <li>
+            <a class="dropdown-item" routerLink="/admin/create-loan">
+              <i class="fa-solid fa-file-signature text-warning"></i> Tạo Phiếu
+              Mượn
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- User Menu -->
+      <ng-container *ngIf="isUser()">
+        <div class="nav-item">
+          <a class="nav-link" routerLink="/borrow-book">
+            <i class="fa-solid fa-hand-holding-hand"></i> Mượn Sách
           </a>
-        </li>
-        <li class="nav-item dropdown" *ngIf="isAdmin()">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            id="adminManagementDropdown"
-            role="button"
+        </div>
+        <div class="nav-item">
+          <a class="nav-link" routerLink="/return-book">
+            <i class="fa-solid fa-undo"></i> Trả Sách
+          </a>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Global Search Bar (Desktop/Tablet) -->
+    <div class="global-search-container d-none d-lg-block">
+      <div class="search-wrapper">
+        <i class="fa-solid fa-search search-icon"></i>
+        <input
+          type="text"
+          class="form-control global-search-input"
+          placeholder="Tìm sách..."
+          [(ngModel)]="globalSearchTerm"
+          (input)="onGlobalSearch(globalSearchTerm)"
+          (keyup.enter)="performFullSearch()"
+        />
+        <!-- Search Results Dropdown -->
+        <div
+          class="search-results-dropdown"
+          *ngIf="showSearchResults && searchResults.length > 0"
+        >
+          <div
+            class="search-result-item"
+            *ngFor="let book of searchResults"
+            (click)="selectSearchResult(book)"
+          >
+            <img
+              [src]="book.coverUrl || 'assets/default-book-cover.png'"
+              alt=""
+              class="result-thumbnail"
+            />
+            <div class="result-info">
+              <div class="result-title">{{ book.name }}</div>
+              <div class="result-author">
+                {{ book.authors?.[0] || "Không rõ tác giả" }}
+              </div>
+            </div>
+          </div>
+          <div class="search-result-footer" (click)="performFullSearch()">
+            <i class="fa-solid fa-search"></i> Xem tất cả kết quả
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Smart Widgets (Desktop) -->
+    <div class="smart-widgets d-none d-lg-flex align-items-center gap-3">
+      <!-- Language Switcher -->
+      <div class="language-switcher position-relative">
+        <button
+          class="btn btn-icon"
+          (click)="toggleLanguageDropdown()"
+          aria-label="Chuyển ngôn ngữ"
+        >
+          <span class="flag-emoji">{{
+            currentLanguage === "vi" ? "🇻🇳" : "🇺🇸"
+          }}</span>
+          <i class="fa-solid fa-chevron-down ms-1"></i>
+        </button>
+        <div class="language-dropdown" *ngIf="showLanguageDropdown">
+          <div class="dropdown-item" (click)="switchLanguage('vi')">
+            <span class="flag-emoji">🇻🇳</span> Tiếng Việt
+            <i
+              class="fa-solid fa-check text-success ms-auto"
+              *ngIf="currentLanguage === 'vi'"
+            ></i>
+          </div>
+          <div class="dropdown-item" (click)="switchLanguage('en')">
+            <span class="flag-emoji">🇺🇸</span> English
+            <i
+              class="fa-solid fa-check text-success ms-auto"
+              *ngIf="currentLanguage === 'en'"
+            ></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme Toggle -->
+      <button
+        class="theme-toggle"
+        (click)="toggleTheme()"
+        [class.is-dark]="currentTheme === 'dark'"
+        aria-label="Chuyển chế độ sáng/tối"
+      >
+        <span class="icon sun"><i class="fa-solid fa-sun"></i></span>
+        <span class="icon moon"><i class="fa-solid fa-moon"></i></span>
+        <span class="toggle-handle"></span>
+      </button>
+
+      <ng-container *ngIf="isLoggedIn()">
+        <!-- Wishlist -->
+        <div class="wishlist-widget position-relative">
+          <button
+            class="btn btn-icon"
+            (click)="navigateToWishlist()"
+            aria-label="Danh sách yêu thích"
+          >
+            <i class="fa-solid fa-heart"></i>
+            <span class="badge-count" *ngIf="wishlistCount > 0">{{
+              wishlistCount
+            }}</span>
+          </button>
+        </div>
+
+        <!-- Notifications -->
+        <div class="notification-widget position-relative">
+          <button
+            class="btn btn-icon"
+            (click)="toggleNotificationDropdown()"
+            aria-label="Thông báo"
+          >
+            <i class="fa-solid fa-bell"></i>
+            <span class="badge-count pulse" *ngIf="unreadNotificationCount > 0">
+              {{ unreadNotificationCount > 9 ? "9+" : unreadNotificationCount }}
+            </span>
+          </button>
+
+          <!-- Notification Dropdown -->
+          <div class="notification-dropdown" *ngIf="showNotificationDropdown">
+            <div class="notification-header">
+              <h6>Thông báo</h6>
+              <button
+                class="btn btn-sm btn-link"
+                (click)="markAllNotificationsAsRead()"
+              >
+                Đánh dấu đã đọc
+              </button>
+            </div>
+            <div class="notification-list">
+              <div
+                *ngFor="let notification of notifications"
+                class="notification-item"
+                [class.unread]="!notification.isRead"
+                (click)="markNotificationAsRead(notification)"
+              >
+                <div
+                  class="notification-icon"
+                  [ngClass]="'type-' + notification.type"
+                >
+                  <i
+                    class="fa-solid"
+                    [ngClass]="{
+                      'fa-info-circle': notification.type === 'info',
+                      'fa-exclamation-triangle':
+                        notification.type === 'warning',
+                      'fa-check-circle': notification.type === 'success',
+                      'fa-times-circle': notification.type === 'error',
+                    }"
+                  ></i>
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">{{ notification.title }}</div>
+                  <div class="notification-message">
+                    {{ notification.message }}
+                  </div>
+                  <div class="notification-time">
+                    {{ notification.createdAt | date: "dd/MM/yyyy HH:mm" }}
+                  </div>
+                </div>
+              </div>
+              <div
+                class="empty-notifications"
+                *ngIf="notifications.length === 0"
+              >
+                <i class="fa-solid fa-bell-slash"></i>
+                <p>Không có thông báo mới</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Profile with Gamification -->
+        <div class="user-profile-widget dropdown">
+          <button
+            class="btn btn-user d-flex align-items-center gap-2"
+            id="userProfileDropdown"
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <i class="fa-solid fa-cogs"></i> Quản Lý
-          </a>
+            <div class="user-avatar-box">
+              <span class="user-avatar">{{ getUserInitial() }}</span>
+              <span class="level-badge" [ngClass]="getLevelBadgeClass()">{{
+                userLevel
+              }}</span>
+            </div>
+            <div class="user-info d-none d-xl-block text-start">
+              <div class="user-name">{{ getUserName() }}</div>
+              <div class="user-level-name">
+                <i class="fa-solid fa-trophy"></i>
+                {{ getLevelName() }} - {{ userPoints }} điểm
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+
           <ul
-            class="dropdown-menu dropdown-menu-dark"
-            aria-labelledby="adminManagementDropdown"
+            class="dropdown-menu dropdown-menu-end dropdown-menu-dark"
+            aria-labelledby="userProfileDropdown"
           >
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/users"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-users-cog"></i> Người Dùng</a
-              >
+            <li class="dropdown-header text-center">
+              <div class="user-avatar-large">{{ getUserInitial() }}</div>
+              <div class="mt-2">{{ getUserName() }}</div>
+              <div class="level-info">
+                <span class="level-badge-sm" [ngClass]="getLevelBadgeClass()">{{
+                  userLevel
+                }}</span>
+                {{ getLevelName() }} - {{ userPoints }} điểm
+              </div>
             </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/books"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-book-medical"></i> Sách</a
-              >
+            <li><hr class="dropdown-divider" /></li>
+            <li *ngIf="isAdmin()">
+              <a class="dropdown-item" routerLink="/admin/dashboard">
+                <i class="fa-solid fa-chart-pie"></i> Bảng Điều Khiển
+              </a>
             </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/loans"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-exchange-alt"></i> Mượn/Trả</a
-              >
+            <li *ngIf="isUser()">
+              <a class="dropdown-item" routerLink="/my-account">
+                <i class="fa-solid fa-user-circle"></i> Tài Khoản
+              </a>
             </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/fines"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-file-invoice-dollar"></i> Phí Phạt</a
-              >
+            <li *ngIf="isUser()">
+              <a class="dropdown-item" routerLink="/gamification">
+                <i class="fa-solid fa-trophy text-warning"></i> Điểm Thưởng
+              </a>
             </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/reviews"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-star-half-alt"></i> Đánh Giá</a
-              >
-            </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/scanner"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-qrcode"></i> Quét Mã</a
-              >
-            </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/settings"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-sliders"></i> Cấu Hình</a
-              >
-            </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/categories"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-tags"></i> Quản Lý Thể Loại</a
-              >
-            </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/authors"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-user"></i> Quản Lý Tác Giả</a
-              >
-            </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/import-export"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-file-import"></i> Nhập/Xuất</a
-              >
-            </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/news"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-newspaper"></i> Tin Tức</a
-              >
-            </li>
-            <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/renewals"
-                routerLinkActive="active"
-                ><i class="fa-solid fa-rotate-right"></i> Gia Hạn</a
-              >
+            <li *ngIf="isUser()">
+              <a class="dropdown-item" routerLink="/wishlist">
+                <i class="fa-solid fa-heart text-danger"></i> Yêu Thích
+              </a>
             </li>
             <li><hr class="dropdown-divider" /></li>
             <li>
-              <a
-                class="dropdown-item"
-                routerLink="/admin/create-loan"
-                routerLinkActive="active"
-              >
-                <i class="fa-solid fa-file-signature text-warning"></i> Tạo
-                Phiếu Mượn
+              <a class="dropdown-item text-danger" (click)="logout()">
+                <i class="fa-solid fa-sign-out-alt"></i> Đăng Xuất
               </a>
             </li>
           </ul>
-        </li>
+        </div>
+      </ng-container>
 
-        <li class="nav-item" *ngIf="isUser()">
-          <a
-            class="nav-link"
-            routerLink="/borrow-book"
-            routerLinkActive="active"
-          >
-            <i class="fa-solid fa-hand-holding-hand"></i> Mượn Sách
-          </a>
-        </li>
-
-        <li class="nav-item" *ngIf="isUser()">
-          <a class="nav-link" routerLink="/wishlist" routerLinkActive="active">
-            <i class="fa-solid fa-heart text-danger"></i> Danh Sách Yêu Thích
-          </a>
-        </li>
-        <li class="nav-item" *ngIf="isUser()">
-          <a
-            class="nav-link"
-            routerLink="/return-book"
-            routerLinkActive="active"
-          >
-            <i class="fa-solid fa-undo"></i> Trả Sách
-          </a>
-        </li>
-        <li class="nav-item" *ngIf="isUser()">
-          <a
-            class="nav-link"
-            routerLink="/my-account"
-            routerLinkActive="active"
-          >
-            <i class="fa-solid fa-user-circle"></i> Tài Khoản Của Tôi
-          </a>
-        </li>
-        <li class="nav-item" *ngIf="isUser()">
-          <a
-            class="nav-link"
-            routerLink="/gamification"
-            routerLinkActive="active"
-          >
-            <i class="fa-solid fa-trophy text-warning"></i> Điểm Thưởng
-          </a>
-        </li>
-      </ul>
-
-      <div class="d-flex align-items-center gap-2">
-        <button
-          class="theme-toggle"
-          (click)="toggleTheme()"
-          [class.is-dark]="currentTheme === 'dark'"
-          aria-label="Chuyển chế độ sáng/tối"
-        >
-          <span class="icon sun" aria-hidden="true"
-            ><i class="fa-solid fa-sun"></i
-          ></span>
-          <span class="icon moon" aria-hidden="true"
-            ><i class="fa-solid fa-moon"></i
-          ></span>
-          <span class="toggle-handle"></span>
+      <!-- Guest Actions -->
+      <ng-container *ngIf="!isLoggedIn()">
+        <button class="btn btn-outline-light btn-sm" routerLink="/register">
+          Đăng Ký
         </button>
-
-        <ng-container *ngIf="!isLoggedIn()">
-          <button class="btn btn-secondary btn-sm me-2" routerLink="/register">
-            Đăng Ký
-          </button>
-          <button class="btn btn-primary btn-sm" routerLink="/login">
-            <i class="fa-solid fa-sign-in-alt"></i> Đăng Nhập
-          </button>
-        </ng-container>
-
-        <ng-container *ngIf="isLoggedIn()">
-          <div class="navbar-text me-3 d-flex align-items-center gap-2">
-            <span class="user-avatar" aria-hidden="true">{{
-              getUserInitial()
-            }}</span>
-            <span>Chào, {{ getUserName() }}</span>
-          </div>
-          <button class="btn btn-outline-danger btn-sm" (click)="logout()">
-            <i class="fa-solid fa-sign-out-alt"></i> Đăng Xuất
-          </button>
-        </ng-container>
-      </div>
+        <button class="btn btn-primary btn-sm" routerLink="/login">
+          <i class="fa-solid fa-sign-in-alt"></i> Đăng Nhập
+        </button>
+      </ng-container>
     </div>
+
+    <!-- Mobile Hamburger Menu -->
+    <button
+      class="navbar-toggler d-lg-none"
+      type="button"
+      (click)="toggleMobileMenu()"
+      aria-label="Toggle navigation"
+    >
+      <i
+        class="fa-solid"
+        [ngClass]="isMobileMenuOpen ? 'fa-times' : 'fa-bars'"
+      ></i>
+    </button>
   </div>
 </nav>
+
+<!-- Mobile Menu Overlay -->
+<div
+  class="mobile-menu-overlay"
+  *ngIf="isMobileMenuOpen"
+  (click)="closeMobileMenu()"
+></div>
+
+<!-- Mobile Menu Sidebar -->
+<div class="mobile-menu-sidebar" [class.open]="isMobileMenuOpen">
+  <div class="mobile-menu-header">
+    <ng-container *ngIf="isLoggedIn()">
+      <div class="mobile-user-profile">
+        <div class="user-avatar-large">{{ getUserInitial() }}</div>
+        <div class="mobile-user-info">
+          <div class="user-name">{{ getUserName() }}</div>
+          <div class="user-level">
+            <span class="level-badge-sm" [ngClass]="getLevelBadgeClass()">{{
+              userLevel
+            }}</span>
+            {{ getLevelName() }} - {{ userPoints }} điểm
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="!isLoggedIn()">
+      <div class="guest-actions">
+        <button
+          class="btn btn-primary btn-block w-100 mb-2"
+          routerLink="/login"
+          (click)="closeMobileMenu()"
+        >
+          <i class="fa-solid fa-sign-in-alt"></i> Đăng Nhập
+        </button>
+        <button
+          class="btn btn-outline-primary btn-block w-100"
+          routerLink="/register"
+          (click)="closeMobileMenu()"
+        >
+          Đăng Ký
+        </button>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Mobile Global Search -->
+  <div class="mobile-search p-3" *ngIf="isLoggedIn()">
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Tìm sách..."
+      [(ngModel)]="globalSearchTerm"
+      (keyup.enter)="performFullSearch(); closeMobileMenu()"
+    />
+  </div>
+
+  <!-- Mobile Menu Items -->
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item" *ngIf="isLoggedIn()">
+      <a routerLink="/" (click)="closeMobileMenu()">
+        <i class="fa-solid fa-home"></i> Trang Chủ
+      </a>
+    </li>
+
+    <!-- Admin Menu -->
+    <ng-container *ngIf="isAdmin()">
+      <li class="mobile-menu-section-title">QUẢN TRỊ VIÊN</li>
+      <li class="mobile-menu-item">
+        <a routerLink="/admin/dashboard" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-chart-pie"></i> Bảng Điều Khiển
+        </a>
+      </li>
+      <li class="mobile-menu-item">
+        <a routerLink="/users" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-users-cog"></i> Người Dùng
+        </a>
+      </li>
+      <li class="mobile-menu-item">
+        <a routerLink="/books" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-book-medical"></i> Sách
+        </a>
+      </li>
+      <li class="mobile-menu-item">
+        <a routerLink="/admin/loans" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-exchange-alt"></i> Mượn/Trả
+        </a>
+      </li>
+    </ng-container>
+
+    <!-- User Menu -->
+    <ng-container *ngIf="isUser()">
+      <li class="mobile-menu-section-title">DỊCH VỤ</li>
+      <li class="mobile-menu-item">
+        <a routerLink="/borrow-book" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-hand-holding-hand"></i> Mượn Sách
+        </a>
+      </li>
+      <li class="mobile-menu-item">
+        <a routerLink="/return-book" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-undo"></i> Trả Sách
+        </a>
+      </li>
+      <li class="mobile-menu-item">
+        <a routerLink="/wishlist" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-heart text-danger"></i> Yêu Thích
+          <span class="badge bg-danger ms-auto" *ngIf="wishlistCount > 0">{{
+            wishlistCount
+          }}</span>
+        </a>
+      </li>
+      <li class="mobile-menu-item">
+        <a routerLink="/gamification" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-trophy text-warning"></i> Điểm Thưởng
+        </a>
+      </li>
+      <li class="mobile-menu-item">
+        <a routerLink="/my-account" (click)="closeMobileMenu()">
+          <i class="fa-solid fa-user-circle"></i> Tài Khoản
+        </a>
+      </li>
+    </ng-container>
+
+    <li class="mobile-menu-section-title">CÀI ĐẶT</li>
+    <li class="mobile-menu-item">
+      <div class="d-flex justify-content-between align-items-center">
+        <span>
+          <i
+            class="fa-solid"
+            [ngClass]="currentTheme === 'dark' ? 'fa-moon' : 'fa-sun'"
+          ></i>
+          Chế độ {{ currentTheme === "dark" ? "tối" : "sáng" }}
+        </span>
+        <button class="theme-toggle-mobile" (click)="toggleTheme()">
+          <span
+            class="toggle-handle-mobile"
+            [class.active]="currentTheme === 'dark'"
+          ></span>
+        </button>
+      </div>
+    </li>
+    <li class="mobile-menu-item">
+      <div class="language-selector-mobile">
+        <i class="fa-solid fa-language"></i> Ngôn ngữ
+        <div class="language-buttons">
+          <button
+            class="btn btn-sm"
+            [class.btn-primary]="currentLanguage === 'vi'"
+            [class.btn-outline-primary]="currentLanguage !== 'vi'"
+            (click)="switchLanguage('vi')"
+          >
+            🇻🇳 VI
+          </button>
+          <button
+            class="btn btn-sm"
+            [class.btn-primary]="currentLanguage === 'en'"
+            [class.btn-outline-primary]="currentLanguage !== 'en'"
+            (click)="switchLanguage('en')"
+          >
+            🇺🇸 EN
+          </button>
+        </div>
+      </div>
+    </li>
+
+    <li class="mobile-menu-item" *ngIf="isLoggedIn()">
+      <a (click)="logout(); closeMobileMenu()" class="text-danger">
+        <i class="fa-solid fa-sign-out-alt"></i> Đăng Xuất
+      </a>
+    </li>
+  </ul>
+</div>

@@ -9,6 +9,7 @@ export interface Review {
   id: number;
   bookId: number;
   bookName: string;
+  bookCoverUrl?: string; // NEW: Book thumbnail
   userId: number;
   userName: string;
   rating: number;
@@ -19,6 +20,9 @@ export interface Review {
   likesCount?: number;
   commentsCount?: number;
   currentUserLiked?: boolean;
+  // Admin reply
+  adminReply?: string;
+  adminReplyDate?: string;
 }
 
 export interface ReviewComment {
@@ -44,18 +48,18 @@ export class ReviewService {
   // Lấy tất cả đánh giá cho một cuốn sách (công khai)
   getReviewsForBook(bookId: number): Observable<BookReviewsSummary> {
     return this.http.get<BookReviewsSummary>(
-      `${this.apiUrl}/books/${bookId}/reviews`
+      `${this.apiUrl}/books/${bookId}/reviews`,
     );
   }
 
   // Gửi một đánh giá mới (with images support)
   addReview(
     bookId: number,
-    review: { rating: number; comment?: string; images?: string[] }
+    review: { rating: number; comment?: string; images?: string[] },
   ): Observable<Review> {
     return this.http.post<Review>(
       `${this.apiUrl}/books/${bookId}/reviews`,
-      review
+      review,
     );
   }
 
@@ -66,7 +70,7 @@ export class ReviewService {
 
   checkIfUserHasReviewed(bookId: number): Observable<{ hasReviewed: boolean }> {
     return this.http.get<{ hasReviewed: boolean }>(
-      `${this.apiUrl}/books/${bookId}/reviews/check`
+      `${this.apiUrl}/books/${bookId}/reviews/check`,
     );
   }
 
@@ -74,12 +78,34 @@ export class ReviewService {
   approveReview(reviewId: number): Observable<Review> {
     return this.http.put<Review>(
       `${this.apiUrl}/admin/reviews/${reviewId}/approve`,
-      {}
+      {},
     );
   }
 
   deleteReview(reviewId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/reviews/${reviewId}`);
+  }
+
+  // Bulk approve multiple reviews
+  bulkApprove(reviewIds: number[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/admin/reviews/bulk-approve`, {
+      reviewIds,
+    });
+  }
+
+  // Bulk delete multiple reviews
+  bulkDelete(reviewIds: number[]): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/admin/reviews/bulk-delete`, {
+      reviewIds,
+    });
+  }
+
+  // Add admin reply to a review
+  addAdminReply(reviewId: number, replyText: string): Observable<Review> {
+    return this.http.post<Review>(
+      `${this.apiUrl}/admin/reviews/${reviewId}/reply`,
+      { replyText },
+    );
   }
 
   // --- My reviews ---
@@ -89,7 +115,7 @@ export class ReviewService {
 
   updateMyReview(
     id: number,
-    payload: { rating: number; comment?: string }
+    payload: { rating: number; comment?: string },
   ): Observable<Review> {
     return this.http.put<Review>(`${this.apiUrl}/my/reviews/${id}`, payload);
   }
@@ -100,42 +126,42 @@ export class ReviewService {
 
   // --- LIKE/UNLIKE ---
   likeReview(
-    reviewId: number
+    reviewId: number,
   ): Observable<{ likesCount: number; liked: boolean }> {
     return this.http.post<{ likesCount: number; liked: boolean }>(
       `${this.apiUrl}/reviews/${reviewId}/like`,
-      {}
+      {},
     );
   }
 
   unlikeReview(
-    reviewId: number
+    reviewId: number,
   ): Observable<{ likesCount: number; liked: boolean }> {
     return this.http.delete<{ likesCount: number; liked: boolean }>(
-      `${this.apiUrl}/reviews/${reviewId}/like`
+      `${this.apiUrl}/reviews/${reviewId}/like`,
     );
   }
 
   // --- COMMENTS ---
   getCommentsForReview(reviewId: number): Observable<ReviewComment[]> {
     return this.http.get<ReviewComment[]>(
-      `${this.apiUrl}/reviews/${reviewId}/comments`
+      `${this.apiUrl}/reviews/${reviewId}/comments`,
     );
   }
 
   addCommentToReview(
     reviewId: number,
-    content: string
+    content: string,
   ): Observable<ReviewComment> {
     return this.http.post<ReviewComment>(
       `${this.apiUrl}/reviews/${reviewId}/comments`,
-      { content }
+      { content },
     );
   }
 
   deleteComment(commentId: number): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/reviews/comments/${commentId}`
+      `${this.apiUrl}/reviews/comments/${commentId}`,
     );
   }
 }
