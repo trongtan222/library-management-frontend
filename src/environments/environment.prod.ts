@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://lms-backend-xxxx.onrender.com/api', // ← THAY lms-backend-xxxx bằng URL backend của bạn
+  apiBaseUrl: 'https://lms-backend-4ny9.onrender.com/api',
   enableLogging: false,
-  googleBooksApiKey: '', // provide via CI/CD env replacement; do not hardcode
+  googleBooksApiKey: '',
 };
